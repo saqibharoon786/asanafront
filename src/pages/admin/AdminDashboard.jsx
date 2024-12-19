@@ -14,7 +14,7 @@ const AdminDashboard = () => {
       </h1>
 
       {/* Stats Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {/* Total Users */}
         <div className="bg-white p-6 rounded-lg shadow-lg flex items-center justify-between">
           <div>
@@ -124,8 +124,8 @@ const AdminDashboard = () => {
       </div>
 
       {/* Graphs or Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Example: You can integrate a graph/chart library like Chart.js or Recharts here */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+        {/* Sales Analytics */}
         <div className="bg-white p-6 rounded-lg shadow-lg">
           <h2 className="text-2xl font-semibold text-gray-700 mb-4">
             Sales Analytics
@@ -138,7 +138,7 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Another Chart or Graph */}
+        {/* User Growth */}
         <div className="bg-white p-6 rounded-lg shadow-lg">
           <h2 className="text-2xl font-semibold text-gray-700 mb-4">
             User Growth

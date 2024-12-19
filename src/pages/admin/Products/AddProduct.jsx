@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { FaEdit, FaTrashAlt, FaUser } from "react-icons/fa"; // Import icons
-
-const API_ADMIN_URL = process.env.REACT_APP_API_ADMIN_URL
+import { PencilIcon, TrashIcon, EyeIcon } from '@heroicons/react/outline'; // Importing Heroicons
 
 const PanelProduct = () => {
   const [products, setProducts] = useState([]);
@@ -11,25 +9,24 @@ const PanelProduct = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState(""); 
-  const [selectedImage, setSelectedImage] = useState(null); 
-  const [selectedProduct, setSelectedProduct] = useState(null); // State for selected product in modal
-  const [deletingProductName, setDeletingProductName] = useState(null); // Added deleting product name state
+  const [selectedCategory, setSelectedCategory] = useState(""); // Add the missing selectedCategory state
+  const [selectedImage, setSelectedImage] = useState(null); // State for selected image
   const navigate = useNavigate();
-
-  const jwtLoginToken = localStorage.getItem("jwtLoginToken")
 
   // Fetch products from API
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get(`${API_ADMIN_URL}/product/get-products`);
+        const response = await axios.get("http://localhost:3000/admin/product/get-products");
+        console.log(response.data); // Check the API response structure
+
         if (response.data.success) {
-          const productsData = Array.isArray(response.data.information.products)
-            ? response.data.information.products
+          // Ensure response.data.information is an array
+          const productsData = Array.isArray(response.data.information.products) 
+            ? response.data.information.products 
             : [];
           setProducts(productsData);
-          setFilteredProducts(productsData);
+          setFilteredProducts(productsData); // Initialize filtered products
         } else {
           setError("No products found.");
         }
@@ -40,6 +37,7 @@ const PanelProduct = () => {
         setLoading(false);
       }
     };
+
     fetchProducts();
   }, []);
 
@@ -66,59 +64,26 @@ const PanelProduct = () => {
     const selectedCategory = e.target.value;
     setSelectedCategory(selectedCategory);
 
+    // Filter products based on the selected category
     if (selectedCategory) {
       const filtered = products.filter((product) =>
         product.product_Category === selectedCategory
       );
       setFilteredProducts(filtered);
     } else {
+      // Show all products if no category is selected
       setFilteredProducts(products);
     }
   };
 
   // Handle image click to show large version
-  const handleImageClick = (imagePath, product) => {
+  const handleImageClick = (imagePath) => {
     setSelectedImage(imagePath);
-    setSelectedProduct(product); // Set the selected product for modal actions
   };
 
   // Close modal
   const closeModal = () => {
     setSelectedImage(null);
-    setSelectedProduct(null);
-  };
-
-  // Handle product soft delete (update status to 'deleted')
-  const handleDelete = async (productName) => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
-      try {
-        setDeletingProductName(productName);
-  
-        // Send delete request to the backend
-        const response = await axios.delete(`${API_ADMIN_URL}/product/delete-product`, {
-          data: { product_Name: productName }, // Send the product name in the request body
-          headers: {
-            Authorization: `Bearer ${jwtLoginToken}`, // Add the JWT token for authentication
-          },
-        });
-  
-        if (response.status === 200) {
-          // Update the state to remove the deleted product from the list
-          setProducts((prevProducts) =>
-            prevProducts.filter((product) => product.product_Name !== productName)
-          );
-          alert("Product deleted successfully.");
-        } else {
-          throw new Error(response.data.message || "Failed to delete the product.");
-        }
-      } catch (error) {
-        const errorMessage =
-          error.response?.data?.message || error.message || "An error occurred. Please try again later.";
-        alert(errorMessage);
-      } finally {
-        setDeletingProductName(null); // Reset deleting state
-      }
-    }
   };
 
   return (
@@ -144,6 +109,7 @@ const PanelProduct = () => {
 
       {/* Filter Section */}
       <div className="bg-white shadow rounded-lg p-4">
+        {/* Filter Controls */}
         <div className="flex gap-4 mb-4 flex-wrap">
           <select className="border rounded-lg px-4 py-2 w-full sm:w-1/4 md:w-1/4">
             <option>Select Status</option>
@@ -172,6 +138,7 @@ const PanelProduct = () => {
           />
         </div>
 
+        {/* Action Buttons */}
         <div className="flex justify-between mb-4">
           <button className="bg-blue-500 text-white px-4 py-2 rounded-lg" onClick={handleNavigateAddProductPage}>+ Add Product</button>
           <button className="bg-gray-200 px-4 py-2 rounded-lg">Export</button>
@@ -191,6 +158,7 @@ const PanelProduct = () => {
             </tr>
           </thead>
           <tbody>
+            {/* Loading state */}
             {loading ? (
               <tr>
                 <td colSpan="7" className="text-center py-4">Loading...</td>
@@ -218,23 +186,23 @@ const PanelProduct = () => {
                     </span>
                   </td>
                   <td className="py-2 px-4 flex gap-2">
-                    <button className="text-blue-500 flex items-center gap-1">
-                      <FaEdit />
+                    <button className="text-blue-500">
+                      <PencilIcon className="h-5 w-5" /> {/* Edit Icon */}
                     </button>
-                    <button
-                      className="text-red-500 flex items-center gap-1"
-                      onClick={() => handleDelete(product.product_Name)} // Fixed to pass productName
-                    >
-                      <FaTrashAlt />
+                    <button className="text-red-500">
+                      <TrashIcon className="h-5 w-5" /> {/* Delete Icon */}
+                    </button>
+                    <button className="text-gray-500">
+                      <EyeIcon className="h-5 w-5" /> {/* View Icon */}
                     </button>
                   </td>
                   <td className="py-2 px-4">
                     {product.product_Image && product.product_Image.filePath ? (
                       <img
-                        src={`http://localhost:3000${product.product_Image.filePath}`}
+                        src={`http://localhost:3000${product.product_Image.filePath}`} // Full URL for the image
                         alt={product.product_Name}
                         className="w-16 h-16 object-cover rounded cursor-pointer"
-                        onClick={() => handleImageClick(`http://localhost:3000${product.product_Image.filePath}`, product)} 
+                        onClick={() => handleImageClick(`http://localhost:3000${product.product_Image.filePath}`)} // Handle click
                       />
                     ) : (
                       <span>No image</span>
@@ -252,9 +220,12 @@ const PanelProduct = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-4 rounded">
             <img src={selectedImage} alt="Selected" className="max-w-full max-h-96" />
-            <div className="py-2 px-4 flex gap-2">
-            </div>
-            <button className="text-gray-500" onClick={closeModal}>Close</button>
+            <button
+              onClick={closeModal}
+              className="mt-4 px-4 py-2 bg-red-500 text-white rounded"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}

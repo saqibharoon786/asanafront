@@ -27,7 +27,7 @@ const initialLeads = [
   }
 ];
 
-function App() {
+function SalesPanelQuote() {
   const [leads, setLeads] = useState(initialLeads);
   const [formData, setFormData] = useState({
     fullName: "",
@@ -119,4 +119,4 @@ function App() {
   );
 }
 
-export default App;
+export default SalesPanelQuote;

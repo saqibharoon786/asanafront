@@ -6,7 +6,7 @@ import {SalesDashboard,SalesAddQuote,SalesViewQuote,SalesPanelQuote,SalesLeads} 
 // HR
 import { HrDashboard} from './pages/hr/HrPages';
 // Admin
-import { AdminDashboard, AddStaff, PanelStaff, PanelDepartment,EditStaff, PanelProjects, PanelProducts, PanelQuote, AddQuote, ViewQuote, PanelLeads, AddLead, ViewLead, PanelInvoices, AddInvoice, ViewInvoice } from "./pages/admin/AdminPages";
+import { AdminDashboard, AddStaff, PanelStaff, PanelDepartment,EditStaff, PanelProjects, PanelProducts, PanelQuote, AddQuote, ViewQuote, PanelLeads, AddLead, ViewLead, PanelInvoices, AddInvoice, ViewInvoice,AddProduct, EditProduct } from "./pages/admin/AdminPages";
 // Layouts 
 import { AdminLayout, HrLayout, SalesLayout } from "./layouts/Layout";
 // Protected Roots
@@ -25,6 +25,9 @@ const App = () => {
 
         <Route path="/staff" element={<AdminProtectedRoute><AdminLayout><PanelStaff /></AdminLayout></AdminProtectedRoute>} />
         <Route path="/products" element={<AdminProtectedRoute><AdminLayout><PanelProducts /></AdminLayout></AdminProtectedRoute>} />
+        <Route path="/add-product" element={<AdminProtectedRoute><AdminLayout><AddProduct /></AdminLayout></AdminProtectedRoute>} />
+        <Route path="/edit-product" element={<AdminProtectedRoute><AdminLayout><EditProduct /></AdminLayout></AdminProtectedRoute>} />
+
         <Route path="/addStaff" element={<AdminProtectedRoute><AdminLayout><AddStaff /></AdminLayout></AdminProtectedRoute>} />
         <Route path="/leads" element={<AdminProtectedRoute><AdminLayout><PanelLeads /></AdminLayout></AdminProtectedRoute>} />
         <Route path="/addNewLead" element={<AdminProtectedRoute><AdminLayout><AddLead /></AdminLayout></AdminProtectedRoute>} />

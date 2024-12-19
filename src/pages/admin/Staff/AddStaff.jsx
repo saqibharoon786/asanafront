@@ -25,10 +25,6 @@ const AddStaff = () => {
       const fetchDepartments = async () => {
         try {
           const jwtLoginToken = localStorage.getItem("jwtLoginToken");
-          if (!jwtLoginToken) {
-            alert("Please log in to add a staff member.");
-            return;
-          }
 
           const response = await axios.get(
             `${API_ADMIN_URL}/department/get-departments`,

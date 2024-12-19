@@ -14,5 +14,7 @@ import PanelInvoices from "./Invoice/PanelInvoices";
 import AddInvoice from "./Invoice/AddInvoice";
 import ViewInvoice from "./Invoice/ViewInvoice";
 import EditStaff from "./Staff/EditStaff";
+import AddProduct from "./Products/AddProduct";
+import EditProduct from "./Products/EditProduct";
 
-export { AdminDashboard, PanelStaff,EditStaff, AddStaff, PanelDepartment,PanelProjects,PanelProducts,PanelQuote,AddQuote,ViewQuote, PanelLeads,AddLead,ViewLead,PanelInvoices,AddInvoice,ViewInvoice};
+export { AdminDashboard, PanelStaff,EditStaff, AddStaff, PanelDepartment,PanelProjects,PanelProducts,PanelQuote,AddQuote,ViewQuote, PanelLeads,AddLead,ViewLead,PanelInvoices,AddInvoice,ViewInvoice,AddProduct,EditProduct};
