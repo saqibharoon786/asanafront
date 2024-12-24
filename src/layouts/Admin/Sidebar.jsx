@@ -88,14 +88,14 @@ const Sidebar = () => {
                     📈 Analytics Dashboard
                   </Link>
                 </li>
-                <li>
+                {/* <li>
                   <Link
                     to="/insights"
                     className="block py-2 text-black hover:text-gray-700"
                   >
                     🔍 Insights
                   </Link>
-                </li>
+                </li> */}
               </ul>
             )}
           </div>
@@ -131,7 +131,7 @@ const Sidebar = () => {
                     Staff
                   </Link>
                 </li>
-                <li>
+                {/* <li>
                   <Link
                     to="/projects"
                     className="block py-2 text-black hover:text-gray-700 flex items-center gap-2"
@@ -139,7 +139,7 @@ const Sidebar = () => {
                     <FaProjectDiagram className="mr-2 transform transition-transform hover:scale-110 text-purple-500" />
                     Projects
                   </Link>
-                </li>
+                </li> */}
               </ul>
             )}
           </div>
@@ -185,16 +185,7 @@ const Sidebar = () => {
               <ul className="pl-8 mt-2 space-y-2">
                 <li>
                   <Link
-                    to="/customers"
-                    className="block py-2 text-black hover:text-gray-700 flex items-center gap-2"
-                  >
-                    <FaUsers className="mr-2 transform transition-transform hover:scale-110 text-red-500" />
-                    Customers
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/sales-leads"
+                    to="/leads"
                     className="block py-2 text-black hover:text-gray-700 flex items-center gap-2"
                   >
                     <FaBullhorn className="mr-2 transform transition-transform hover:scale-110 text-yellow-500" />
@@ -203,7 +194,7 @@ const Sidebar = () => {
                 </li>
                 <li>
                   <Link
-                    to="/sales-Quote-Panel"
+                    to="/quotes"
                     className="block py-2 text-black hover:text-gray-700 flex items-center gap-2"
                   >
                     <FaFileInvoice className="mr-2 transform transition-transform hover:scale-110 text-blue-500" />
@@ -212,65 +203,11 @@ const Sidebar = () => {
                 </li>
                 <li>
                   <Link
-                    to="/retainer-invoices"
+                    to="/invoices"
                     className="block py-2 text-black hover:text-gray-700 flex items-center gap-2"
                   >
                     <FaFileInvoice className="mr-2 transform transition-transform hover:scale-110 text-gray-500" />
-                    Retainer Invoices
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/sales-orders"
-                    className="block py-2 text-black hover:text-gray-700 flex items-center gap-2"
-                  >
-                    <FaBullhorn className="mr-2 transform transition-transform hover:scale-110 text-indigo-500" />
-                    Sales Orders
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/delivery-challans"
-                    className="block py-2 text-black hover:text-gray-700 flex items-center gap-2"
-                  >
-                    <FaFileInvoice className="mr-2 transform transition-transform hover:scale-110 text-teal-500" />
-                    Delivery Challans
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/quotePanel"
-                    className="block py-2 text-black hover:text-gray-700 flex items-center gap-2"
-                  >
-                    <FaFileInvoice className="mr-2 transform transition-transform hover:scale-110 text-purple-500" />
-                    Invoices
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/payment-received"
-                    className="block py-2 text-black hover:text-gray-700 flex items-center gap-2"
-                  >
-                    <FaFileInvoice className="mr-2 transform transition-transform hover:scale-110 text-pink-500" />
-                    Payments Received
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/recurring-invoices"
-                    className="block py-2 text-black hover:text-gray-700 flex items-center gap-2"
-                  >
-                    <FaFileInvoice className="mr-2 transform transition-transform hover:scale-110 text-yellow-500" />
-                    Recurring Invoices
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/credit-notes"
-                    className="block py-2 text-black hover:text-gray-700 flex items-center gap-2"
-                  >
-                    <FaFileInvoice className="mr-2 transform transition-transform hover:scale-110 text-blue-600" />
-                    Credit Notes
+                     Invoices
                   </Link>
                 </li>
               </ul>

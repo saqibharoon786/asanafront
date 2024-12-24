@@ -3,9 +3,9 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { FaEye, FaCheck, FaTrashAlt } from 'react-icons/fa';
 
-const API_ADMIN_URL = process.env.REACT_APP_API_ADMIN_URL;
+const API_SALES_URL = process.env.REACT_APP_API_SALES_URL;
 
-const PanelLeads = () => {
+const SalesPanelLeads = () => {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,7 +24,7 @@ const PanelLeads = () => {
   useEffect(() => {
     const fetchLeads = async () => {
       try {
-        const response = await axios.get(`${API_ADMIN_URL}/lead/all-leads`, {
+        const response = await axios.get(`${API_SALES_URL}/lead/all-leads`, {
           headers: { Authorization: `Bearer ${jwtLoginToken}` },
         });
         if (response.data.success) {
@@ -66,7 +66,7 @@ const PanelLeads = () => {
     if (window.confirm('Are you sure you want to delete this lead?')) {
       try {
         const response = await axios.delete(
-          `${API_ADMIN_URL}/lead/delete/${leadId}`,
+          `${API_SALES_URL}/lead/delete/${leadId}`,
           {
             data: { lead_Identifier: leadId },
             headers: {
@@ -95,7 +95,7 @@ const PanelLeads = () => {
     if (window.confirm('Are you sure you want to approve this lead?')) {
       try {
         const response = await axios.patch(
-          `${API_ADMIN_URL}/lead/approve/${leadId}`,
+          `${API_SALES_URL}/lead/approve/${leadId}`,
           {},
           {
             headers: {
@@ -232,4 +232,4 @@ const PanelLeads = () => {
   );
 };
 
-export default PanelLeads;
+export default SalesPanelLeads;

@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import { useSelector } from "react-redux";
 
-const ViewLead = () => {
+const SalesViewLead = () => {
   const { leadId } = useParams();
   const [lead, setLead] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -30,7 +30,7 @@ const ViewLead = () => {
 
       try {
         const response = await axios.get(
-          `http://localhost:3000/admin/lead/${leadId}`,
+          `http://localhost:3000/sales/lead/${leadId}`,
           {
             headers: { Authorization: `Bearer ${jwtLoginToken}` },
           }
@@ -139,4 +139,4 @@ const ViewLead = () => {
   );
 };
 
-export default ViewLead;
+export default SalesViewLead;

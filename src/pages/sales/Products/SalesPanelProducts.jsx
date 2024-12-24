@@ -3,9 +3,9 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { FaEdit, FaTrashAlt, FaUser } from "react-icons/fa"; // Import icons
 
-const API_ADMIN_URL = process.env.REACT_APP_API_ADMIN_URL;
+const API_SALES_URL = process.env.REACT_APP_API_SALES_URL;
 
-const PanelProduct = () => {
+const SalesPanelProducts = () => {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,7 +24,7 @@ const PanelProduct = () => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get(
-          `${API_ADMIN_URL}/product/get-products`,
+          `${API_SALES_URL}/product/get-products`,
           {
             headers: {
               Authorization: `Bearer ${jwtLoginToken}`, // Corrected template literal syntax
@@ -99,7 +99,7 @@ const PanelProduct = () => {
   };
 
   const handleUpdate = (productId) => {
-    navigate(`/update-product/${productId}`);
+    navigate(`/sales/view-product/${productId}`);
   };
 
   const handleDelete = async (productName) => {
@@ -109,7 +109,7 @@ const PanelProduct = () => {
 
         // Send delete request to the backend
         const response = await axios.delete(
-          `${API_ADMIN_URL}/product/delete-product`,
+          `${API_SALES_URL}/product/delete-product`,
           {
             data: { product_Name: productName }, // Send the product name in the request body
             headers: {
@@ -221,13 +221,7 @@ const PanelProduct = () => {
           />
         </div>
 
-        <div className="flex justify-between mb-4">
-          <button
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg"
-            onClick={handleNavigateAddProductPage}
-          >
-            + Add Product
-          </button>
+        <div className="flex justify-end mb-4">
           <button className="bg-gray-200 px-4 py-2 rounded-lg">Export</button>
         </div>
 
@@ -242,7 +236,7 @@ const PanelProduct = () => {
               <th className="py-2 px-4 border">Selling Price</th>
               <th className="py-2 px-4 border">Status</th>
               <th className="py-2 px-4 border">Actions</th>
-              
+             
             </tr>
           </thead>
           <tbody>
@@ -267,7 +261,7 @@ const PanelProduct = () => {
             ) : (
               filteredProducts.map((product, index) => (
                 <tr key={index} className="border-t">
-                        <td className="py-2 px-4">
+                  <td className="py-2 px-4">
                     {product.product_Image && product.product_Image.filePath ? (
                       <img
                         src={`http://localhost:3000${product.product_Image.filePath}`}
@@ -315,7 +309,7 @@ const PanelProduct = () => {
                       <FaTrashAlt />
                     </button>
                   </td>
-            
+                  
                 </tr>
               ))
             )}
@@ -325,22 +319,26 @@ const PanelProduct = () => {
 
       {/* Modal for showing the larger image */}
       {selectedImage && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-4 rounded">
-            <img
-              src={selectedImage}
-              alt="Selected"
-              className="max-w-full max-h-96"
-            />
-            <div className="py-2 px-4 flex gap-2"></div>
-            <button className="text-gray-500" onClick={closeModal}>
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+  <div className="fixed inset-0 bg-red bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white p-4 rounded relative">
+      <img
+        src={selectedImage}
+        alt="Selected"
+        className="max-w-full max-h-96"
+      />
+      <button
+        className="absolute top-2 right-2 text-white bg-red-500 hover:bg-red-700 focus:ring-2 focus:ring-red-300 focus:outline-none rounded-full w-8 h-8 flex items-center justify-center"
+        onClick={closeModal}
+      >
+        &times;
+      </button>
+    </div>
+  </div>
+)}
+
+
     </div>
   );
 };
 
-export default PanelProduct;
+export default SalesPanelProducts;

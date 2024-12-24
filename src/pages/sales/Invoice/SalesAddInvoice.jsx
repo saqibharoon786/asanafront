@@ -1,20 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";  // Import useNavigate
 
 const API_SALES_URL = process.env.REACT_APP_API_SALES_URL;
 
-const SalesAddQuote = () => {
+const SalesAddInvoice = () => {
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
-  const { user } = useSelector((state) => state.auth) || {};
-  const navigate = useNavigate(); // Initialize useNavigate
-
-  const creator = {
-    name: user?.name || "",
-    email: user?.email || "",
-    contact: user?.contact || "",
-  };
+  const navigate = useNavigate(); // Initialize navigate
 
   const [client, setClient] = useState({
     client_Name: "",
@@ -33,7 +25,7 @@ const SalesAddQuote = () => {
 
   const [productOptions, setProductOptions] = useState([]);
   const [quoteDetails, setQuoteDetails] = useState({
-    status: "Pending",
+    status: "Unpaid",
   });
 
   // Error states for each section
@@ -48,8 +40,6 @@ const SalesAddQuote = () => {
   // Fetch products from backend
   useEffect(() => {
     const fetchProducts = async () => {
-      if (!jwtLoginToken) return;
-
       try {
         const response = await axios.get(`${API_SALES_URL}/product/get-products`, {
           headers: { Authorization: `Bearer ${jwtLoginToken}` },
@@ -195,25 +185,23 @@ const SalesAddQuote = () => {
     }
 
     const payload = {
-      quote_Creater: {
-        name: creator.name,
-        email: creator.email,
-        phone: creator.contact,
-      },
-      quote_Client: client,
-      quote_Products: products,
-      quote_Details: quoteDetails,
+      invoice_Client: client, // Update to match the backend structure
+      invoice_Products: products, // Update to match the backend structure
+      invoice_Details: quoteDetails, // Update to match the backend structure
     };
 
     try {
       const response = await axios.post(
-        `${API_SALES_URL}/quote/create-quote`,
+        `${API_SALES_URL}/invoice/create-invoice`,  // Ensure correct URL with protocol
         payload,
         { headers: { Authorization: `Bearer ${jwtLoginToken}` } }
       );
 
       if (response.data.success) {
-        alert("Quote created successfully!");
+        alert("Invoice created successfully!");
+        
+        // Navigate to the invoice panel after success
+        navigate("/sales/invoice-panel"); // Change to your invoice panel path
 
         // Clear the form after success
         setProducts([]);
@@ -223,22 +211,19 @@ const SalesAddQuote = () => {
         setQuoteDetails({
           status: "Pending",
         });
-
-
-        navigate("/sales/quote-panel");
       } else {
-        alert("Failed to create quote. Please try again.");
+        alert("Failed to create invoice. Please try again.");
       }
     } catch (error) {
-      console.error("Error creating quote:", error);
-      alert("Failed to create quote. Please try again.");
+      console.error("Error creating invoice:", error);
+      alert("Failed to create invoice. Please try again.");
     }
   };
 
   return (
     <div className="max-w-5xl mx-auto p-8 bg-white rounded-lg shadow-lg mt-10">
       <h2 className="text-4xl font-extrabold text-center text-blue-700 mb-6">
-        Create a New Quote
+        Create a New Invoice
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-8">
@@ -271,13 +256,11 @@ const SalesAddQuote = () => {
           <h3 className="text-2xl font-bold mb-4 text-gray-700">Products</h3>
 
           <div className="flex flex-col sm:flex-row items-center gap-4">
-            <label htmlFor="product" className="block text-sm font-semibold text-gray-700">Select Product</label>
             <select
               name="product"
-              id="product"
               value={currentProduct.product}
               onChange={handleCurrentProductChange}
-              className="p-2 border rounded-lg w-full sm:w-1/4"
+              className="p-2 border rounded-lg"
             >
               <option value="" disabled>Select Product</option>
               {productOptions.length > 0 ? (
@@ -289,29 +272,54 @@ const SalesAddQuote = () => {
               )}
             </select>
 
-            {["product_SellingPrice", "product_Discount", "quantity"].map((field) => (
-              <div key={field} className="w-full sm:w-1/4">
-                <label htmlFor={field} className="block text-sm font-semibold text-gray-700">
-                  {field.replace("_", " ").toUpperCase()}
-                </label>
-                <input
-                  type="number"
-                  name={field}
-                  id={field}
-                  placeholder={field.replace("_", " ").toUpperCase()}
-                  value={currentProduct[field]}
-                  onChange={handleCurrentProductChange}
-                  className="p-2 border rounded-lg w-full"
-                />
-              </div>
-            ))}
+            <div>
+              <label htmlFor="product_SellingPrice" className="block text-sm font-medium text-gray-700">
+                Selling Price
+              </label>
+              <input
+                type="number"
+                name="product_SellingPrice"
+                value={currentProduct.product_SellingPrice}
+                onChange={handleCurrentProductChange}
+                className="p-2 border rounded-lg"
+                placeholder="Selling Price"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">
+                Quantity
+              </label>
+              <input
+                type="number"
+                name="quantity"
+                value={currentProduct.quantity}
+                onChange={handleCurrentProductChange}
+                className="p-2 border rounded-lg"
+                placeholder="Quantity"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="product_Discount" className="block text-sm font-medium text-gray-700">
+                Discount
+              </label>
+              <input
+                type="number"
+                name="product_Discount"
+                value={currentProduct.product_Discount}
+                onChange={handleCurrentProductChange}
+                className="p-2 border rounded-lg"
+                placeholder="Discount"
+              />
+            </div>
 
             <button
               type="button"
               onClick={handleAddProduct}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg"
+              className="px-2 py-2 bg-blue-500 text-white rounded-lg"
             >
-              Add
+              Add Product
             </button>
           </div>
 
@@ -325,7 +333,7 @@ const SalesAddQuote = () => {
                   className="p-2 bg-gray-100 rounded-lg my-2 flex justify-between items-center"
                 >
                   <span>
-                    {prod.product} | Unit Price: ADE {prod.product_Price} | Qty: {prod.quantity} | Discount: {prod.product_Discount}%
+                    {prod.product} | Price: {prod.product_Price} | Qty: {prod.quantity} | Discount: {prod.product_Discount}%
                   </span>
 
                   <button
@@ -344,11 +352,11 @@ const SalesAddQuote = () => {
           type="submit"
           className="w-full py-4 mt-4 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-bold rounded-lg shadow hover:bg-blue-600"
         >
-          Create Quote
+          Create Invoice
         </button>
       </form>
     </div>
   );
 };
 
-export default SalesAddQuote;
+export default SalesAddInvoice;

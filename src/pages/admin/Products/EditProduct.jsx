@@ -6,7 +6,7 @@ const API_URL = process.env.REACT_APP_API_URL;
 const API_ADMIN_URL = process.env.REACT_APP_API_ADMIN_URL;
 
 const EditProduct = () => {
-  const { productId } = useParams(); // Getting productId from the URL
+  const { productId } = useParams();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -16,6 +16,9 @@ const EditProduct = () => {
     product_StockQuantity: "",
     product_Category: "",
     product_Description: "",
+    product_DateOfPurchase: "",
+    product_DamagedPieces: "",
+    product_StockLocation: "",
     product_Vendor: {
       vendor_Name: "",
       vendor_Email: "",
@@ -26,46 +29,16 @@ const EditProduct = () => {
     previewUrl: null,
   });
 
-  const [categories, setCategories] = useState([]);
-  const [vendors, setVendors] = useState([]);
-  const [productImageUrl, setProductImageUrl] = useState("");
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
 
-  // Fetch categories and vendors for dropdown selections
   useEffect(() => {
-    const fetchCategoriesAndVendors = async () => {
-      try {
-        const [categoryResponse, vendorResponse] = await Promise.all([
-          axios.get(`${API_ADMIN_URL}/category/get-categories`, {
-            headers: {
-              Authorization: `Bearer ${jwtLoginToken}`,
-            },
-          }),
-          axios.get(`${API_ADMIN_URL}/vendor/get-vendors`, {
-            headers: {
-              Authorization: `Bearer ${jwtLoginToken}`,
-            },
-          }),
-        ]);
+    if (!jwtLoginToken) {
+      alert("Authentication token is missing. Please log in.");
+      navigate("/login");
+      return;
+    }
 
-        const categoryData = categoryResponse.data?.information?.categories || [];
-        const vendorData = vendorResponse.data?.information?.vendors || [];
-
-        setCategories(categoryData);
-        setVendors(vendorData);
-      } catch (err) {
-        console.error("Failed to fetch categories or vendors:", err);
-        setCategories([]);
-        setVendors([]);
-      }
-    };
-
-    fetchCategoriesAndVendors();
-  }, [jwtLoginToken]);
-
-  // Fetch existing product data
-  useEffect(() => {
-    const fetchProductData = async () => {
+    const fetchProductDetails = async () => {
       try {
         const response = await axios.get(
           `${API_ADMIN_URL}/product/get-product/${productId}`,
@@ -75,87 +48,122 @@ const EditProduct = () => {
             },
           }
         );
+        const product = response.data?.information;
 
-        const product = response.data?.information?.product;
         if (product) {
           setFormData({
-            product_Name: product.product_Name,
-            product_CostPrice: product.product_CostPrice,
-            product_SellingPrice: product.product_SellingPrice,
-            product_StockQuantity: product.product_StockQuantity,
-            product_Category: product.product_Category,
-            product_Description: product.product_Description,
-            product_Vendor: product.product_Vendor || {
-              vendor_Name: "",
-              vendor_Email: "",
-              vendor_Contact: "",
-              vendor_Address: "",
+            product_Name: product.product_Name || "",
+            product_CostPrice: product.product_CostPrice || "",
+            product_SellingPrice: product.product_SellingPrice || "",
+            product_StockQuantity: product.product_StockQuantity || "",
+            product_Category: product.product_Category || "",
+            product_Description: product.product_Description || "",
+            product_DateOfPurchase: product.product_DateOfPurchase
+              ? new Date(product.product_DateOfPurchase)
+                  .toISOString()
+                  .slice(0, 10)
+              : "",
+            product_DamagedPieces: product.product_DamagedPieces || "",
+            product_StockLocation: product.product_StockLocation || "",
+            product_Vendor: {
+              vendor_Name: product.product_Vendor?.vendor_Name || "",
+              vendor_Email: product.product_Vendor?.vendor_Email || "",
+              vendor_Contact: product.product_Vendor?.vendor_Contact || "",
+              vendor_Address: product.product_Vendor?.vendor_Address || "",
             },
-            product_Image: null,
-            previewUrl: null,
+            product_Image: null, // We don't handle image directly here.
+            previewUrl: product.product_Image?.filePath
+              ? `${API_URL}${product.product_Image.filePath}`
+              : null,
           });
-
-          // Construct the URL for the product's image
-          if (product.product_Image?.filePath) {
-            setProductImageUrl(`${API_URL}${product.product_Image.filePath}`);
-          }
         }
       } catch (error) {
-        console.error("Failed to fetch product data", error);
-        alert("Failed to load product data.");
+        console.error("Error fetching product details:", error);
+        alert("Failed to load product details.");
       }
     };
 
-    fetchProductData();
-  }, [productId, jwtLoginToken]);
+    fetchProductDetails();
+  }, [productId, jwtLoginToken, navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    if (name.startsWith("vendor_")) {
+      setFormData((prevData) => ({
+        ...prevData,
+        product_Vendor: {
+          ...prevData.product_Vendor,
+          [name.replace("vendor_", "")]: value,
+        },
+      }));
+    } else {
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: value,
+      }));
+    }
   };
 
   const handleFileChange = (e) => {
-    const { name, files } = e.target;
-    const file = files[0];
-
+    const file = e.target.files[0];
     if (file) {
       const previewUrl = URL.createObjectURL(file);
       setFormData((prevData) => ({
         ...prevData,
-        [name]: file,
+        product_Image: file,
         previewUrl,
       }));
     }
   };
 
-  const handleVendorChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      product_Vendor: {
-        ...prevData.product_Vendor,
-        [name]: value,
-      },
-    }));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Basic form validation (optional)
+    if (
+      !formData.product_Name ||
+      !formData.product_CostPrice ||
+      !formData.product_SellingPrice
+    ) {
+      alert("Please fill in all required fields.");
+      return;
+    }
 
     const formDataToSend = new FormData();
     formDataToSend.append("product_NewName", formData.product_Name);
     formDataToSend.append("product_NewCostPrice", formData.product_CostPrice);
-    formDataToSend.append("product_NewSellingPrice", formData.product_SellingPrice);
-    formDataToSend.append("product_NewStockQuantity", formData.product_StockQuantity);
+    formDataToSend.append(
+      "product_NewSellingPrice",
+      formData.product_SellingPrice
+    );
+    formDataToSend.append(
+      "product_NewStockQuantity",
+      formData.product_StockQuantity
+    );
     formDataToSend.append("product_NewCategory", formData.product_Category);
-    formDataToSend.append("product_NewDescription", formData.product_Description);
-    formDataToSend.append("product_NewVendor", JSON.stringify(formData.product_Vendor));
+    formDataToSend.append(
+      "product_NewDescription",
+      formData.product_Description
+    );
+    formDataToSend.append(
+      "product_NewDateOfPurchase",
+      formData.product_DateOfPurchase
+    );
+    formDataToSend.append(
+      "product_NewDamagedPieces",
+      formData.product_DamagedPieces
+    );
+    formDataToSend.append(
+      "product_NewStockLocation",
+      formData.product_StockLocation
+    );
+    formDataToSend.append(
+      "product_NewVendor",
+      JSON.stringify(formData.product_Vendor)
+    );
 
     if (formData.product_Image) {
-      formDataToSend.append("product_Image", formData.product_Image);
+      formDataToSend.append("image", formData.product_Image);
     }
 
     try {
@@ -171,154 +179,114 @@ const EditProduct = () => {
       );
 
       if (response.status === 200 && response.data.success) {
-        alert("Product information updated successfully!");
+        alert("Product updated successfully!");
         navigate("/admin/products");
       } else {
-        alert(`Failed to update product: ${response.data.message}`);
+        throw new Error(response.data.message || "Unknown error");
       }
     } catch (error) {
-      console.error("Update failed", error);
-      alert("Failed to update product information.");
+      console.error("Error updating product:", error.response || error.message);
+      alert(error.response?.data?.message || "Failed to update product.");
     }
   };
 
   return (
-    <div>
-      <h1>Edit Product Information</h1>
-
-      <form onSubmit={handleSubmit}>
-        {/* Product Image */}
+    <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-md">
+      <h1 className="text-2xl font-bold mb-6">Edit Product</h1>
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label>Product Image</label>
-          {formData.previewUrl ? (
-            <img src={formData.previewUrl} alt="Product Preview" width="150" />
-          ) : productImageUrl ? (
-            <img src={productImageUrl} alt="Product" width="150" />
-          ) : (
-            <span>No Image</span>
-          )}
-          <input
-            type="file"
-            name="product_Image"
-            accept="image/*"
-            onChange={handleFileChange}
-          />
+          <label className="block text-sm font-medium text-gray-700">
+            Product Image
+          </label>
+          <div className="mb-4">
+            {formData.previewUrl ? (
+              <img
+                src={formData.previewUrl}
+                alt="Product Preview"
+                className="w-32 h-32 object-cover mb-2"
+              />
+            ) : (
+              <span className="block text-gray-500 mb-2">No Image</span>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="border border-gray-300 p-2 rounded-md w-full"
+            />
+          </div>
         </div>
 
-        {/* Category Dropdown */}
-        <label>Category</label>
-        <select
-          id="product_Category"
-          name="product_Category"
-          value={formData.product_Category}
-          onChange={handleInputChange}
-          required
-        >
-          <option value="">Select Category</option>
-          {categories.map((category) => (
-            <option key={category._id} value={category._id}>
-              {category.category_Name}
-            </option>
-          ))}
-        </select>
+        {[
+          { name: "product_Name", label: "Product Name" },
+          { name: "product_CostPrice", label: "Cost Price", type: "number" },
+          {
+            name: "product_SellingPrice",
+            label: "Selling Price",
+            type: "number",
+          },
+          {
+            name: "product_StockQuantity",
+            label: "Stock Quantity",
+            type: "number",
+          },
+          { name: "product_Category", label: "Category" },
+          { name: "product_Description", label: "Description" },
+          {
+            name: "product_DateOfPurchase",
+            label: "Date of Purchase",
+            type: "date",
+          },
+          {
+            name: "product_DamagedPieces",
+            label: "Damaged Pieces",
+            type: "number",
+          },
+          { name: "product_StockLocation", label: "Stock Location" },
+        ].map((field) => (
+          <div key={field.name}>
+            <label className="block text-sm font-medium text-gray-700">
+              {field.label}
+            </label>
+            <input
+              type={field.type || "text"}
+              name={field.name}
+              value={formData[field.name]}
+              onChange={handleInputChange}
+              className="mt-1 p-2 border border-gray-300 rounded-md w-full"
+            />
+          </div>
+        ))}
 
-        {/* Vendor Information */}
-        <div>
-          <label>Vendor Name</label>
-          <input
-            type="text"
-            name="vendor_Name"
-            value={formData.product_Vendor.vendor_Name}
-            onChange={handleVendorChange}
-          />
+        <h3 className="text-xl font-semibold mt-8 mb-4">Vendor Information</h3>
+        {[
+          { name: "vendor_Name", label: "Vendor Name" },
+          { name: "vendor_Email", label: "Vendor Email" },
+          { name: "vendor_Contact", label: "Vendor Contact" },
+          { name: "vendor_Address", label: "Vendor Address" },
+        ].map((field) => (
+          <div key={field.name}>
+            <label className="block text-sm font-medium text-gray-700">
+              {field.label}
+            </label>
+            <input
+              type="text"
+              name={`vendor_${field.name}`}
+              value={formData.product_Vendor[field.name]}
+              onChange={handleInputChange}
+              className="mt-1 p-2 border border-gray-300 rounded-md w-full"
+            />
+          </div>
+        ))}
+
+        <div className="mt-4">
+          <button
+            type="submit"
+            className="w-full py-2 px-4 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600"
+          >
+            Save Changes
+          </button>
         </div>
-
-        <div>
-          <label>Vendor Email</label>
-          <input
-            type="email"
-            name="vendor_Email"
-            value={formData.product_Vendor.vendor_Email}
-            onChange={handleVendorChange}
-          />
-        </div>
-
-        <div>
-          <label>Vendor Contact</label>
-          <input
-            type="tel"
-            name="vendor_Contact"
-            value={formData.product_Vendor.vendor_Contact}
-            onChange={handleVendorChange}
-          />
-        </div>
-
-        <div>
-          <label>Vendor Address</label>
-          <input
-            type="text"
-            name="vendor_Address"
-            value={formData.product_Vendor.vendor_Address}
-            onChange={handleVendorChange}
-          />
-        </div>
-
-        {/* Product Fields */}
-        <div>
-          <input
-            name="product_Name"
-            type="text"
-            placeholder="Product Name"
-            value={formData.product_Name}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-
-        <div>
-          <input
-            name="product_CostPrice"
-            type="number"
-            placeholder="Cost Price"
-            value={formData.product_CostPrice}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-
-        <div>
-          <input
-            name="product_SellingPrice"
-            type="number"
-            placeholder="Selling Price"
-            value={formData.product_SellingPrice}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-
-        <div>
-          <input
-            name="product_StockQuantity"
-            type="number"
-            placeholder="Stock Quantity"
-            value={formData.product_StockQuantity}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-
-        <div>
-          <textarea
-            name="product_Description"
-            placeholder="Product Description"
-            value={formData.product_Description}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-
-        <button type="submit">Save Changes</button>
       </form>
     </div>
   );

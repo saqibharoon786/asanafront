@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-const API_ADMIN_URL = process.env.REACT_APP_API_ADMIN_URL;
-const AddLead = () => {
+const API_SALES_URL = process.env.REACT_APP_API_SALES_URL;
+const SalesAddLead = () => {
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
 
   const [client, setClient] = useState({
@@ -85,7 +85,7 @@ const AddLead = () => {
     try {
       console.log(payload);
       const response = await axios.post(
-        `${API_ADMIN_URL}/lead/create-lead`,
+        `${API_SALES_URL}/lead/create-lead`,
         payload,
         {
           headers: {
@@ -280,4 +280,4 @@ const AddLead = () => {
   );
 };
 
-export default AddLead;
+export default SalesAddLead;

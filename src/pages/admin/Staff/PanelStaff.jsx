@@ -18,11 +18,14 @@ const PanelStaff = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get(`${API_ADMIN_URL}/department/get-employees`, {
-          headers: {
-            Authorization: `Bearer ${jwtLoginToken}`,
-          },
-        });
+        const response = await axios.get(
+          `${API_ADMIN_URL}/department/get-employees`,
+          {
+            headers: {
+              Authorization: `Bearer ${jwtLoginToken}`,
+            },
+          }
+        );
 
         const enrichedUsers = response.data.information.users
           .filter((user) => !user.deleted)
@@ -60,21 +63,31 @@ const PanelStaff = () => {
       try {
         setDeletingEmail(email);
 
-        const response = await axios.delete(`${API_ADMIN_URL}/department/delete-employee`, {
-          data: { email },
-          headers: {
-            Authorization: `Bearer ${jwtLoginToken}`,
-          },
-        });
+        const response = await axios.delete(
+          `${API_ADMIN_URL}/department/delete-employee`,
+          {
+            data: { email },
+            headers: {
+              Authorization: `Bearer ${jwtLoginToken}`,
+            },
+          }
+        );
 
         if (response.status === 200) {
-          setUsers((prevUsers) => prevUsers.filter((user) => user.email !== email));
+          setUsers((prevUsers) =>
+            prevUsers.filter((user) => user.email !== email)
+          );
           alert("Staff member deleted successfully.");
         } else {
-          throw new Error(response.data.message || "Failed to delete the staff member.");
+          throw new Error(
+            response.data.message || "Failed to delete the staff member."
+          );
         }
       } catch (error) {
-        const errorMessage = error.response?.data?.message || error.message || "An error occurred. Please try again later.";
+        const errorMessage =
+          error.response?.data?.message ||
+          error.message ||
+          "An error occurred. Please try again later.";
         alert(errorMessage);
       } finally {
         setDeletingEmail(null);
@@ -84,6 +97,7 @@ const PanelStaff = () => {
 
   // Handle update action
   const handleUpdate = (userId) => {
+    console.log(userId);
     navigate(`/update-staff/${userId}`);
   };
 
@@ -95,14 +109,16 @@ const PanelStaff = () => {
     setSearch(event.target.value);
   };
 
-  
-
   const filteredUsers = useMemo(
     () =>
       users.filter(
         (user) =>
-          (user.name?.toLowerCase() || "").includes(search.toLowerCase().trim()) ||
-          (user.email?.toLowerCase() || "").includes(search.toLowerCase().trim())
+          (user.name?.toLowerCase() || "").includes(
+            search.toLowerCase().trim()
+          ) ||
+          (user.email?.toLowerCase() || "").includes(
+            search.toLowerCase().trim()
+          )
       ),
     [users, search]
   );
@@ -168,12 +184,19 @@ const PanelStaff = () => {
               </thead>
               <tbody>
                 {filteredUsers.map((user, index) => (
-                  <tr key={user._id} className="hover:bg-gray-50 transition-colors border-b last:border-none">
+                  <tr
+                    key={user._id}
+                    className="hover:bg-gray-50 transition-colors border-b last:border-none"
+                  >
                     <td className="px-4 py-3 text-gray-700">{index + 1}</td>
                     <td className="px-4 py-3">{user.name}</td>
-                    <td className="px-4 py-3 text-gray-700">{user.department}</td>
+                    <td className="px-4 py-3 text-gray-700">
+                      {user.department}
+                    </td>
                     <td className="px-4 py-3">{user.email}</td>
-                    <td className="px-4 py-3 text-gray-700">{user.createdAt}</td>
+                    <td className="px-4 py-3 text-gray-700">
+                      {user.createdAt}
+                    </td>
                     <td className="px-4 py-3 text-center">
                       {/* Update Button */}
                       <button

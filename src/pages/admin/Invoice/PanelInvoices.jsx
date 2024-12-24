@@ -1,6 +1,9 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { FaEye, FaDollarSign, FaTrashAlt } from "react-icons/fa";
+
+const API_ADMIN_URL = process.env.REACT_APP_API_ADMIN_URL;
 
 const PanelInvoices = () => {
   const [invoices, setInvoices] = useState([]);
@@ -10,28 +13,24 @@ const PanelInvoices = () => {
   const [totalInvoices, setTotalInvoices] = useState(0);
 
   const navigate = useNavigate();
-
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
 
   // Navigate to Add New Invoice Page
   const handleNewInvoice = () => {
-    navigate("/addNewInvoice");
+    navigate("/add-invoice");
   };
 
   // Fetch Invoices from Backend
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/invoice/get-invoices", {
+        const response = await axios.get(`${API_ADMIN_URL}/invoice/get-invoices`, {
           headers: { Authorization: `Bearer ${jwtLoginToken}` },
         });
-        console.log("response is ", response);
-        
-        if (response.data?.success) {
-          // Ensure the correct access to invoices from response
-          const invoiceData = response.data?.information?.Invoice || [];
-          setInvoices(invoiceData);
-          setTotalInvoices(invoiceData.length);
+
+        if (response.data.success) {
+          setInvoices(response.data.information.Invoices); // Show all invoices
+          setTotalInvoices(response.data.information.Invoices.length);
         } else {
           setError("Failed to load invoices. Please try again.");
         }
@@ -44,140 +43,194 @@ const PanelInvoices = () => {
     };
 
     fetchInvoices();
-  }, [jwtLoginToken]);
+  }, [invoices]); // Re-fetch on JWT token change or initial load
 
   // Handle Search Input Change
   const handleSearchChange = (event) => {
     setSearch(event.target.value);
   };
 
-  const handleDeleteInvoice = async (invoice_Id) => {
-    try {
-      await axios.delete(
-        `http://localhost:3000/invoice/delete/${invoice_Id}`,
-        { headers: { Authorization: `Bearer ${jwtLoginToken}` } }
-      );
-
-      console.log("Invoice soft-deleted successfully.");
-      setInvoices((prevInvoices) =>
-        prevInvoices.filter((invoice) => invoice._id !== invoice_Id)
-      );
-      setTotalInvoices((prevTotal) => prevTotal - 1);
-    } catch (error) {
-      console.error("Error soft-deleting invoice:", error);
+  const handleDeleteInvoice = async (invoiceId) => {
+    if (window.confirm("Are you sure you want to delete this invoice?")) {
+      try {
+        const response = await axios.delete(
+          `${API_ADMIN_URL}/invoice/delete/${invoiceId}`, // URL
+          {
+            headers: {
+              Authorization: `Bearer ${jwtLoginToken}`,
+            },
+            data: { invoice_Identifier: invoiceId }, // Move data into the second argument
+          }
+        );
+  
+        if (response.status === 200) {
+          setInvoices((prevInvoices) =>
+            prevInvoices.filter((invoice) => invoice._id !== invoiceId)
+          );
+          alert("Invoice deleted successfully.");
+        } else {
+          throw new Error(response.data.message || "Failed to delete the invoice.");
+        }
+      } catch (error) {
+        const errorMessage =
+          error.response?.data?.message ||
+          error.message ||
+          "An error occurred. Please try again later.";
+        console.error("Delete Invoice Error:", error); // Log the error for debugging
+        alert(errorMessage);
+      }
     }
   };
+  
 
-  const filteredInvoices = useMemo(() => {
-    return invoices.filter(
-      (invoice) =>
-        invoice.deleted !== true &&
-        invoice.invoice_Client?.name?.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [search, invoices]);
-
-  const handleViewReport = (invoiceId) => {
+  const handlePaidInvoice = async (invoiceId) => {
+    if (window.confirm("Are you sure you want to mark this invoice as paid?")) {
+      try {
+        const response = await axios.patch(
+          `${API_ADMIN_URL}/invoice/set-paid/${invoiceId}`,
+          {}, // No request body needed here
+          {
+            headers: {
+              Authorization: `Bearer ${jwtLoginToken}`,
+            },
+          }
+        );
+  
+        if (response.status === 200) {
+          setInvoices((prevInvoices) =>
+            prevInvoices.filter((invoice) => invoice._id !== invoiceId)
+          );
+          alert(`Invoice marked as paid successfully.`);
+        } else {
+          throw new Error(response.data.message || "Failed to mark invoice as paid.");
+        }
+      } catch (error) {
+        const errorMessage =
+          error.response?.data?.message || error.message || "An error occurred. Please try again later.";
+        alert(`Error: ${errorMessage}`);
+      }
+    }
+  };
+  
+  // Navigate to View Invoice Page
+  const handleViewInvoice = (invoiceId) => {
     navigate(`/view-invoice/${invoiceId}`);
   };
 
-  if (loading) {
-    return (
-      <div className="p-6 flex justify-center items-center min-h-screen bg-gray-100">
-        <p className="text-xl font-semibold text-gray-600 animate-pulse">
-          Fetching invoices... Please wait.
-        </p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-6 flex justify-center items-center min-h-screen bg-gray-100">
-        <p className="text-xl font-semibold text-red-500">{error}</p>
-      </div>
-    );
-  }
+  // Determine the background color based on the invoice's status
+  const getStatusClass = (status) => {
+    switch (status) {
+      case "Paid":
+        return "bg-green-100";
+      case "Unpaid":
+        return "bg-red-100";
+      default:
+        return "bg-white";
+    }
+  };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-100 via-white to-gray-100">
-      <div className="p-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-5xl font-extrabold text-blue-800 tracking-wide drop-shadow-md">
-            Invoices Dashboard
-          </h1>
-          <button
-            onClick={handleNewInvoice}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-          >
-            + New Invoice
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white shadow-md hover:shadow-lg transition-all rounded-lg p-6">
-            <h2 className="text-2xl font-bold text-gray-700">Total Invoices</h2>
-            <p className="text-5xl font-extrabold text-blue-600 mt-3">{totalInvoices}</p>
-          </div>
-        </div>
-
-        {totalInvoices === 0 && (
-          <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-            <p className="text-xl font-semibold text-red-500 text-center">
-              No invoices added yet.
-            </p>
-          </div>
-        )}
-
-        <div className="bg-white shadow-md rounded-lg p-4 mb-8">
-          <input
-            type="text"
-            placeholder="🔍 Search for invoices..."
-            value={search}
-            onChange={handleSearchChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        {totalInvoices > 0 && filteredInvoices.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredInvoices.map((invoice) => (
-              <div key={invoice._id} className="bg-gradient-to-br from-white to-gray-100 shadow-lg rounded-lg p-6">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-2xl font-bold text-gray-800 mb-2">
-                      Client: {invoice.invoice_Client?.name || "Unknown"}
-                    </p>
-                    <p className="text-lg text-gray-600 mb-2">
-                      Status: {invoice.invoice_Details?.status || "Pending"}
-                    </p>
-                    <p className="text-lg text-gray-600 mb-2">
-                      Original Amount: ${invoice.invoice_TotalPrice ?? "N/A"}
-                    </p>
-                    {/* Displaying Discounted Amount if present */}
-                  </div>
-
-                  {/* Delete Button */}
-                  <button
-                    onClick={() => handleDeleteInvoice(invoice._id)}
-                    className="ml-2 text-red-500 font-bold hover:text-red-700 shadow-lg rounded-full transition-all transform hover:scale-110"
-                  >
-                    🗑️
-                  </button>
-                </div>
-
-                <button
-                  onClick={() => handleViewReport(invoice._id)}
-                  className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-green-700 transition"
-                >
-                  View Report
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-xl text-gray-600 text-center">No invoices found.</p>
-        )}
+    <div className="p-6 bg-gray-100 min-h-screen">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-blue-800">Invoices Dashboard</h1>
+        <button
+          onClick={handleNewInvoice}
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
+        >
+          + Add New Invoice
+        </button>
       </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">
+        <div className="bg-white shadow rounded-lg p-4 flex flex-col justify-between">
+          <div className="text-gray-500 font-medium">Total Invoices</div>
+          <div className="text-2xl font-bold text-blue-600">{totalInvoices}</div>
+        </div>
+      </div>
+
+      <div className="bg-white shadow rounded-lg p-4 mb-6">
+        <input
+          type="text"
+          placeholder="Search for invoices..."
+          value={search}
+          onChange={handleSearchChange}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center items-center py-6">
+          <p className="text-gray-600 text-lg">Loading invoices...</p>
+        </div>
+      ) : error ? (
+        <div className="flex justify-center items-center py-6">
+          <p className="text-red-500 text-lg">{error}</p>
+        </div>
+      ) : totalInvoices === 0 ? (
+        <div className="bg-white p-6 rounded-lg shadow mb-6">
+          <p className="text-red-500 text-center font-medium">No invoices available.</p>
+        </div>
+      ) : (
+        <div className="bg-white shadow rounded-lg p-4">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr>
+                <th className="py-2 px-4 border">Invoice Identifier</th>
+                <th className="py-2 px-4 border">Created By</th>
+                <th className="py-2 px-4 border">Client Name</th>
+                <th className="py-2 px-4 border">Total Price</th>
+                <th className="py-2 px-4 border">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {invoices.length > 0 ? (
+                invoices.map((invoice) => (
+                  <tr
+                    key={invoice._id}
+                    className={`border-t ${getStatusClass(invoice.invoice_Details?.status)}`}
+                  >
+                    <td className="py-2 px-4">{invoice.invoice_Identifier || "Unknown"}</td>
+                    <td className="py-2 px-4">{invoice.invoice_Creater?.name || "N/A"}</td>
+                    <td className="py-2 px-4">{invoice.invoice_Client?.client_Name || "Unknown"}</td>
+                    <td className="py-2 px-4">{invoice.invoice_TotalPrice || "N/A"}</td>
+                    <td className="py-2 px-4">{invoice.invoice_Details?.status || "N/A"}</td>
+                    <td className="py-2 px-4">
+                      <button
+                        className="text-blue-500 flex items-center gap-1"
+                        onClick={() => handlePaidInvoice(invoice._id)}
+                      >
+                        <FaDollarSign /> Paid
+                      </button>
+                    </td>
+                    <td className="py-2 px-4">
+                      <button
+                        className="text-red-500 flex items-center gap-1"
+                        onClick={() => handleDeleteInvoice(invoice._id)}
+                      >
+                        <FaTrashAlt /> Delete
+                      </button>
+                    </td>
+                    <td className="py-2 px-4">
+                      <button
+                        className="text-blue-500 flex items-center gap-1"
+                        onClick={() => handleViewInvoice(invoice._id)}
+                      >
+                        <FaEye /> View
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" className="text-center py-4">
+                    No invoices found matching your search.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };

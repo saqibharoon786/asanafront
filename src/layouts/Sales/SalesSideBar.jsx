@@ -2,48 +2,54 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
-  FaTachometerAlt,
-  FaUsers,
-  FaBuilding,
-  FaProjectDiagram,
-  FaFileInvoice,
-  FaBullhorn,
-  FaRegFileAlt,
-  FaBars,
+  FaTachometerAlt,   // Dashboard icon
+  FaUsers,           // HR icon
+  FaBuilding,        // Department icon
+  FaProjectDiagram,  // Project icon
+  FaBullhorn,        // Sales icon
+  FaUserFriends,     // Staff icon
+  FaFileInvoice,     // Invoice icon
+  FaBox,             // Product icon
 } from "react-icons/fa";
 import companyLogo from "../../assets/images/CompanyLogo.jpg";  // Ensure the path is correct
 
-const Sidebar = () => {
+const SalesSideBar = () => {
   const { user } = useSelector((state) => state.auth);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isDashboardOpen, setIsDashboardOpen] = useState(true);
-  const [isSalesOpen, setIsSalesOpen] = useState(true);
-  const [isPagesOpen, setIsPagesOpen] = useState(false);
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);  
+  const [isHROpen, setIsHROpen] = useState(false); 
+  const [isSalesOpen, setIsSalesOpen] = useState(false);  
+  const [isProductOpen, setIsProductOpen] = useState(false); 
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
+  // Toggle logic for opening only the clicked section
   const toggleDropdown = (section) => {
-    if (section === "dashboard") setIsDashboardOpen(!isDashboardOpen);
-    if (section === "sales") setIsSalesOpen(!isSalesOpen);
-    if (section === "pages") setIsPagesOpen(!isPagesOpen);
+    if (section === "dashboard") {
+      setIsDashboardOpen(!isDashboardOpen);
+      setIsHROpen(false); 
+      setIsSalesOpen(false);
+      setIsProductOpen(false);
+    }
+  
+    if (section === "product") {
+      setIsProductOpen(!isProductOpen);
+      setIsDashboardOpen(false); 
+      setIsHROpen(false); 
+      setIsSalesOpen(false);
+    }
+    if (section === "sales") {
+      setIsSalesOpen(!isSalesOpen);
+      setIsDashboardOpen(false); 
+      setIsHROpen(false); 
+      setIsProductOpen(false);  
+    }
   };
 
   return (
     <>
-      {/* Burger Menu for Mobile */}
-      <button
-        onClick={toggleSidebar}
-        className="p-4 text-black bg-gray-300 md:hidden"
-      >
-        <FaBars />
-      </button>
-
       {/* Sidebar */}
-      <aside
-        className={`${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 fixed lg:relative top-0 left-0 w-64 bg-white shadow-lg h-screen overflow-y-auto transform transition-transform duration-300 ease-in-out z-50 rounded-lg`}
-      >
+      <aside>
         <div className="p-6 border-b rounded-t-lg flex items-center gap-4">
           {/* Company Logo */}
           <img
@@ -63,10 +69,10 @@ const Sidebar = () => {
               onClick={() => toggleDropdown("dashboard")}
               className="w-full px-4 py-2 flex justify-between items-center text-black hover:bg-gray-200 rounded-md transition"
             >
+              <FaTachometerAlt className="mr-2 transform transition-transform hover:scale-110" />
               <span>Dashboard</span>
               <span>{isDashboardOpen ? "▲" : "▼"}</span>
             </button>
-
             {isDashboardOpen && (
               <ul className="pl-8 mt-2">
                 <li>
@@ -77,20 +83,39 @@ const Sidebar = () => {
                     📈 Analytics Dashboard
                   </Link>
                 </li>
-                <li>
+                {/* <li>
                   <Link
-                    to="/discover"
+                    to="/insights"
                     className="block py-2 text-black hover:text-gray-700"
                   >
-                    🔍 Discover Insights
+                    🔍 Insights
                   </Link>
-                </li>
+                </li> */}
+              </ul>
+            )}
+          </div>
+
+
+          {/* Product Section */}
+          <div>
+            <button
+              onClick={() => toggleDropdown("product")}
+              className="w-full px-4 py-2 flex justify-between items-center text-black hover:bg-gray-200 rounded-md transition"
+            >
+              <FaBox className="mr-2 text-orange-500 transform transition-transform hover:scale-110" />
+              <span>Product</span>
+              <span>{isProductOpen ? "▲" : "▼"}</span>
+            </button>
+
+            {isProductOpen && (
+              <ul className="pl-8 mt-2 space-y-2">
                 <li>
                   <Link
-                    to="/sales"
-                    className="block py-2 text-black hover:text-gray-700"
+                    to="/sales/products"
+                    className="block py-2 text-black hover:text-gray-700 flex items-center gap-2"
                   >
-                    💼 Sales Overview
+                    <FaBox className="mr-2 transform transition-transform hover:scale-110 text-green-500" />
+                    Product List
                   </Link>
                 </li>
               </ul>
@@ -103,90 +128,47 @@ const Sidebar = () => {
               onClick={() => toggleDropdown("sales")}
               className="w-full px-4 py-2 flex justify-between items-center text-black hover:bg-gray-200 rounded-md transition"
             >
+              <FaBullhorn className="mr-2 transform transition-transform hover:scale-110 text-orange-500" />
               <span>Sales</span>
               <span>{isSalesOpen ? "▲" : "▼"}</span>
             </button>
 
             {isSalesOpen && (
               <ul className="pl-8 mt-2 space-y-2">
-                <li>
+                {/* <li>
                   <Link
                     to="/customers"
-                    className="block py-2 text-black hover:text-gray-700"
+                    className="block py-2 text-black hover:text-gray-700 flex items-center gap-2"
                   >
-                    👥 Customers
+                    <FaUsers className="mr-2 transform transition-transform hover:scale-110 text-red-500" />
+                    Customers
+                  </Link>
+                </li> */}
+                <li>
+                  <Link
+                    to="/sales/leads"
+                    className="block py-2 text-black hover:text-gray-700 flex items-center gap-2"
+                  >
+                    <FaBullhorn className="mr-2 transform transition-transform hover:scale-110 text-yellow-500" />
+                    Leads
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/sales-leads"
-                    className="block py-2 text-black hover:text-gray-700"
+                    to="/sales/quote-panel"
+                    className="block py-2 text-black hover:text-gray-700 flex items-center gap-2"
                   >
-                    🔥 Leads
+                    <FaFileInvoice className="mr-2 transform transition-transform hover:scale-110 text-blue-500" />
+                    Quotes
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/sales-Quote-Panel"
-                    className="block py-2 text-black hover:text-gray-700"
+                    to="/sales/invoice-panel"
+                    className="block py-2 text-black hover:text-gray-700 flex items-center gap-2"
                   >
-                    📝 Quotes
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/retainer-invoices"
-                    className="block py-2 text-black hover:text-gray-700"
-                  >
-                    📄 Retainer Invoices
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/sales-orders"
-                    className="block py-2 text-black hover:text-gray-700"
-                  >
-                    🚀 Sales Orders
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/delivery-challans"
-                    className="block py-2 text-black hover:text-gray-700"
-                  >
-                    📦 Delivery Challans
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/quotePanel"
-                    className="block py-2 text-black hover:text-gray-700"
-                  >
-                    🧾 Invoices
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/payment-received"
-                    className="block py-2 text-black hover:text-gray-700"
-                  >
-                    💵 Payments Received
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/recurring-invoices"
-                    className="block py-2 text-black hover:text-gray-700"
-                  >
-                    🔁 Recurring Invoices
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/credit-notes"
-                    className="block py-2 text-black hover:text-gray-700"
-                  >
-                    💳 Credit Notes
+                    <FaFileInvoice className="mr-2 transform transition-transform hover:scale-110 text-gray-500" />
+                     Invoices
                   </Link>
                 </li>
               </ul>
@@ -206,4 +188,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar;
+export default SalesSideBar;

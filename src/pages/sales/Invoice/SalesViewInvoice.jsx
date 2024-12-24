@@ -6,9 +6,9 @@ import html2canvas from "html2canvas";
 import { utils, writeFile } from "xlsx";
 import companyLogo from "../../../assets/images/CompanyLogo.jpg";
 
-const API_ADMIN_URL = process.env.REACT_APP_API_ADMIN_URL;
+const API_SALES_URL = process.env.REACT_APP_API_SALES_URL;
 
-const ViewInvoice = () => {
+const SalesViewInvoice = () => {
   const { invoiceId } = useParams();
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,7 +20,7 @@ const ViewInvoice = () => {
     const fetchInvoiceDetails = async () => {
       try {
         const response = await axios.get(
-          `${API_ADMIN_URL}/invoice/${invoiceId}`,
+          `${API_SALES_URL}/invoice/${invoiceId}`,
           {
             headers: { Authorization: `Bearer ${jwtLoginToken}` },
           }
@@ -348,4 +348,4 @@ const ViewInvoice = () => {
   );
 };
 
-export default ViewInvoice;
+export default SalesViewInvoice;
