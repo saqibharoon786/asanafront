@@ -17,7 +17,7 @@ const SalesPanelLeads = () => {
 
   // Navigate to Add New Lead Page
   const handleNewLead = () => {
-    navigate('/add-lead');
+    navigate('/sales/add-lead');
   };
 
   // Fetch Leads from Backend
@@ -121,7 +121,7 @@ const SalesPanelLeads = () => {
 
   // Navigate to View Lead Page
   const handleViewLead = (leadId) => {
-    navigate(`/view-lead/${leadId}`);
+    navigate(`/sales/view-lead/${leadId}`);
   };
 
   // Determine the background color based on the lead's status

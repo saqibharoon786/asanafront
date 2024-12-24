@@ -55,7 +55,6 @@ const PanelQuotes = () => {
       try {
         const response = await axios.delete(
           `${API_ADMIN_URL}/quote/delete/${quoteId}`,
-          {},
           {
             data: { quote_Identifier: quoteId },
             headers: {

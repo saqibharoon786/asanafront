@@ -78,7 +78,7 @@ const SalesAddLead = () => {
         client_Name: client.client_Name,
         client_Email: client.client_Email,
         client_Address: client.client_Address,
-        client_Contact: parseInt(client.client_Contact, 10),
+        client_Contact:client.client_Contact
       },
     };
 
