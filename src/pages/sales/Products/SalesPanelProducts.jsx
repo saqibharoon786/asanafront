@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { FaEdit, FaTrashAlt, FaUser } from "react-icons/fa"; // Import icons
+import { FaEye } from "react-icons/fa"; // Import only the edit icon
 
 const API_SALES_URL = process.env.REACT_APP_API_SALES_URL;
 
@@ -14,7 +14,6 @@ const SalesPanelProducts = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null); // State for selected product in modal
-  const [deletingProductName, setDeletingProductName] = useState(null); // Added deleting product name state
   const navigate = useNavigate();
 
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
@@ -100,47 +99,6 @@ const SalesPanelProducts = () => {
 
   const handleUpdate = (productId) => {
     navigate(`/sales/view-product/${productId}`);
-  };
-
-  const handleDelete = async (productName) => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
-      try {
-        setDeletingProductName(productName);
-
-        // Send delete request to the backend
-        const response = await axios.delete(
-          `${API_SALES_URL}/product/delete-product`,
-          {
-            data: { product_Name: productName }, // Send the product name in the request body
-            headers: {
-              Authorization: `Bearer ${jwtLoginToken}`, // Add the JWT token for authentication
-            },
-          }
-        );
-
-        if (response.status === 200) {
-          // Update the state to remove the deleted product from the list
-          setProducts((prevProducts) =>
-            prevProducts.filter(
-              (product) => product.product_Name !== productName
-            )
-          );
-          alert("Product deleted successfully.");
-        } else {
-          throw new Error(
-            response.data.message || "Failed to delete the product."
-          );
-        }
-      } catch (error) {
-        const errorMessage =
-          error.response?.data?.message ||
-          error.message ||
-          "An error occurred. Please try again later.";
-        alert(errorMessage);
-      } finally {
-        setDeletingProductName(null); // Reset deleting state
-      }
-    }
   };
 
   return (
@@ -229,14 +187,13 @@ const SalesPanelProducts = () => {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr>
-            <th className="py-2 px-4 border">Image</th>
+              <th className="py-2 px-4 border">Image</th>
               <th className="py-2 px-4 border">Product Name</th>
               <th className="py-2 px-4 border">Category</th>
               <th className="py-2 px-4 border">Stock</th>
               <th className="py-2 px-4 border">Selling Price</th>
               <th className="py-2 px-4 border">Status</th>
               <th className="py-2 px-4 border">Actions</th>
-             
             </tr>
           </thead>
           <tbody>
@@ -295,21 +252,14 @@ const SalesPanelProducts = () => {
                         : "Out of Stock"}
                     </span>
                   </td>
-                  <td className="py-2 px-4 flex gap-2">
+                  <td className="flex justify-center items-center gap-2">
                     <button
-                      className="text-blue-500 flex items-center gap-1"
+                      className="text-blue-500 flex items-center justify-center gap-1"
                       onClick={() => handleUpdate(product._id)}
                     >
-                      <FaEdit />
-                    </button>
-                    <button
-                      className="text-red-500 flex items-center gap-1"
-                      onClick={() => handleDelete(product.product_Name)}
-                    >
-                      <FaTrashAlt />
+                      <FaEye className="text-3xl"/>
                     </button>
                   </td>
-                  
                 </tr>
               ))
             )}
@@ -319,24 +269,22 @@ const SalesPanelProducts = () => {
 
       {/* Modal for showing the larger image */}
       {selectedImage && (
-  <div className="fixed inset-0 bg-red bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white p-4 rounded relative">
-      <img
-        src={selectedImage}
-        alt="Selected"
-        className="max-w-full max-h-96"
-      />
-      <button
-        className="absolute top-2 right-2 text-white bg-red-500 hover:bg-red-700 focus:ring-2 focus:ring-red-300 focus:outline-none rounded-full w-8 h-8 flex items-center justify-center"
-        onClick={closeModal}
-      >
-        &times;
-      </button>
-    </div>
-  </div>
-)}
-
-
+        <div className="fixed inset-0 bg-red bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-4 rounded relative">
+            <img
+              src={selectedImage}
+              alt="Selected"
+              className="max-w-full max-h-96"
+            />
+            <button
+              className="absolute top-2 right-2 text-white bg-red-500 hover:bg-red-700 focus:ring-2 focus:ring-red-300 focus:outline-none rounded-full w-8 h-8 flex items-center justify-center"
+              onClick={closeModal}
+            >
+              &times;
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

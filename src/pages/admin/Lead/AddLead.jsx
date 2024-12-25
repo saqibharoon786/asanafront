@@ -83,7 +83,6 @@ const AddLead = () => {
     };
 
     try {
-      console.log(payload);
       const response = await axios.post(
         `${API_ADMIN_URL}/lead/create-lead`,
         payload,

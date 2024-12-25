@@ -14,7 +14,7 @@ const PanelProduct = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null); // State for selected product in modal
-  const [deletingProductName, setDeletingProductName] = useState(null); // Added deleting product name state
+  const [deletingProductId, setDeletingProductId] = useState(null); // Added deleting product name state
   const navigate = useNavigate();
 
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
@@ -102,16 +102,16 @@ const PanelProduct = () => {
     navigate(`/update-product/${productId}`);
   };
 
-  const handleDelete = async (productName) => {
+  const handleDelete = async (productId) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
-        setDeletingProductName(productName);
+        setDeletingProductId(productId);
 
         // Send delete request to the backend
         const response = await axios.delete(
-          `${API_ADMIN_URL}/product/delete-product`,
+          `${API_ADMIN_URL}/product/delete-product/${productId}`,
           {
-            data: { product_Name: productName }, // Send the product name in the request body
+            // data: { _id: productId }, // Send the product name in the request body
             headers: {
               Authorization: `Bearer ${jwtLoginToken}`, // Add the JWT token for authentication
             },
@@ -122,7 +122,7 @@ const PanelProduct = () => {
           // Update the state to remove the deleted product from the list
           setProducts((prevProducts) =>
             prevProducts.filter(
-              (product) => product.product_Name !== productName
+              (product) => product._id !== productId
             )
           );
           alert("Product deleted successfully.");
@@ -138,7 +138,7 @@ const PanelProduct = () => {
           "An error occurred. Please try again later.";
         alert(errorMessage);
       } finally {
-        setDeletingProductName(null); // Reset deleting state
+        setDeletingProductId(null); // Reset deleting state
       }
     }
   };
@@ -310,7 +310,7 @@ const PanelProduct = () => {
                     </button>
                     <button
                       className="text-red-500 flex items-center gap-1"
-                      onClick={() => handleDelete(product.product_Name)}
+                      onClick={() => handleDelete(product._id)}
                     >
                       <FaTrashAlt />
                     </button>

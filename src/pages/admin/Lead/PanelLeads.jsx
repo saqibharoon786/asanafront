@@ -68,7 +68,7 @@ const PanelLeads = () => {
         const response = await axios.delete(
           `${API_ADMIN_URL}/lead/delete/${leadId}`,
           {
-            data: { lead_Identifier: leadId },
+            // data: { lead_Identifier: leadId },
             headers: {
               Authorization: `Bearer ${jwtLoginToken}`,
             },
