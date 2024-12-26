@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+const API_URL = process.env.REACT_APP_API_URL;
+const API_ADMIN_URL = process.env.REACT_APP_API_ADMIN_URL;
 const AddProduct = () => {
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
   const [productData, setProductData] = useState({
@@ -71,7 +72,7 @@ const AddProduct = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/admin/product/add-product",
+        `${API_ADMIN_URL}/product/add-product`,
         formData,
         {
           headers: {

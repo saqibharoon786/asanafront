@@ -9,6 +9,9 @@ const SalesViewLead = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const API_SALES_URL = process.env.REACT_APP_API_SALES_URL;
+
+
   // Get the creator's details from the Redux store
   const { user } = useSelector((state) => state.auth) || {};
 
@@ -30,7 +33,7 @@ const SalesViewLead = () => {
 
       try {
         const response = await axios.get(
-          `http://localhost:3000/sales/lead/${leadId}`,
+          `${API_SALES_URL}/lead/${leadId}`,
           {
             headers: { Authorization: `Bearer ${jwtLoginToken}` },
           }

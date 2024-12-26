@@ -3,6 +3,8 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import { useSelector } from "react-redux";
 
+const API_ADMIN_URL = process.env.REACT_APP_API_ADMIN_URL;
+
 const ViewLead = () => {
   const { leadId } = useParams();
   const [lead, setLead] = useState(null);
@@ -30,7 +32,7 @@ const ViewLead = () => {
 
       try {
         const response = await axios.get(
-          `http://localhost:3000/admin/lead/${leadId}`,
+          `${API_ADMIN_URL}/lead/${leadId}`,
           {
             headers: { Authorization: `Bearer ${jwtLoginToken}` },
           }
