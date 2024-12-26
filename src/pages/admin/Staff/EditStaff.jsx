@@ -25,7 +25,6 @@ const EditStaff = () => {
   const [employeeImageUrl, setEmployeeImageUrl] = useState("");
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
 
-  // Fetch departments for dropdown selection
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
@@ -48,7 +47,6 @@ const EditStaff = () => {
     fetchDepartments();
   }, [jwtLoginToken]);
 
-  // Fetch existing user data and display the employee image
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -77,7 +75,6 @@ const EditStaff = () => {
             previewUrl: null,
           });
 
-          // Construct the URL for the employee's image
           if (user.image?.filePath) {
             setEmployeeImageUrl(`${API_URL}${user.image.filePath}`);
           }
@@ -154,44 +151,48 @@ const EditStaff = () => {
   };
 
   return (
-    <div>
-      <h1>Edit Staff Information</h1>
+    <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg">
+      <h1 className="text-2xl font-bold text-center mb-6">Edit Staff Information</h1>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="space-y-6">
         {/* Employee Image */}
-        <div>
-          <label>Profile Picture</label>
+        <div className="text-center">
+          <label className="block font-medium mb-2">Profile Picture</label>
           {formData.previewUrl ? (
-            <img src={formData.previewUrl} alt="Profile Preview" width="150" />
+            <img src={formData.previewUrl} alt="Profile Preview" className="w-32 h-32 mx-auto rounded-full mb-4" />
           ) : employeeImageUrl ? (
-            <img src={employeeImageUrl} alt="Employee" width="150" />
+            <img src={employeeImageUrl} alt="Employee" className="w-32 h-32 mx-auto rounded-full mb-4" />
           ) : (
-            <span>No Image</span>
+            <span className="text-gray-500">No Image</span>
           )}
           <input
             type="file"
             name="employee_Image"
             accept="image/*"
             onChange={handleFileChange}
+            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
           />
         </div>
 
         {/* Department Dropdown */}
-        <label>Department</label>
-        <select
-          id="department_Name"
-          name="department_Name"
-          value={formData.department_Name}
-          onChange={handleInputChange}
-          required
-        >
-          <option value="">Select Department</option>
-          {departments.map((dept) => (
-            <option key={dept.department_Name} value={dept.department_Name}>
-              {dept.department_Name}
-            </option>
-          ))}
-        </select>
+        <div>
+          <label htmlFor="department_Name" className="block font-medium mb-2">Department</label>
+          <select
+            id="department_Name"
+            name="department_Name"
+            value={formData.department_Name}
+            onChange={handleInputChange}
+            required
+            className="block w-full px-4 py-2 border rounded-md focus:ring focus:ring-indigo-200 focus:border-indigo-500"
+          >
+            <option value="">Select Department</option>
+            {departments.map((dept) => (
+              <option key={dept.department_Name} value={dept.department_Name}>
+                {dept.department_Name}
+              </option>
+            ))}
+          </select>
+        </div>
 
         {/* Input Fields */}
         {[
@@ -203,6 +204,9 @@ const EditStaff = () => {
           { name: "employee_Designation", type: "text", placeholder: "Enter Designation" }
         ].map((field) => (
           <div key={field.name}>
+            <label htmlFor={field.name} className="block font-medium mb-2">
+              {field.placeholder}
+            </label>
             <input
               id={field.name}
               name={field.name}
@@ -210,11 +214,17 @@ const EditStaff = () => {
               placeholder={field.placeholder}
               value={formData[field.name]}
               onChange={handleInputChange}
+              className="block w-full px-4 py-2 border rounded-md focus:ring focus:ring-indigo-200 focus:border-indigo-500"
             />
           </div>
         ))}
 
-        <button type="submit">Save Changes</button>
+        <button
+          type="submit"
+          className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring focus:ring-indigo-200"
+        >
+          Save Changes
+        </button>
       </form>
     </div>
   );
