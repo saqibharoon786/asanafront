@@ -11,13 +11,19 @@ const PanelInvoices = () => {
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [totalInvoices, setTotalInvoices] = useState(0);
+  const [timeFilter, setTimeFilter] = useState("All"); // New state for time filter
 
   const navigate = useNavigate();
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
 
-  // Navigate to Add New Invoice Page
+  // Define the handleNewInvoice function
   const handleNewInvoice = () => {
-    navigate("/add-invoice");
+    navigate('/create-invoice'); // Adjust the path as needed
+  };
+
+  // Handle Time Filter Change
+  const handleTimeFilterChange = (event) => {
+    setTimeFilter(event.target.value);
   };
 
   // Fetch Invoices from Backend
@@ -29,8 +35,29 @@ const PanelInvoices = () => {
         });
 
         if (response.data.success) {
-          setInvoices(response.data.information.Invoices); // Show all invoices
-          setTotalInvoices(response.data.information.Invoices.length);
+          let filteredInvoices = response.data.information.Invoices;
+
+          // Apply time filter logic
+          if (timeFilter !== "All") {
+            const now = new Date();
+            filteredInvoices = filteredInvoices.filter((invoice) => {
+              const invoiceDate = new Date(invoice.createdAt);
+              const timeDifference = now - invoiceDate;
+              switch (timeFilter) {
+                case "Day":
+                  return timeDifference <= 24 * 60 * 60 * 1000; // 1 day
+                case "Week":
+                  return timeDifference <= 7 * 24 * 60 * 60 * 1000; // 1 week
+                case "Month":
+                  return timeDifference <= 30 * 24 * 60 * 60 * 1000; // 1 month
+                default:
+                  return true; // No filter
+              }
+            });
+          }
+
+          setInvoices(filteredInvoices);
+          setTotalInvoices(filteredInvoices.length);
         } else {
           setError("Failed to load invoices. Please try again.");
         }
@@ -43,7 +70,7 @@ const PanelInvoices = () => {
     };
 
     fetchInvoices();
-  }, [invoices]); // Re-fetch on JWT token change or initial load
+  }, [timeFilter, jwtLoginToken]); // Re-fetch invoices when time filter changes
 
   // Handle Search Input Change
   const handleSearchChange = (event) => {
@@ -139,6 +166,19 @@ const PanelInvoices = () => {
         >
           + Add New Invoice
         </button>
+      </div>
+
+      <div className="mb-6">
+        <select
+          value={timeFilter}
+          onChange={handleTimeFilterChange}
+          className="bg-white border border-gray-300 rounded-lg p-2"
+        >
+          <option value="All">All</option>
+          <option value="Day">Last 24 Hours</option>
+          <option value="Week">Last Week</option>
+          <option value="Month">Last Month</option>
+        </select>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">
