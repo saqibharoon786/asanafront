@@ -18,7 +18,7 @@ const PanelInvoices = () => {
 
   // Define the handleNewInvoice function
   const handleNewInvoice = () => {
-    navigate('/create-invoice'); // Adjust the path as needed
+    navigate('/add-invoice'); // Adjust the path as needed
   };
 
   // Handle Time Filter Change
