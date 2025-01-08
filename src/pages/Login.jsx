@@ -30,7 +30,7 @@ const Login = () => {
         // Save the JWT token in localStorage
         localStorage.setItem("jwtLoginToken", jwtLoginToken);
         // Navigate based on user role
-        if (user.department === "Admin") {
+        if (user.access === "SuperAdmin") {
           navigate(`/admin/${user.name}`);
         } else if (user.department === "HR") {
           navigate(`/hr/${user.name}`);

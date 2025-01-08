@@ -101,8 +101,6 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import AdminRoutes from "./routes/AdminRoutes";
-import HRRoutes from "./routes/HrRoutes";
-import SalesRoutes from "./routes/SalesRoutes";
 
 const App = () => {
   return (
@@ -110,8 +108,6 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Login />} />
         {AdminRoutes()}
-        {HRRoutes()}
-        {SalesRoutes()}
       </Routes>
     </Router>
   );
