@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { FaEdit, FaTrashAlt, FaUser } from "react-icons/fa";
 
-const API_ADMIN_URL = process.env.REACT_APP_API_ADMIN_URL;
+const API_URL = process.env.REACT_APP_API_URL;
 
 const PanelStaff = () => {
   const [users, setUsers] = useState([]);
@@ -19,7 +19,7 @@ const PanelStaff = () => {
     const fetchUsers = async () => {
       try {
         const response = await axios.get(
-          `${API_ADMIN_URL}/department/get-employees`,
+          `${API_URL}/department/get-employees`,
           {
             headers: {
               Authorization: `Bearer ${jwtLoginToken}`,
@@ -32,11 +32,11 @@ const PanelStaff = () => {
           .map((user) => {
             let department = "Unknown";
 
-            if (user.department === "HR") {
+            if (user.access === "HR") {
               department = "HR";
-            } else if (user.department === "Admin") {
+            } else if (user.access === "Admin") {
               department = "Admin";
-            } else if (user.department === "Sales") {
+            } else if (user.access === "Sales") {
               department = "Sales";
             }
 
@@ -64,7 +64,7 @@ const PanelStaff = () => {
         setDeletingEmail(email);
 
         const response = await axios.delete(
-          `${API_ADMIN_URL}/department/delete-employee`,
+          `${API_URL}/department/delete-employee`,
           {
             data: { email },
             headers: {

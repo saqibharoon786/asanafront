@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { FaEdit, FaTrashAlt, FaUser } from "react-icons/fa"; // Import icons
 
-const API_ADMIN_URL = process.env.REACT_APP_API_ADMIN_URL;
+const API_URL = process.env.REACT_APP_API_URL;
 
 const PanelProduct = () => {
   const [products, setProducts] = useState([]);
@@ -24,7 +24,7 @@ const PanelProduct = () => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get(
-          `${API_ADMIN_URL}/product/get-products`,
+          `${API_URL}/product/get-products`,
           {
             headers: {
               Authorization: `Bearer ${jwtLoginToken}`, // Corrected template literal syntax
@@ -109,7 +109,7 @@ const PanelProduct = () => {
 
         // Send delete request to the backend
         const response = await axios.delete(
-          `${API_ADMIN_URL}/product/delete-product/${productId}`,
+          `${API_URL}/product/delete-product/${productId}`,
           {
             // data: { _id: productId }, // Send the product name in the request body
             headers: {

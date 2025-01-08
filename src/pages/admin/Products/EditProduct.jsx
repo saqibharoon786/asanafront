@@ -3,7 +3,6 @@ import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 
 const API_URL = process.env.REACT_APP_API_URL;
-const API_ADMIN_URL = process.env.REACT_APP_API_ADMIN_URL;
 
 const EditProduct = () => {
   const { productId } = useParams();
@@ -41,7 +40,7 @@ const EditProduct = () => {
     const fetchProductDetails = async () => {
       try {
         const response = await axios.get(
-          `${API_ADMIN_URL}/product/get-product/${productId}`,
+          `${API_URL}/product/get-product/${productId}`,
           {
             headers: {
               Authorization: `Bearer ${jwtLoginToken}`,
@@ -162,7 +161,7 @@ const EditProduct = () => {
 
     try {
       const response = await axios.patch(
-        `${API_ADMIN_URL}/product/update-product/${productId}`,
+        `${API_URL}/product/update-product/${productId}`,
         formDataToSend,
         {
           headers: {

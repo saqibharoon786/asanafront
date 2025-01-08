@@ -2,8 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
 
-
-const API_ADMIN_URL = process.env.REACT_APP_API_ADMIN_URL;
+const API_URL = process.env.REACT_APP_API_URL;
 
 const PanelDepartment = () => {
   const [departments, setDepartments] = useState([]);
@@ -11,25 +10,18 @@ const PanelDepartment = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [newDepartmentName, setNewDepartmentName] = useState("");
-  const [isGridView, setIsGridView] = useState(true);
 
   // Fetch departments data from API
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
         const jwtLoginToken = localStorage.getItem("jwtLoginToken");
-        const response = await axios.get(`${API_ADMIN_URL}/department/get-departments`, {
+        const response = await axios.get(`${API_URL}/department/get-departments`, {
           headers: {
             Authorization: `Bearer ${jwtLoginToken}`,
           },
         });
         const departmentData = response.data?.information?.departments || [];
-        const departmentsWithHeads = departmentData.map((dept) => {
-          
-        });
-        
         const validDepartments = departmentData.filter((dept) => dept?.department_Name);
         setDepartments(validDepartments);
       } catch (err) {
@@ -41,35 +33,6 @@ const PanelDepartment = () => {
 
     fetchDepartments();
   }, [departments]);
-
-  const handleOpenDrawer = () => setIsDrawerOpen(true);
-  const handleCloseDrawer = () => setIsDrawerOpen(false);
-  const handleInputChange = (e) => setNewDepartmentName(e.target.value);
-
-  const handleAddDepartmentSubmit = async (e) => {
-    e.preventDefault();
-    if (!newDepartmentName.trim()) {
-      setError("Department name cannot be empty.");
-      return;
-    }
-
-    try {
-      const jwtLoginToken = localStorage.getItem("jwtLoginToken");
-      const response = await axios.post(
-        `${API_ADMIN_URL}/department/add-department`,
-        { department_Name: newDepartmentName },
-        { headers: { Authorization: `Bearer ${jwtLoginToken}` } }
-      );
-
-      const newDepartment = response.data.department;
-      setDepartments((prevDepartments) => [...prevDepartments, newDepartment]);
-      setNewDepartmentName("");
-      handleCloseDrawer();
-    } catch (err) {
-      setError("Error adding department");
-      console.error("Failed to add department:", err);
-    }
-  };
 
   const handleSearchChange = (event) => setSearch(event.target.value);
 
@@ -101,12 +64,6 @@ const PanelDepartment = () => {
         {/* Header */}
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-gray-800">Departments Management</h1>
-          <button
-            onClick={handleOpenDrawer}
-            className="px-5 py-2 bg-blue-400 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 transition"
-          >
-            + Add Department
-          </button>
         </div>
 
         {/* Stats Section */}
@@ -117,7 +74,7 @@ const PanelDepartment = () => {
           </div>
         </div>
 
-        {/* Search and View Toggle */}
+        {/* Search Bar */}
         <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-md">
           <input
             type="text"
@@ -126,141 +83,65 @@ const PanelDepartment = () => {
             onChange={handleSearchChange}
             className="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
-          <div className="flex space-x-2 ml-4">
-            <button
-              onClick={() => setIsGridView(true)}
-              className={`px-4 py-2 rounded-l-lg ${
-                isGridView ? "bg-blue-400 text-white" : "bg-gray-200 text-gray-700"
-              } hover:bg-blue-600 hover:text-white transition`}
-            >
-              Grid View
-            </button>
-            <button
-              onClick={() => setIsGridView(false)}
-              className={`px-4 py-2 rounded-r-lg ${
-                !isGridView ? "bg-blue-400 text-white" : "bg-gray-200 text-gray-700"
-              } hover:bg-indigo-600 hover:text-white transition`}
-            >
-              List View
-            </button>
-          </div>
         </div>
 
-        {/* Department Display */}
+        {/* Department List View */}
         {filteredDepartments.length > 0 ? (
-          isGridView ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredDepartments.map((dept) => (
-                <div
-                  key={dept.department_Name}
-                  className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition transform cursor-pointer"
-                  onClick={() => setSelectedDepartment(dept)}
-                >
-                  <h2 className="text-xl font-semibold text-gray-800 mb-2">{dept.department_Name}</h2>
-                  <p className="text-gray-600">
-                    👥 Employees:{" "}
-                    <span className="font-bold text-gray-800">{dept.employees?.length || 0}</span>
-                  </p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-              <table className="min-w-full text-left border-collapse">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-4 py-3 text-sm font-medium text-gray-600">#</th>
-                    <th className="px-4 py-3 text-sm font-medium text-gray-600">Department Name</th>
-                    <th className="px-4 py-3 text-sm font-medium text-gray-600">Employees</th>
-                    <th className="px-4 py-3 text-sm font-medium text-gray-600">Action</th>
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+            <table className="min-w-full text-left border-collapse">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="px-4 py-3 text-sm font-medium text-gray-600">#</th>
+                  <th className="px-4 py-3 text-sm font-medium text-gray-600">Department Name</th>
+                  <th className="px-4 py-3 text-sm font-medium text-gray-600">Employees</th>
+                  <th className="px-4 py-3 text-sm font-medium text-gray-600">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredDepartments.map((dept, index) => (
+                  <tr key={dept.department_Name} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-gray-800">{index + 1}</td>
+                    <td className="px-4 py-3 text-gray-800">{dept.department_Name}</td>
+                    <td className="px-4 py-3 text-gray-800">{dept.employees?.length || 0}</td>
+                    <td className="px-4 py-3 text-gray-800">
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => setSelectedDepartment(dept)}
+                          className="text-blue-400 hover:text-blue-700"
+                          title="View Department"
+                        >
+                          <FaEye />
+                        </button>
+                        <button
+                          onClick={() => console.log("Edit department:", dept)}
+                          className="text-blue-400 hover:text-blue-700"
+                          title="Edit Department"
+                        >
+                          <FaEdit />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (window.confirm("Are you sure you want to delete this department?")) {
+                              console.log("Delete department:", dept);
+                              // Add delete logic here if required
+                            }
+                          }}
+                          className="text-red-500 hover:text-red-600"
+                          title="Delete Department"
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-  {filteredDepartments.map((dept, index) => (
-    <tr key={dept.department_Name} className="hover:bg-gray-50">
-      <td className="px-4 py-3 text-gray-800">{index + 1}</td>
-      <td className="px-4 py-3 text-gray-800">{dept.department_Name}</td>
-      <td className="px-4 py-3 text-gray-800">{dept.employees?.length || 0}</td>
-      <td className="px-4 py-3 text-gray-800">
-        <div className="flex space-x-2">
-          <button
-            onClick={() => setSelectedDepartment(dept)}
-            className="text-blue-400 hover:text-blue-700"
-            title="View Department"
-          >
-            <FaEye />
-          </button>
-          <button
-            onClick={() => console.log("Edit department:", dept)}
-            className="text-blue-400 hover:text-blue-700"
-            title="Edit Department"
-          >
-            <FaEdit />
-          </button>
-          <button
-            onClick={() => {
-              if (window.confirm("Are you sure you want to delete this department?")) {
-                console.log("Delete department:", dept);
-                // Add delete logic here if required
-              }
-            }}
-            className="text-red-500 hover:text-red-600"
-            title="Delete Department"
-          >
-            <FaTrash />
-          </button>
-        </div>
-      </td>
-    </tr>
-  ))}
-</tbody>
-              </table>
-            </div>
-          )
+                ))}
+              </tbody>
+            </table>
+          </div>
         ) : (
           <div className="p-6 text-center text-gray-500">No departments found.</div>
         )}
       </div>
-
-      {/* Drawer for Adding Department */}
-      {isDrawerOpen && (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-4/5 md:w-2/3 lg:w-1/2">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Add New Department</h2>
-            <form onSubmit={handleAddDepartmentSubmit}>
-              <div className="mb-4">
-                <label
-                  htmlFor="department_Name"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Department Name
-                </label>
-                <input
-                  type="text"
-                  id="department_Name"
-                  name="department_Name"
-                  value={newDepartmentName}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-600 transition"
-              >
-                Add
-              </button>
-            </form>
-            <button
-              onClick={handleCloseDrawer}
-              className="mt-4 w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Department Details Modal */}
       {selectedDepartment && (
