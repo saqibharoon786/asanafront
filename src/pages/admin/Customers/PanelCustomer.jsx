@@ -638,12 +638,12 @@ const PanelCustomer = () => {
       )}
 
       {/* Table with Scrollbar */}
-      <div className=" mt-4 max-h-[600px] overflow-x-auto">
-      <table className="min-w-full table-auto border-collapse border border-gray-200 ">
-    <thead className="s bg-gray-100 border border-gray-700 p-1">
-      <tr >
+      <div className="mt-4 max-h-[800px] w-full m-10">
+  <table className="min-w-full table-auto border-collapse border border-gray-200 ">
+    <thead className="w-full bg-gray-100 border border-gray-700 p-1">
+      <tr>
         {visibleColumns.name && (
-          <th className="text-left border border-gray-300">
+          <th className="text-left border border-gray-300 px-6 py-3">
             <div className="relative inline-block">
               <button
                 onClick={toggleModal}
@@ -665,74 +665,48 @@ const PanelCustomer = () => {
           </th>
         )}
         {visibleColumns.companyName && (
-          <th className=" text-left border border-gray-300">
-            COMPANY NAME
-          </th>
+          <th className="text-left border border-gray-300 px-6 py-3">COMPANY NAME</th>
         )}
         {visibleColumns.email && (
-          <th className="text-left border border-gray-300">
-            EMAIL
-          </th>
+          <th className="text-left border border-gray-300 px-6 py-3">EMAIL</th>
         )}
         {visibleColumns.workPhone && (
-          <th className="text-left border border-gray-300">
-            WORK PHONE
-          </th>
+          <th className="text-left border border-gray-300 px-6 py-3">WORK PHONE</th>
         )}
         {visibleColumns.receivables && (
-          <th className="text-left border border-gray-300">
-            RECEIVABLES (BCY)
-          </th>
+          <th className="text-left border border-gray-300 px-6 py-3">RECEIVABLES (BCY)</th>
         )}
         {visibleColumns.phone && (
-          <th className="text-left border border-gray-300">
-            PHONE
-          </th>
+          <th className="text-left border border-gray-300 px-6 py-3">PHONE</th>
         )}
         {visibleColumns.website && (
-          <th className="text-left border border-gray-300">
-            WEBSITE
-          </th>
+          <th className="text-left border border-gray-300 px-6 py-3">WEBSITE</th>
         )}
         {visibleColumns.status && (
-          <th className="text-left border border-gray-300">
-            STATUS
-          </th>
+          <th className="text-left border border-gray-300 px-6 py-3">STATUS</th>
         )}
         {visibleColumns.mobilePhone && (
-          <th className="text-left border border-gray-300">
-            MOBILE PHONE
-          </th>
+          <th className="text-left border border-gray-300 px-6 py-3">MOBILE PHONE</th>
         )}
         {visibleColumns.unusedCredits && (
-          <th className="text-left border border-gray-300">
-            UNUSED CREDITS
-          </th>
+          <th className="text-left border border-gray-300 px-6 py-3">UNUSED CREDITS</th>
         )}
         {visibleColumns.unusedCreditsBCY && (
-          <th className="text-left border border-gray-300">
+          <th className="text-left border border-gray-300 px-6 py-3">
             UNUSED CREDITS (BCY)
           </th>
         )}
         {visibleColumns.source && (
-          <th className="text-left border border-gray-300">
-            SOURCE
-          </th>
+          <th className="text-left border border-gray-300 px-6 py-3">SOURCE</th>
         )}
         {visibleColumns.firstName && (
-          <th className="text-left border border-gray-300">
-            FIRST NAME
-          </th>
+          <th className="text-left border border-gray-300 px-6 py-3">FIRST NAME</th>
         )}
         {visibleColumns.lastName && (
-          <th className="text-left border border-gray-300">
-            LAST NAME
-          </th>
+          <th className="text-left border border-gray-300 px-6 py-3">LAST NAME</th>
         )}
         {visibleColumns.paymentTerms && (
-          <th className="text-left border border-gray-300">
-            PAYMENT TERMS
-          </th>
+          <th className="text-left border border-gray-300 px-6 py-3">PAYMENT TERMS</th>
         )}
       </tr>
     </thead>
@@ -741,59 +715,80 @@ const PanelCustomer = () => {
       {customers.map((customer, index) => (
         <tr key={index} className="border-t border-gray-300 hover:bg-gray-50">
           {visibleColumns.name && (
-            <td className="px-4 py-2 border border-gray-300">
+            <td className="px-6 py-3 border border-gray-300">
               <input type="checkbox" className="mr-2" />
               {customer.name}
             </td>
           )}
           {visibleColumns.companyName && (
-            <td className="px-4 py-2 border border-gray-300">{customer.companyName}</td>
+            <td className="px-6 py-3 border border-gray-300">
+              {customer.companyName}
+            </td>
           )}
           {visibleColumns.email && (
-            <td className="px-4 py-2 border border-gray-300">{customer.email}</td>
+            <td className="px-6 py-3 border border-gray-300">{customer.email}</td>
           )}
           {visibleColumns.workPhone && (
-            <td className="px-4 py-2 border border-gray-300">{customer.workPhone}</td>
+            <td className="px-6 py-3 border border-gray-300">
+              {customer.workPhone}
+            </td>
           )}
           {visibleColumns.receivables && (
-            <td className="px-4 py-2 border border-gray-300">{customer.receivables}</td>
+            <td className="px-6 py-3 border border-gray-300">
+              {customer.receivables}
+            </td>
           )}
           {visibleColumns.phone && (
-            <td className="px-4 py-2 border border-gray-300">{customer.phone}</td>
+            <td className="px-6 py-3 border border-gray-300">{customer.phone}</td>
           )}
           {visibleColumns.website && (
-            <td className="px-4 py-2 border border-gray-300">{customer.website}</td>
+            <td className="px-6 py-3 border border-gray-300">
+              {customer.website}
+            </td>
           )}
           {visibleColumns.status && (
-            <td className="px-4 py-2 border border-gray-300">{customer.status}</td>
+            <td className="px-6 py-3 border border-gray-300">{customer.status}</td>
           )}
           {visibleColumns.mobilePhone && (
-            <td className="px-4 py-2 border border-gray-300">{customer.mobilePhone}</td>
+            <td className="px-6 py-3 border border-gray-300">
+              {customer.mobilePhone}
+            </td>
           )}
           {visibleColumns.unusedCredits && (
-            <td className="px-4 py-2 border border-gray-300">{customer.unusedCredits}</td>
+            <td className="px-6 py-3 border border-gray-300">
+              {customer.unusedCredits}
+            </td>
           )}
           {visibleColumns.unusedCreditsBCY && (
-            <td className="px-4 py-2 border border-gray-300">{customer.unusedCreditsBCY}</td>
+            <td className="px-6 py-3 border border-gray-300">
+              {customer.unusedCreditsBCY}
+            </td>
           )}
           {visibleColumns.source && (
-            <td className="px-4 py-2 border border-gray-300">{customer.source}</td>
+            <td className="px-6 py-3 border border-gray-300">{customer.source}</td>
           )}
           {visibleColumns.firstName && (
-            <td className="px-4 py-2 border border-gray-300">{customer.firstName}</td>
+            <td className="px-6 py-3 border border-gray-300">
+              {customer.firstName}
+            </td>
           )}
           {visibleColumns.lastName && (
-            <td className="px-4 py-2 border border-gray-300">{customer.lastName}</td>
+            <td className="px-6 py-3 border border-gray-300">
+              {customer.lastName}
+            </td>
           )}
           {visibleColumns.paymentTerms && (
-            <td className="px-4 py-2 border border-gray-300">{customer.paymentTerms}</td>
+            <td className="px-6 py-3 border border-gray-300">
+              {customer.paymentTerms}
+            </td>
           )}
         </tr>
       ))}
     </tbody>
   </table>
-
 </div>
+
+
 
 
     </div>
