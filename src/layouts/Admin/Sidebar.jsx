@@ -309,7 +309,21 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                   >
                     <FontAwesomeIcon icon={faReceipt} />
                     <span>Invoices</span>
-                  </Link>
+                  </Link> 
+                </li>
+                <li>
+                  <Link
+                    to="/calender"
+                    className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
+                      activeItem === "calender"
+                        ? "bg-blue-500 text-white"
+                        : "hover:text-gray-900"
+                    }`}
+                    onClick={() => handleOptionClick("calender")}
+                  >
+                    <FontAwesomeIcon icon={faReceipt} />
+                    <span>Calender</span>
+                  </Link> 
                 </li>
               </ul>
             )}

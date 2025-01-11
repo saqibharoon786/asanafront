@@ -1,26 +1,59 @@
 import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faEllipsisH, faFileInvoice, faExchangeAlt, faEnvelope, faPhone, faEdit, faCoins, faChartLine } from "@fortawesome/free-solid-svg-icons";
+import {
+  faPlus,
+  faEllipsisH,
+  faFileInvoice,
+  faExchangeAlt,
+  faEnvelope,
+  faPhone,
+  faEdit,
+  faCoins,
+  faChartLine,
+} from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
-
-
-
 
 const EditCustomer = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
 
+  // Mock customer data
   const customers = [
-    { name: "TTECh", details: "AED0.00", contact: "03091005929", email: "sohaibmushtaq5@gmail.com", type: "Business", language: "English", portalStatus: "Disabled" },
-    { name: "Customer 2", details: "AED1,200.00", contact: "03214567890", email: "customer2@example.com", type: "Individual", language: "Arabic", portalStatus: "Enabled" },
-    { name: "Customer 3", details: "AED3,000.00", contact: "03312345678", email: "customer3@example.com", type: "Business", language: "English", portalStatus: "Disabled" },
+    {
+      name: "TTECh",
+      details: "AED0.00",
+      contact: "03091005929",
+      email: "sohaibmushtaq5@gmail.com",
+      type: "Business",
+      language: "English",
+      portalStatus: "Disabled",
+    },
+    {
+      name: "Customer 2",
+      details: "AED1,200.00",
+      contact: "03214567890",
+      email: "customer2@example.com",
+      type: "Individual",
+      language: "Arabic",
+      portalStatus: "Enabled",
+    },
+    {
+      name: "Customer 3",
+      details: "AED3,000.00",
+      contact: "03312345678",
+      email: "customer3@example.com",
+      type: "Business",
+      language: "English",
+      portalStatus: "Disabled",
+    },
   ];
 
   const navigate = useNavigate();
 
-
+  // Navigate to Add Customer page
   const handleAddCustomerClick = () => {
     navigate("/add-customers");
   };
+
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
@@ -29,10 +62,11 @@ const EditCustomer = () => {
           <h2 className="text-lg font-semibold">All Customers</h2>
           <div className="flex gap-2">
             {/* Add Button */}
-            <button className="bg-blue-500 text-white px-2 py-1 rounded-md flex items-center text-xs hover:bg-blue-600">
-              <FontAwesomeIcon icon={faPlus} 
-                          onClick={handleAddCustomerClick} // Trigger navigation when button is clicked
-/> {/* "+" Icon */}
+            <button
+              onClick={handleAddCustomerClick}
+              className="bg-blue-500 text-white px-2 py-1 rounded-md flex items-center text-xs hover:bg-blue-600"
+            >
+              <FontAwesomeIcon icon={faPlus} /> {/* "+" Icon */}
             </button>
             {/* Options Button */}
             <button className="bg-gray-100 border border-gray-400 text-black px-3 py-2 rounded-md flex items-center text-xs hover:bg-gray-200">
@@ -40,6 +74,8 @@ const EditCustomer = () => {
             </button>
           </div>
         </div>
+
+        {/* Customer List */}
         <div className="overflow-y-auto h-full">
           {customers.map((customer, index) => (
             <div
@@ -73,16 +109,18 @@ const EditCustomer = () => {
               </div>
             </div>
 
-            {/* Details */}
+            {/* Customer Details */}
             <div className="grid grid-cols-3 gap-6">
               {/* Contact Details */}
               <div className="col-span-1 border p-4 rounded bg-white shadow-sm">
                 <h2 className="font-semibold mb-2">Contact Details</h2>
                 <p>
-                  <FontAwesomeIcon icon={faEnvelope} className="mr-2" /> {selectedCustomer.email}
+                  <FontAwesomeIcon icon={faEnvelope} className="mr-2" />
+                  {selectedCustomer.email}
                 </p>
                 <p>
-                  <FontAwesomeIcon icon={faPhone} className="mr-2" /> {selectedCustomer.contact}
+                  <FontAwesomeIcon icon={faPhone} className="mr-2" />
+                  {selectedCustomer.contact}
                 </p>
                 <button className="mt-4 text-blue-500 hover:underline flex items-center">
                   <FontAwesomeIcon icon={faEdit} className="mr-1" /> Edit

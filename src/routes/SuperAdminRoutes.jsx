@@ -4,16 +4,64 @@ import { SuperAdminProtectedRoute } from "../utils/protectedRoutes/ProtectedRout
 import {
   SuperAdminDashboard,
   PanelCompany,
-  AddCompany
+  AddCompany,
+  AddCompanyAdmin,
+  AddPackage,
 } from "../pages/superAdmin/SuperAdminPages";
 import { SuperAdminLayout } from "../layouts/Layout";
 
 const SuperAdminRoutes = () => (
   <>
-        <Route path="/superadmin/:name" element={<SuperAdminProtectedRoute><SuperAdminLayout><SuperAdminDashboard /></SuperAdminLayout></SuperAdminProtectedRoute>} />
-
-        <Route path="/superadmin/company" element={<SuperAdminProtectedRoute><SuperAdminLayout><PanelCompany /></SuperAdminLayout></SuperAdminProtectedRoute>} />
-        <Route path="/superadmin/add-company" element={<SuperAdminProtectedRoute><SuperAdminLayout><AddCompany /></SuperAdminLayout></SuperAdminProtectedRoute>} />
+    <Route
+      path="/superadmin/:name"
+      element={
+        <SuperAdminProtectedRoute>
+          <SuperAdminLayout>
+            <SuperAdminDashboard />
+          </SuperAdminLayout>
+        </SuperAdminProtectedRoute>
+      }
+    />
+    <Route
+      path="/superadmin/companies"
+      element={
+        <SuperAdminProtectedRoute>
+          <SuperAdminLayout>
+            <PanelCompany />
+          </SuperAdminLayout>
+        </SuperAdminProtectedRoute>
+      }
+    />
+    <Route
+      path="/superadmin/add-company"
+      element={
+        <SuperAdminProtectedRoute>
+          <SuperAdminLayout>
+            <AddCompany />
+          </SuperAdminLayout>
+        </SuperAdminProtectedRoute>
+      }
+    />
+    <Route
+      path="/superadmin/add-package"
+      element={
+        <SuperAdminProtectedRoute>
+          <SuperAdminLayout>
+            <AddPackage />
+          </SuperAdminLayout>
+        </SuperAdminProtectedRoute>
+      }
+    />
+    <Route
+      path="/superadmin/:companyId/add-admin-to-company"
+      element={
+        <SuperAdminProtectedRoute>
+          <SuperAdminLayout>
+            <AddCompanyAdmin />
+          </SuperAdminLayout>
+        </SuperAdminProtectedRoute>
+      }
+    />
   </>
 );
 

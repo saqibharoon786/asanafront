@@ -1,32 +1,48 @@
-import React from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { logout } from "../../features/auth/authSlice";
+import React, { useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faUser,
+  faEnvelope,
+  faBell,
+  faBars,
+  faSearch,
+} from "@fortawesome/free-solid-svg-icons";
+import companyLogo from "../../assets/images/CompanyLogo.jpg";
 
-const AdminNavbar = () => {
-  const dispatch = useDispatch();
-  const name = useSelector((state) => state.auth.user?.name);
-
-  const handleLogout = () => {
-    dispatch(logout());
-  };
+const SuperAdminNavbar = ({ toggleSidebar }) => {
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <nav className="bg-gray-100 text-black p-4 flex justify-between items-center border-b border-gray-300 flex-wrap">
-      <div className="text-sm font-medium text-center sm:text-left">
-        Welcome to dashboard Admin {name}
+    <div className="relative shadow-md">
+      {/* Primary Navbar */}
+      <div className="flex items-center justify-between bg-gray-900 text-white h-12 px-4">
+        {/* Logo and Company Name */}
+        <div className="flex items-center space-x-4">
+          <img
+            src={companyLogo}
+            alt="Company Logo"
+            className="w-8 h-8 rounded"
+          />
+          <h1 className="text-lg font-bold">ACSSLC</h1>
+        </div>
+
+        {/* Navbar Controls */}
+        <div className="flex items-center space-x-6">
+          <FontAwesomeIcon icon={faEnvelope} className="hover:text-gray-300" />
+          <FontAwesomeIcon icon={faBell} className="hover:text-gray-300" />
+          <FontAwesomeIcon icon={faUser} className="hover:text-gray-300" />
+
+          {/* Sidebar Toggle Button */}
+          <button
+            className="md:hidden p-2 rounded bg-gray-700 hover:bg-gray-600"
+            onClick={toggleSidebar}
+          >
+            <FontAwesomeIcon icon={faBars} />
+          </button>
+        </div>
       </div>
-      <button
-        onClick={handleLogout}
-        className="font-medium py-1 px-3 rounded hover:bg-brown-600 transition duration-300 mt-2 sm:mt-0"
-        style={{
-          backgroundColor: "#D2B48C", // Light brown
-          color: "#fff", // White text
-        }}
-      >
-        Logout
-      </button>
-    </nav>
+    </div>
   );
 };
 
-export default AdminNavbar;
+export default SuperAdminNavbar;

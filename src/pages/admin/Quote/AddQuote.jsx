@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { UserIcon, MailIcon, PhoneIcon, LocationMarkerIcon } from "@heroicons/react/outline";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -226,105 +227,123 @@ const AddQuote = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6 bg-gray-100 rounded shadow-md">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">New Quote</h1>
+    <div className="max-w-4xl mx-auto p-8 bg-white rounded-lg shadow-lg">
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">Create New Quote</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <section className="bg-white p-6 rounded shadow">
+        <section className="p-6 border border-gray-300 rounded-md bg-gray-50">
           <h2 className="text-lg font-semibold text-gray-700 mb-4">Client Details</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
-              { name: "client_Name", label: "Client Name" },
-              { name: "client_Email", label: "Client Email" },
-              { name: "client_Contact", label: "Client Contact" },
-              { name: "client_Address", label: "Client Address" },
-            ].map(({ name, label }) => (
-              <div key={name}>
-                <label htmlFor={name} className="block text-sm font-medium text-gray-600">{label}</label>
-                <input
-                  type={name === "client_Email" ? "email" : "text"}
-                  name={name}
-                  id={name}
-                  value={client[name]}
-                  onChange={handleClientChange}
-                  className="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                />
-                {clientError[name] && <p className="text-red-500 text-xs mt-1">{clientError[name]}</p>}
+              { name: "client_Name", label: "Client Name", icon: <UserIcon className="w-5 h-5 text-gray-500" /> },
+              { name: "client_Email", label: "Client Email", icon: <MailIcon className="w-5 h-5 text-gray-500" /> },
+              { name: "client_Contact", label: "Client Contact", icon: <PhoneIcon className="w-5 h-5 text-gray-500" /> },
+              { name: "client_Address", label: "Client Address", icon: <LocationMarkerIcon className="w-5 h-5 text-gray-500" /> },
+            ].map(({ name, label, icon }) => (
+              <div key={name} className="flex flex-col gap-1 relative">
+                <label htmlFor={name} className="text-sm font-medium text-gray-600">
+                  {label}
+                </label>
+                <div className="relative">
+                  <input
+                    type={name === "client_Email" ? "email" : "text"}
+                    name={name}
+                    id={name}
+                    value={client[name]}
+                    onChange={handleClientChange}
+                    className="w-full pl-10 p-2 border border-gray-300 rounded-md focus:ring focus:ring-indigo-300 focus:ring-opacity-50 focus:outline-none"
+                  />
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3">{icon}</div>
+                </div>
+                {clientError[name] && <p className="text-xs text-red-500">{clientError[name]}</p>}
               </div>
             ))}
           </div>
         </section>
 
-        <section className="bg-white p-6 rounded shadow">
+        {/* Original Product Section - Unchanged */}
+        <section className="p-6 border border-gray-300 rounded-md bg-gray-50">
           <h2 className="text-lg font-semibold text-gray-700 mb-4">Products</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-            <div>
-              <label htmlFor="product" className="block text-sm font-medium text-gray-600">Product</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1">
+              <label htmlFor="product" className="text-sm font-medium text-gray-600">
+                Product
+              </label>
               <select
                 id="product"
                 name="product"
                 value={currentProduct.product}
                 onChange={handleCurrentProductChange}
-                className="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-indigo-300 focus:ring-opacity-50 focus:outline-none"
               >
-                <option value="" disabled>Select a product</option>
+                <option value="" disabled>
+                  Select a product
+                </option>
                 {productOptions.map(({ id, name }) => (
-                  <option key={id} value={name}>{name}</option>
+                  <option key={id} value={name}>
+                    {name}
+                  </option>
                 ))}
               </select>
             </div>
 
-            {["product_SellingPrice", "product_Discount", "quantity"].map((field) => (
-              <div key={field}>
-                <label htmlFor={field} className="block text-sm font-medium text-gray-600">
-                  {field.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase())}
+            {[
+              { name: "product_SellingPrice", label: "Selling Price" },
+              { name: "product_Discount", label: "Discount (%)" },
+              { name: "quantity", label: "Quantity" },
+            ].map(({ name, label }) => (
+              <div key={name} className="flex flex-col gap-1">
+                <label htmlFor={name} className="text-sm font-medium text-gray-600">
+                  {label}
                 </label>
                 <input
                   type="number"
-                  name={field}
-                  id={field}
-                  value={currentProduct[field]}
+                  name={name}
+                  id={name}
+                  value={currentProduct[name]}
                   onChange={handleCurrentProductChange}
-                  className="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-indigo-300 focus:ring-opacity-50 focus:outline-none"
                 />
               </div>
             ))}
 
-            <button
-              type="button"
-              onClick={handleAddProduct}
-              className="px-4 py-2 bg-blue-400 text-white font-medium rounded hover:bg-blue-600 focus:outline-none"
-            >
-              Add Product
-            </button>
+            <div className="flex justify-end items-center sm:col-span-2">
+              <button
+                type="button"
+                onClick={handleAddProduct}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:ring focus:ring-indigo-300 focus:ring-opacity-50"
+              >
+                Add Product
+              </button>
+            </div>
           </div>
 
-          {productError && <p className="text-red-500 text-xs mt-2">{productError}</p>}
+          {productError && <p className="text-xs text-red-500 mt-2">{productError}</p>}
 
           {products.length > 0 && (
             <div className="mt-4">
-              <table className="min-w-full bg-white border border-gray-300">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="text-left px-4 py-2">Product</th>
-                    <th className="text-left px-4 py-2">Price</th>
-                    <th className="text-left px-4 py-2">Quantity</th>
-                    <th className="text-left px-4 py-2">Discount</th>
-                    <th className="text-left px-4 py-2">Actions</th>
+              <table className="w-full border border-gray-300 text-sm">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-2 border">Product</th>
+                    <th className="px-4 py-2 border">Price</th>
+                    <th className="px-4 py-2 border">Quantity</th>
+                    <th className="px-4 py-2 border">Discount</th>
+                    <th className="px-4 py-2 border">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {products.map((prod, index) => (
-                    <tr key={index}>
-                      <td className="px-4 py-2 border-t border-gray-300">{prod.product}</td>
-                      <td className="px-4 py-2 border-t border-gray-300">{prod.product_Price}</td>
-                      <td className="px-4 py-2 border-t border-gray-300">{prod.quantity}</td>
-                      <td className="px-4 py-2 border-t border-gray-300">{prod.product_Discount}%</td>
-                      <td className="px-4 py-2 border-t border-gray-300">
+                    <tr key={index} className="even:bg-gray-50">
+                      <td className="px-4 py-2 border">{prod.product}</td>
+                      <td className="px-4 py-2 border">{prod.product_Price}</td>
+                      <td className="px-4 py-2 border">{prod.quantity}</td>
+                      <td className="px-4 py-2 border">{prod.product_Discount}%</td>
+                      <td className="px-4 py-2 border text-center">
                         <button
                           type="button"
                           onClick={() => handleRemoveProduct(index)}
-                          className="text-red-500 hover:underline"
+                          className="text-red-600 hover:underline"
                         >
                           Remove
                         </button>
@@ -337,12 +356,14 @@ const AddQuote = () => {
           )}
         </section>
 
-        <button
-          type="submit"
-          className="w-auto px-6 py-2 bg-blue-400 text-white font-medium rounded hover:bg-blue-500 focus:outline-none mx-auto block"
-        >
-          Submit Quote
-        </button>
+        <div className="flex justify-center">
+          <button
+            type="submit"
+            className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:ring focus:ring-indigo-300 focus:ring-opacity-50"
+          >
+            Submit Quote
+          </button>
+        </div>
       </form>
     </div>
   );

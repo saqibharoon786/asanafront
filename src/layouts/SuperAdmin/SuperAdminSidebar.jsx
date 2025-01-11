@@ -1,110 +1,108 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { FaTachometerAlt, FaBuilding } from "react-icons/fa"; // Import only necessary icons
-import companyLogo from "../../assets/images/CompanyLogo.jpg"; // Ensure the path is correct
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faChevronDown,
+  faChevronRight,
+  faBuilding,
+} from "@fortawesome/free-solid-svg-icons";
 
-const SuperAdminSidebar = () => {
-  const { user } = useSelector((state) => state.auth); // Fetch user details from Redux
-  const [isSuperAdminSidebarOpen, setIsSuperAdminSidebarOpen] = useState(true);
-  const [isDashboardOpen, setIsDashboardOpen] = useState(false); // Toggle for Dashboard
-  const [isCompanyOpen, setIsCompanyOpen] = useState(false); // Toggle for Company
+const SuperAdminSidebar = ({ isSidebarOpen, toggleSidebar }) => {
+  const [activeItem, setActiveItem] = useState(null); // Track the currently active item
+  const [openDropdowns, setOpenDropdowns] = useState({
+    company: false,
+  });
 
   const toggleDropdown = (section) => {
-    if (section === "dashboard") {
-      setIsDashboardOpen(!isDashboardOpen); // Toggle Dashboard
-      setIsCompanyOpen(false); // Close Company if open
-    }
-    if (section === "company") {
-      setIsCompanyOpen(!isCompanyOpen); // Toggle Company
-      setIsDashboardOpen(false); // Close Dashboard if open
-    }
+    setOpenDropdowns((prevState) => ({
+      ...prevState,
+      [section]: !prevState[section],
+    }));
+  };
+
+  const handleOptionClick = (item) => {
+    setActiveItem(item); // Update the active item
+    if (isSidebarOpen) toggleSidebar();
   };
 
   return (
-    <>
-      {/* Sidebar */}
-      <aside>
-        {/* Header with Logo */}
-        <div className="p-6 border-b rounded-t-lg flex items-center gap-4">
-          <img
-            src={companyLogo}
-            alt="Company Logo"
-            className="w-12 h-12 rounded-full object-cover"
-          />
-          <h1 className="text-s font-bold text-black">
-            Alpha Capital Security Systems LLC
-          </h1>
-        </div>
-
-        {/* Navigation */}
-        <nav className="mt-4 space-y-2">
-          {/* Dashboard Module */}
-          <div>
-            <button
-              onClick={() => toggleDropdown("dashboard")}
-              className="w-full px-4 py-2 flex justify-between items-center text-black hover:bg-gray-200 rounded-md transition"
-            >
-              <FaTachometerAlt className="mr-2 transform transition-transform hover:scale-110" />
-              <span>Dashboard</span>
-              <span>{isDashboardOpen ? "▲" : "▼"}</span>
-            </button>
-            {isDashboardOpen && (
-              <ul className="pl-8 mt-2">
-                <li>
-                  <Link
-                    to={`/admin/${user?.name}`}
-                    className="block py-2 text-black hover:text-gray-700"
-                  >
-                    📈 Analytics Dashboard
-                  </Link>
-                </li>
-              </ul>
-            )}
-          </div>
-
-          {/* Company Module */}
-          <div>
-            <button
+    <div
+      className={`fixed inset-y-0 left-0 z-20 w-64 bg-gray-100 shadow-lg transform transition-transform duration-300 ${
+        isSidebarOpen ? "translate-x-0" : "lg:translate-x-0 -translate-x-full"
+      }`}
+    >
+      <div className="mt-4 overflow-y-auto h-[calc(100vh-6rem)]">
+        <ul className="text-gray-800">
+          {/* Company */}
+          <li>
+            <div
+              className="flex items-center justify-between p-3 cursor-pointer hover:bg-blue-100 rounded-lg transition duration-200"
               onClick={() => toggleDropdown("company")}
-              className="w-full px-4 py-2 flex justify-between items-center text-black hover:bg-gray-200 rounded-md transition"
             >
-              <FaBuilding className="mr-2 transform transition-transform hover:scale-110" />
-              <span>Company</span>
-              <span>{isCompanyOpen ? "▲" : "▼"}</span>
-            </button>
-            {isCompanyOpen && (
-              <ul className="pl-8 mt-2 space-y-2">
+              <div className="flex items-center space-x-2 group">
+                <FontAwesomeIcon
+                  icon={faBuilding}
+                  className="text-gray-900 group-hover:text-gray-900 transition duration-200"
+                />
+                <span className="group-hover:text-gray-900 transition duration-200">
+                  Company
+                </span>
+              </div>
+              <FontAwesomeIcon
+                icon={openDropdowns.company ? faChevronDown : faChevronRight}
+                className="text-gray-900 group-hover:text-gray-900 transition duration-200"
+              />
+            </div>
+            {openDropdowns.company && (
+              <ul className="ml-6 mt-2 space-y-2 text-gray-600">
                 <li>
                   <Link
                     to="/superadmin/add-company"
-                    className="block py-2 text-black hover:text-gray-700 flex items-center gap-2"
+                    className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
+                      activeItem === "add-company"
+                        ? "bg-blue-500 text-white"
+                        : "hover:text-gray-900"
+                    }`}
+                    onClick={() => handleOptionClick("add-company")}
                   >
-                    Create Companies
+                    <FontAwesomeIcon icon={faBuilding} />
+                    <span>Add Company</span>
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/superadmin/company"
-                    className="block py-2 text-black hover:text-gray-700 flex items-center gap-2"
+                    to="/superadmin/companies"
+                    className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
+                      activeItem === "companies"
+                        ? "bg-blue-500 text-white"
+                        : "hover:text-gray-900"
+                    }`}
+                    onClick={() => handleOptionClick("companies")}
                   >
-                    Manage Company
+                    <FontAwesomeIcon icon={faBuilding} />
+                    <span>Companies</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/superadmin/add-package"
+                    className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
+                      activeItem === "add-package"
+                        ? "bg-blue-500 text-white"
+                        : "hover:text-gray-900"
+                    }`}
+                    onClick={() => handleOptionClick("add-package")}
+                  >
+                    <FontAwesomeIcon icon={faBuilding} />
+                    <span>Add Package</span>
                   </Link>
                 </li>
               </ul>
             )}
-          </div>
-        </nav>
-      </aside>
-
-      {/* Overlay for Small Screens */}
-      {isSuperAdminSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black opacity-50 lg:hidden"
-          onClick={() => setIsSuperAdminSidebarOpen(false)}
-        ></div>
-      )}
-    </>
+          </li>
+        </ul>
+      </div>
+    </div>
   );
 };
 
