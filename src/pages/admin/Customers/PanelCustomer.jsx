@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const customers = [
@@ -523,17 +523,20 @@ const PanelCustomer = () => {
     workPhone: true,
     receivables: true,
     phone: true,
-    website: true,
-    status: true,
-    mobilePhone: true,
-    unusedCredits: true,
-    unusedCreditsBCY: true,
-    source: true,
-    firstName: true,
-    lastName: true,
-    paymentTerms: true,
+    website: false,
+    status: false,
+    mobilePhone: false,
+    unusedCredits: false,
+    unusedCreditsBCY: false,
+    source: false,
+    firstName: false,
+    lastName: false,
+    paymentTerms: false,
+    Actions: true,
   });
   const [searchQuery, setSearchQuery] = useState("");
+  const [expandedRows, setExpandedRows] = useState({});
+
   const navigate = useNavigate();
 
   const toggleModal = () => setIsModalOpen(!isModalOpen);
@@ -545,19 +548,41 @@ const PanelCustomer = () => {
     }));
   };
 
-  const handleAddCustomerClick = () => {
-    navigate("/add-customers"); // Navigate to AddCustomer page
+  const toggleRowActions = (index) => {
+    setExpandedRows((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
   };
 
-  return (
-    <div className="mx-auto p-6">
-      <div className="flex justify-between items-center space-x-4 space-y-4 mb-4">
+  const handleAddCustomerClick = () => {
+    navigate("/add-customers");
+  };
+
+  const handleCustomerClick = (customer) => {
+    navigate(`/view-customer`); 
+  };
+
+
+    // Clear the search bar whenever the modal is toggled
+    useEffect(() => {
+      if (isModalOpen) {
+        setSearchQuery("");
+      }
+    }, [isModalOpen]);
+    const handleSave = () => {
+      localStorage.setItem("visibleColumns", JSON.stringify(visibleColumns));
+      setIsModalOpen(false); // Close the modal after saving
+    };
+      return (
+    <div>
+      <div className="flex justify-between items-center mb-4 fi">
         <div className="text-lg font-semibold">All Customers</div>
         <div className="flex space-x-2">
           {/* "+ New" Button */}
           <button
             onClick={handleAddCustomerClick} // Trigger navigation when button is clicked
-            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 flex items-center"
+            className="bg-blue-600 text-white px-20 rounded-md hover:bg-blue-700 flex items-center"
           >
             <span className="mr-2">+</span> New
           </button>
@@ -629,7 +654,10 @@ const PanelCustomer = () => {
               >
                 Cancel
               </button>
-              <button className="bg-blue-600 text-white px-6 py-2 rounded-md">
+              <button
+                onClick={handleSave}
+                className="bg-blue-600 text-white px-6 py-2 rounded-md"
+              >
                 Save
               </button>
             </div>
@@ -638,12 +666,12 @@ const PanelCustomer = () => {
       )}
 
       {/* Table with Scrollbar */}
-      <div className="mt-4 max-h-[800px] w-full m-10">
-  <table className="min-w-full table-auto border-collapse border border-gray-200 ">
-    <thead className="w-full bg-gray-100 border border-gray-700 p-1">
+      <div className="mt-4 max-h-[800px] w-full overflow-x-auto">
+        <table className="min-w-full table-auto border-collapse border border-gray-200 px-10">
+          <thead className="w-full bg-gray-100 border border-gray-700 px-10">
       <tr>
         {visibleColumns.name && (
-          <th className="text-left border border-gray-300 px-6 py-3">
+          <th style={{ minWidth: '200px' }} className="text-left border border-gray-300 px-6 py-1">
             <div className="relative inline-block">
               <button
                 onClick={toggleModal}
@@ -651,7 +679,7 @@ const PanelCustomer = () => {
               >
                 {/* Icon */}
                 <svg
-                  className="w-5 h-5 ml-2"
+                  className="w-4 h-4 ml-3"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 512 512"
                   fill="currentColor"
@@ -708,12 +736,16 @@ const PanelCustomer = () => {
         {visibleColumns.paymentTerms && (
           <th className="text-left border border-gray-300 px-6 py-3">PAYMENT TERMS</th>
         )}
+        {visibleColumns.Actions && (
+          <th className="text-left border border-gray-300 px-6 py-3">Actions</th>
+        )}
       </tr>
     </thead>
 
     <tbody>
       {customers.map((customer, index) => (
-        <tr key={index} className="border-t border-gray-300 hover:bg-gray-50">
+        <tr key={index} className="border-t border-gray-300 hover:bg-gray-50"
+        onClick={() => handleCustomerClick(customer)}>
           {visibleColumns.name && (
             <td className="px-6 py-3 border border-gray-300">
               <input type="checkbox" className="mr-2" />
@@ -780,8 +812,44 @@ const PanelCustomer = () => {
           {visibleColumns.paymentTerms && (
             <td className="px-6 py-3 border border-gray-300">
               {customer.paymentTerms}
+              
             </td>
+            
           )}
+
+
+                         {visibleColumns.Actions && (
+                  <td className="px-6 py-3 border border-gray-300 relative">
+                    <button
+                      onClick={() => toggleRowActions(index)}
+                      className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
+                    >
+                      ⬇
+                    </button>
+                    {expandedRows[index] && (
+                      <div className="absolute bg-white shadow-md border mt-2 z-10">
+                        <button
+                          className="px-4 py-2 hover:bg-gray-100 w-full text-left"
+                          onClick={() => alert("Edit action triggered")}
+                        >
+                          ✏ Edit
+                        </button>
+                        <button
+                          className="px-4 py-2 hover:bg-gray-100 w-full text-left"
+                          onClick={() => alert("Delete action triggered")}
+                        >
+                          ❌ Delete
+                        </button>
+                        <button
+                          className="px-4 py-2 hover:bg-gray-100 w-full text-left"
+                          onClick={() => alert("View action triggered")}
+                        >
+                          👁 View
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                )}
         </tr>
       ))}
     </tbody>

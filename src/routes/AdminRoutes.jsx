@@ -7,7 +7,6 @@ import {
   PanelStaff,
   PanelDepartment,
   EditStaff,
-  PanelProjects,
   PanelProducts,
   PanelQuote,
   AddQuote,
@@ -23,7 +22,8 @@ import {
   AdminPayrolls,
   PanelCalender,
   PanelCustomers,
-  AddCustomer
+  AddCustomer,
+  EditCustomer,
 } from "../pages/admin/AdminPages";
 import { AdminLayout } from "../layouts/Layout";
 
@@ -59,6 +59,7 @@ const AdminRoutes = () => (
        
         <Route path="/customers" element={<AdminProtectedRoute><AdminLayout><PanelCustomers /></AdminLayout></AdminProtectedRoute>} />
         <Route path="/add-customers" element={<AdminProtectedRoute><AdminLayout><AddCustomer /></AdminLayout></AdminProtectedRoute>} />
+        <Route path="//view-customer" element={<AdminProtectedRoute><AdminLayout><EditCustomer /></AdminLayout></AdminProtectedRoute>} />
 
   </>
 );

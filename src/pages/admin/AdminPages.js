@@ -20,6 +20,8 @@ import AdminPayrolls from "./Payrolls/AdminPayrolls";
 import PanelCalender from "./Calender/PanelCalender";
 import PanelCustomers from "./Customers/PanelCustomer";
 import AddCustomer from "./Customers/AddCustomer";
+import EditCustomer from "./Customers/EditCustomer";
+
 export {
   AdminDashboard,
   AdminPayrolls,
@@ -43,4 +45,6 @@ export {
   PanelCalender,
   PanelCustomers,
   AddCustomer,
+  EditCustomer,
+  
 };

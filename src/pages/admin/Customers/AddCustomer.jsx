@@ -32,7 +32,7 @@ const AddCustomer = () => {
 
   return (
     <>
-      <div className="max-w-5xl mx-auto p-6 bg-white rounded-lg shadow-md mt-6">
+      <div className=" mx-auto p-6 bg-white rounded-lg shadow-md mt-6">
         <h2 className="text-2xl font-semibold text-gray-700">New Customer</h2>
         <form className="space-y-6 mt-6">
           {/* Customer Type */}
