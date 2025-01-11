@@ -1,56 +1,70 @@
-import React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState } from "react";
+import { useLocation } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { logout } from "../../features/auth/authSlice";
-import { FaBars } from "react-icons/fa";
-import companyLogo from "../../assets/images/CompanyLogo.jpg";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faUser,
+  faEnvelope,
+  faBell,
+  faBars,
+  faCalendarAlt,
+  faGlobe,
+  faProjectDiagram,
+  faFileAlt,
+  faSearch,
+} from "@fortawesome/free-solid-svg-icons";
 
 const SalesNavbar = ({ toggleSidebar }) => {
   const dispatch = useDispatch();
-  const name = useSelector((state) => state.auth.user?.name);
+  const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const getTitle = () => {
+    const pathToTitleMap = {
+      "/sales/dashboard": "Dashboard",
+      "/leads": "Leads",
+      "/staff": "Staff",
+      "/departments": "Departments",
+      "/products": "Products",
+      "/sales": "Sales",
+      "/quotes":"Quote",
+      "/invoices":"Invoice",
+      "/clander":"Clander"
+    };
+    return pathToTitleMap[location.pathname] || "Sales";
+  };
 
   const handleLogout = () => {
     dispatch(logout());
   };
 
   return (
-    <nav className="bg-gray-100 text-black p-4 sm:p-6 flex justify-between items-center border-b border-gray-300">
-      {/* Burger Menu for Mobile */}
-      <button
-        onClick={toggleSidebar}
-        className="p-2 text-black bg-gray-300 rounded-md lg:hidden"
-      >
-        <FaBars />
-      </button>
+    <div className="relative bg-white shadow-md">
+      <div className="flex items-center justify-between p-4 space-x-4 w-full">
+        <h1 className="hidden md:block text-xl font-bold text-center">{getTitle()}</h1>
 
-      {/* Company Logo and Name */}
-      <div className="flex items-center gap-4">
-        <img
-          src={companyLogo}
-          alt="Company Logo"
-          className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover"
-        />
-        <span className="text-xl sm:text-3xl font-bold text-gray-800">
-          Alpha Capital Security Systems LLC
-        </span>
+        {/* Search and dropdowns (hidden on small screens) */}
+        <div className="hidden sm:flex space-x-4">
+
+        </div>
+
+        {/* Icons */}
+        <div className="flex items-center space-x-10 pr-10">
+          <FontAwesomeIcon icon={faUser} className="text-gray-700 hover:text-blue-500" />
+          <FontAwesomeIcon icon={faEnvelope} className="text-gray-700 hover:text-blue-500" />
+          <FontAwesomeIcon icon={faBell} className="text-gray-700 hover:text-blue-500" />
+
+          {/* Sidebar toggle button */}
+          <button
+            className="md:hidden p-2 rounded-md bg-gray-800 text-white"
+            onClick={toggleSidebar}
+          >
+            <FontAwesomeIcon icon={faBars} />
+          </button>
+        </div>
       </div>
-
-      {/* Welcome Message */}
-      <div className="hidden sm:block text-base sm:text-lg font-medium">
-        Welcome to the Dashboard, Sales {name}
-      </div>
-
-      {/* Logout Button */}
-      <button
-        onClick={handleLogout}
-        className="font-medium py-2 px-4 rounded hover:bg-brown-600 transition duration-300"
-        style={{
-          backgroundColor: "#D2B48C",
-          color: "#fff",
-        }}
-      >
-        Logout
-      </button>
-    </nav>
+    </div>
   );
 };
 

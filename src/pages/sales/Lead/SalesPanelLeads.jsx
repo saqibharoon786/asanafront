@@ -1,231 +1,329 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { FaEye, FaCheck, FaTrashAlt } from 'react-icons/fa';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
+import axios from "axios";
 
-const API_SALES_URL = process.env.REACT_APP_API_SALES_URL;
+const API_URL = process.env.REACT_APP_API_URL;
 
 const SalesPanelLeads = () => {
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
+    clientName: "",
+    clientEmail: "",
+    clientAddress: "",
+    clientContact: "",
+    organization: "",
+    title: "",
+    source: "",
+  });
   const [leads, setLeads] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [search, setSearch] = useState('');
-  const [totalLeads, setTotalLeads] = useState(0);
+  const jwtLoginToken = localStorage.getItem("jwtLoginToken");
 
-  const navigate = useNavigate();
-  const jwtLoginToken = localStorage.getItem('jwtLoginToken');
+  const navigate = useNavigate(); // Initialize useNavigate
 
-  // Navigate to Add New Lead Page
-  const handleNewLead = () => {
-    navigate('/sales/add-lead');
-  };
-
-  // Fetch Leads from Backend
+  // Fetch all leads from the backend
   useEffect(() => {
     const fetchLeads = async () => {
       try {
-        const response = await axios.get(`${API_SALES_URL}/lead/all-leads`, {
-          headers: { Authorization: `Bearer ${jwtLoginToken}` },
+        const response = await axios.get(`${API_URL}/lead/all-leads`, {
+          headers: {
+            Authorization: `Bearer ${jwtLoginToken}`,
+          },
         });
-        if (response.data.success) {
-          setLeads(response.data.information.allLeads); // Show all leads
-          setTotalLeads(response.data.information.allLeads.length);
-        } else {
-          setError('Failed to load leads. Please try again.');
-        }
-      } catch (err) {
-        console.error('Error fetching leads:', err);
-        setError('Failed to load leads. Please check your connection.');
-      } finally {
-        setLoading(false);
+        setLeads(response.data.information.allLeads); // Set leads data
+      } catch (error) {
+        console.error(
+          "Error fetching leads:",
+          error.response ? error.response.data : error.message
+        );
+        alert(
+          "Error fetching leads: " +
+            (error.response ? error.response.data : error.message)
+        );
       }
     };
 
     fetchLeads();
-  }, [leads]); // Dependency on jwtLoginToken to reload if token changes
+  }, [jwtLoginToken]); // Only run once on component mount
 
-  // Handle Search Input Change
-  const handleSearchChange = (event) => {
-    setSearch(event.target.value);
+  const handleAddOptionalData = (leadId) => {
+    navigate(`/sales/optional-data-lead/${leadId}`); // Navigate to AdditionalDetails page
   };
 
-  // Filter leads based on search term
-  const filteredLeads = leads.filter((lead) => {
-    const searchTerm = search.toLowerCase();
-    return (
-      lead.lead_Name.toLowerCase().includes(searchTerm) ||
-      (lead.lead_Creater?.name?.toLowerCase().includes(searchTerm) || '') ||
-      (lead.lead_Client?.client_Name?.toLowerCase().includes(searchTerm) || '') ||
-      (lead.lead_Scope?.toLowerCase().includes(searchTerm) || '') ||
-      (lead.lead_Details?.status?.toLowerCase().includes(searchTerm) || '')
-    );
-  });
+  const handleViewLeadDetails = (leadId) => {
+    navigate(`/sales/lead-detail/${leadId}`); // Navigate to LeadDetails page
+  };
 
-  // Handle Delete Lead
-  const handleDeleteLead = async (leadId) => {
-    if (window.confirm('Are you sure you want to delete this lead?')) {
-      try {
-        const response = await axios.delete(
-          `${API_SALES_URL}/lead/delete/${leadId}`,
-          {
-            data: { lead_Identifier: leadId },
-            headers: {
-              Authorization: `Bearer ${jwtLoginToken}`,
-            },
-          }
-        );
+  const handleFormSubmit = async (event) => {
+    event.preventDefault();
 
-        if (response.status === 200) {
-          setLeads((prevLeads) =>
-            prevLeads.filter((lead) => lead._id !== leadId)
-          );
-          alert('Lead deleted successfully.');
-        } else {
-          throw new Error(response.data.message || 'Failed to delete the lead.');
+    const data = {
+      lead_Client: {
+        client_Name: formData.clientName,
+        client_Email: formData.clientEmail,
+        client_Address: formData.clientAddress,
+        client_Contact: parseInt(formData.clientContact), // Ensure clientContact is a number
+      },
+      lead_Organization: formData.organization,
+      lead_Title: formData.title,
+      lead_Source: formData.source,
+    };
+
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/lead/create-lead",
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${jwtLoginToken}`,
+          },
         }
-      } catch (error) {
-        const errorMessage = error.response?.data?.message || error.message || 'An error occurred. Please try again later.';
-        alert(errorMessage);
-      }
+      );
+
+      console.log(response);
+      alert("Form submitted successfully");
+      setShowForm(false);
+    } catch (error) {
+      console.error(
+        "Error:",
+        error.response ? error.response.data : error.message
+      );
+      alert(
+        "Error submitting form: " +
+          (error.response ? error.response.data : error.message)
+      );
     }
   };
 
-  // Handle Approve Lead (if applicable)
-  const handleApproveLead = async (leadId) => {
-    if (window.confirm('Are you sure you want to approve this lead?')) {
-      try {
-        const response = await axios.patch(
-          `${API_SALES_URL}/lead/approve/${leadId}`,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${jwtLoginToken}`,
-            },
-          }
-        );
-
-        if (response.status === 200) {
-          setLeads((prevLeads) =>
-            prevLeads.filter((lead) => lead._id !== leadId)
-          );
-          alert('Lead approved successfully.');
-        } else {
-          throw new Error(response.data.message || 'Failed to approve the lead.');
-        }
-      } catch (error) {
-        const errorMessage = error.response?.data?.message || error.message || 'An error occurred. Please try again later.';
-        alert(errorMessage);
-      }
-    }
-  };
-
-  // Navigate to View Lead Page
-  const handleViewLead = (leadId) => {
-    navigate(`/sales/view-lead/${leadId}`);
-  };
-
-  // Determine the background color based on the lead's status
-  const getStatusClass = (status) => {
-    switch (status) {
-      case 'Pending':
-        return 'bg-red-100'; // Red for Pending
-      case 'Approved':
-        return 'bg-green-100'; // Green for Approved
-      default:
-        return 'bg-white'; // Default if status is not defined
-    }
+  const handleInputChange = (e) => {
+    const { id, value } = e.target;
+    setFormData({ ...formData, [id]: value });
   };
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-blue-800">Leads Dashboard</h1>
-        <button
-          onClick={handleNewLead}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
-        >
-          + Add New Lead
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">
-        <div className="bg-white shadow rounded-lg p-4 flex flex-col justify-between">
-          <div className="text-gray-500 font-medium">Total Leads</div>
-          <div className="text-2xl font-bold text-blue-600">{totalLeads}</div>
+      <div className="bg-white shadow-lg rounded-lg">
+        <div className="flex justify-between items-center p-4 border-b">
+          <h2 className="text-xl font-semibold text-gray-800">Leads</h2>
+          <div className="flex space-x-2">
+            <button
+              className="px-4 py-2 text-white bg-green-600 rounded-md hover:bg-green-700"
+              onClick={() => setShowForm(true)}
+            >
+              + Lead
+            </button>
+            <button className="p-2 border rounded-md text-gray-700 hover:bg-gray-200">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M4 6h16M4 12h8m-8 6h16"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
-      </div>
-
-      <div className="bg-white shadow rounded-lg p-4 mb-6">
-        <input
-          type="text"
-          placeholder="Search for leads..."
-          value={search}
-          onChange={handleSearchChange}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
-
-      {loading ? (
-        <div className="flex justify-center items-center py-6">
-          <p className="text-gray-600 text-lg">Loading leads...</p>
-        </div>
-      ) : error ? (
-        <div className="flex justify-center items-center py-6">
-          <p className="text-red-500 text-lg">{error}</p>
-        </div>
-      ) : filteredLeads.length === 0 ? (
-        <div className="bg-white p-6 rounded-lg shadow mb-6">
-          <p className="text-red-500 text-center font-medium">No leads available.</p>
-        </div>
-      ) : (
-        <div className="bg-white shadow rounded-lg p-4">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr>
-                <th className="py-2 px-4 border">Lead Name</th>
-                <th className="py-2 px-4 border">Created By</th>
-                <th className="py-2 px-4 border">Client Name</th>
-                <th className="py-2 px-4 border">Scope</th>
-                <th className="py-2 px-4 border">Status</th>
-                <th className="py-2 px-4 border">Actions</th>
+        <table className="w-full border-collapse text-sm text-gray-700">
+          <thead className="bg-gray-50 border-b text-left">
+            <tr>
+              <th className="p-3">Lead Creator</th>
+              <th className="p-3">Title</th>
+              <th className="p-3">Organization</th>
+              <th className="p-3">Label</th>
+              <th className="p-3">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {leads.map((lead) => (
+              <tr className="border-b hover:bg-gray-100" key={lead._id}>
+                <td className="p-3">{lead.lead_CreaterName}</td>
+                <td className="p-3">{lead.lead_Title}</td>
+                <td className="p-3">{lead.lead_Organization}</td>
+                <td className="p-3">{lead.lead_Label}</td>
+                <td className="p-3 flex space-x-2">
+                  <button
+                    className="px-2 py-1 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600"
+                    onClick={() => handleAddOptionalData(lead._id)}
+                  >
+                    Add Optional Data
+                  </button>
+                  <button
+                    className="px-2 py-1 bg-gray-500 text-white text-sm rounded-md hover:bg-gray-600"
+                    onClick={() => handleViewLeadDetails(lead._id)}
+                  >
+                    View Details
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {filteredLeads.map((lead) => (
-                <tr key={lead._id} className={`border-t ${getStatusClass(lead.lead_Details?.status)}`}>
-                  <td className="py-2 px-4">{lead.lead_Name || 'Unknown'}</td>
-                  <td className="py-2 px-4">{lead.lead_Creater?.name || 'N/A'}</td>
-                  <td className="py-2 px-4">{lead.lead_Client?.client_Name || 'Unknown'}</td>
-                  <td className="py-2 px-4">{lead.lead_Scope || 'N/A'}</td>
-                  <td className="py-2 px-4">{lead.lead_Details ? lead.lead_Details.status : 'Pending'}</td>
-                  <td className="py-2 px-4">
-                    <button
-                      className="text-blue-500 flex items-center gap-1"
-                      onClick={() => handleApproveLead(lead._id)}
-                    >
-                      <FaCheck /> Approve
-                    </button>
-                  </td>
-                  <td className="py-2 px-4">
-                    <button
-                      className="text-red-500 flex items-center gap-1"
-                      onClick={() => handleDeleteLead(lead._id)}
-                    >
-                      <FaTrashAlt /> Delete
-                    </button>
-                  </td>
-                  <td className="py-2 px-4">
-                    <button
-                      className="text-blue-500 flex items-center gap-1"
-                      onClick={() => handleViewLead(lead._id)}
-                    >
-                      <FaEye /> View
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {showForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+          <div className="bg-white shadow-xl rounded-lg w-full max-w-lg p-8">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-semibold text-gray-800">Add Lead</h3>
+              <button
+                onClick={() => setShowForm(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+            <form onSubmit={handleFormSubmit} className="space-y-6">
+              <div>
+                <label
+                  htmlFor="clientName"
+                  className="block text-gray-700 font-medium"
+                >
+                  Client Name
+                </label>
+                <input
+                  id="clientName"
+                  type="text"
+                  value={formData.clientName}
+                  onChange={handleInputChange}
+                  className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="clientEmail"
+                  className="block text-gray-700 font-medium"
+                >
+                  Client Email
+                </label>
+                <input
+                  id="clientEmail"
+                  type="email"
+                  value={formData.clientEmail}
+                  onChange={handleInputChange}
+                  className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="clientAddress"
+                  className="block text-gray-700 font-medium"
+                >
+                  Client Address
+                </label>
+                <input
+                  id="clientAddress"
+                  type="text"
+                  value={formData.clientAddress}
+                  onChange={handleInputChange}
+                  className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="clientContact"
+                  className="block text-gray-700 font-medium"
+                >
+                  Client Contact
+                </label>
+                <input
+                  id="clientContact"
+                  type="text"
+                  value={formData.clientContact}
+                  onChange={handleInputChange}
+                  className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="organization"
+                  className="block text-gray-700 font-medium"
+                >
+                  Organization
+                </label>
+                <input
+                  id="organization"
+                  type="text"
+                  value={formData.organization}
+                  onChange={handleInputChange}
+                  className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="title"
+                  className="block text-gray-700 font-medium"
+                >
+                  Title
+                </label>
+                <input
+                  id="title"
+                  type="text"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500"
+                  required
+                />
+              </div>
+              <select
+                id="source"
+                value={formData.source}
+                onChange={handleInputChange}
+                className="w-full border rounded-md p-2 mt-1 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                required
+              >
+                <option value="">Select Source</option>
+                <option value="Prospector">Prospector</option>
+                <option value="Lead Suggestions">Lead Suggestions</option>
+                <option value="Web Forms">Web Forms</option>
+                <option value="Chatbot">Chatbot</option>
+                <option value="Live Chat">Live Chat</option>
+                <option value="Web Visitors">Web Visitors</option>
+                <option value="Campaigns">Campaigns</option>
+                <option value="Marketplace">Marketplace</option>
+                <option value="Messaging Inbox">Messaging Inbox</option>
+                <option value="None">None</option>
+              </select>
+              <div className="flex justify-end space-x-4">
+                <button
+                  type="button"
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                  onClick={() => setShowForm(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

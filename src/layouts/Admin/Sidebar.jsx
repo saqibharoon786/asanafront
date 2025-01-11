@@ -2,24 +2,28 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 import {
   faChevronDown,
   faChevronRight,
-  faChartLine,
-  faUserShield,
-  faBoxOpen,
-  faBullhorn,
-  faUserTie,
   faHouse,
+  faUserShield,
   faBuilding,
-  faUser,
-  faSackDollar,
-  faScaleBalanced,
+  faUserTie,
+  faMoneyCheckDollar,
+  faClipboardList,
+  faReceipt,
+  faCalendarAlt,
+  faBoxOpen,
+  faTruckLoading,
+  faFileInvoiceDollar,
+  faExchangeAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import companyLogo from "../../assets/images/CompanyLogo.jpg";
 
 const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
   const { user } = useSelector((state) => state.auth);
+  const [activeItem, setActiveItem] = useState(null); // Track the currently active item
   const [openDropdowns, setOpenDropdowns] = useState({
     dashboard: false,
     HR: false,
@@ -34,8 +38,9 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
     }));
   };
 
-  const handleOptionClick = () => {
-    if (isSidebarOpen) toggleSidebar(); // Close the sidebar if it is open
+  const handleOptionClick = (item) => {
+    setActiveItem(item); // Update the active item
+    if (isSidebarOpen) toggleSidebar();
   };
 
   return (
@@ -44,16 +49,9 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
         isSidebarOpen ? "translate-x-0" : "lg:translate-x-0 -translate-x-full"
       }`}
     >
-      {/* Sidebar Header */}
-      <div className="p-4 flex items-center space-x-4 bg-blue-600 text-white">
-        <img src={companyLogo} alt="Company Logo" className="w-12 h-12 rounded-full" />
-        <h1 className="text-lg font-bold">ACSSLC</h1>
-      </div>
-
-      {/* Sidebar Content */}
       <div className="mt-4 overflow-y-auto h-[calc(100vh-6rem)]">
         <ul className="text-gray-800">
-          {/* Dashboard Section */}
+          {/* Dashboard */}
           <li>
             <div
               className="flex items-center justify-between p-3 cursor-pointer hover:bg-blue-100 rounded-lg transition duration-200"
@@ -62,13 +60,15 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
               <div className="flex items-center space-x-2 group">
                 <FontAwesomeIcon
                   icon={faHouse}
-                  className="text-blue-600 group-hover:text-blue-600 transition duration-200"
+                  className="text-gray-900 group-hover:text-gray-900 transition duration-200"
                 />
-                <span className="group-hover:text-blue-600 transition duration-200">Home</span>
+                <span className="group-hover:text-gray-900 transition duration-200">
+                  Home
+                </span>
               </div>
               <FontAwesomeIcon
                 icon={openDropdowns.dashboard ? faChevronDown : faChevronRight}
-                className="text-gray-900 group-hover:text-blue-600 transition duration-200"
+                className="text-gray-900 group-hover:text-gray-900 transition duration-200"
               />
             </div>
             {openDropdowns.dashboard && (
@@ -76,8 +76,12 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                 <li>
                   <Link
                     to={`/admin/${user?.name}`}
-                    className="flex items-center space-x-2 hover:text-gray-900 transition duration-200 p-2 rounded-lg"
-                    onClick={handleOptionClick} // Close sidebar on click
+                    className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
+                      activeItem === "dashboard"
+                        ? "bg-blue-500 text-white"
+                        : "hover:text-gray-900"
+                    }`}
+                    onClick={() => handleOptionClick("dashboard")}
                   >
                     <FontAwesomeIcon icon={faHouse} />
                     <span>Dashboard</span>
@@ -87,7 +91,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
             )}
           </li>
 
-          {/* HR Section */}
+          {/* HR */}
           <li>
             <div
               className="flex items-center justify-between p-3 cursor-pointer hover:bg-blue-100 rounded-lg transition duration-200"
@@ -96,42 +100,58 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
               <div className="flex items-center space-x-2 group">
                 <FontAwesomeIcon
                   icon={faUserShield}
-                  className="text-blue-600 group-hover:text-blue-600 transition duration-200"
+                  className="text-gray-900 group-hover:text-gray-900 transition duration-200"
                 />
-                <span className="group-hover:text-blue-600 transition duration-200">HR</span>
+                <span
+                  className={`transition duration-200 ${
+                    activeItem === "HR"
+                      ? "bg-blue-500 text-white p-1 rounded-lg"
+                      : "hover:text-gray-900"
+                  }`}
+                >
+                  HR
+                </span>
               </div>
               <FontAwesomeIcon
                 icon={openDropdowns.HR ? faChevronDown : faChevronRight}
-                className="text-gray-900 group-hover:text-blue-600 transition duration-200"
+                className="text-gray-900 group-hover:text-gray-900 transition duration-200"
               />
             </div>
             {openDropdowns.HR && (
               <ul className="ml-6 mt-2 space-y-2 text-gray-600">
                 <li>
                   <Link
-                    to="/departments"
-                    className="flex items-center space-x-2 hover:text-gray-900 transition duration-200 p-2 rounded-lg"
-                    onClick={handleOptionClick} // Close sidebar on click
+                    to="/staff"
+                    className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
+                      activeItem === "staff"
+                        ? "bg-blue-500 text-white"
+                        : "hover:text-gray-900"
+                    }`}
+                    onClick={() => handleOptionClick("staff")}
                   >
-                    <FontAwesomeIcon icon={faBuilding} />
-                    <span>Departments</span>
+                    <FontAwesomeIcon icon={faUserTie} />
+                    <span>Staff</span>
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/staff"
-                    className="flex items-center space-x-2 hover:text-gray-900 transition duration-200 p-2 rounded-lg"
-                    onClick={handleOptionClick} // Close sidebar on click
+                    to="/payroll"
+                    className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
+                      activeItem === "payroll"
+                        ? "bg-blue-500 text-white"
+                        : "hover:text-gray-900"
+                    }`}
+                    onClick={() => handleOptionClick("payroll")}
                   >
-                    <FontAwesomeIcon icon={faUserTie} />
-                    <span>Staff</span>
+                    <FontAwesomeIcon icon={faMoneyCheckDollar} />
+                    <span>Payroll</span>
                   </Link>
                 </li>
               </ul>
             )}
           </li>
 
-          {/* Product Section */}
+          {/* Purchases */}
           <li>
             <div
               className="flex items-center justify-between p-3 cursor-pointer hover:bg-blue-100 rounded-lg transition duration-200"
@@ -140,9 +160,11 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
               <div className="flex items-center space-x-2 group">
                 <FontAwesomeIcon
                   icon={faBoxOpen}
-                  className="text-blue-600 group-hover:text-blue-600 transition duration-200"
+                  className="text-gray-900 group-hover:text-gray-900 transition duration-200"
                 />
-                <span className="group-hover:text-blue-600 transition duration-200">Product</span>
+                <span className="group-hover:text-gray-900 transition duration-200">
+                  Purchases
+                </span>
               </div>
               <FontAwesomeIcon
                 icon={openDropdowns.product ? faChevronDown : faChevronRight}
@@ -154,18 +176,64 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                 <li>
                   <Link
                     to="/products"
-                    className="flex items-center space-x-2 hover:text-gray-900 transition duration-200 p-2 rounded-lg"
-                    onClick={handleOptionClick} // Close sidebar on click
+                    className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
+                      activeItem === "products"
+                        ? "bg-blue-500 text-white"
+                        : "hover:text-gray-900"
+                    }`}
+                    onClick={() => handleOptionClick("products")}
                   >
                     <FontAwesomeIcon icon={faBoxOpen} />
-                    <span>Product List</span>
+                    <span>Inventory</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/vendor"
+                    className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
+                      activeItem === "vendor"
+                        ? "bg-blue-500 text-white"
+                        : "hover:text-gray-900"
+                    }`}
+                    onClick={() => handleOptionClick("vendor")}
+                  >
+                    <FontAwesomeIcon icon={faTruckLoading} />
+                    <span>Vendor</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/expenses"
+                    className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
+                      activeItem === "expenses"
+                        ? "bg-blue-500 text-white"
+                        : "hover:text-gray-900"
+                    }`}
+                    onClick={() => handleOptionClick("expenses")}
+                  >
+                    <FontAwesomeIcon icon={faFileInvoiceDollar} />
+                    <span>Expenses</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/bills"
+                    className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
+                      activeItem === "bills"
+                        ? "bg-blue-500 text-white"
+                        : "hover:text-gray-900"
+                    }`}
+                    onClick={() => handleOptionClick("bills")}
+                  >
+                    <FontAwesomeIcon icon={faReceipt} />
+                    <span>Bills</span>
                   </Link>
                 </li>
               </ul>
             )}
           </li>
 
-          {/* Sales Section */}
+          {/* Sales */}
           <li>
             <div
               className="flex items-center justify-between p-3 cursor-pointer hover:bg-blue-100 rounded-lg transition duration-200"
@@ -173,26 +241,74 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
             >
               <div className="flex items-center space-x-2 group">
                 <FontAwesomeIcon
-                  icon={faScaleBalanced}
-                  className="text-blue-600 group-hover:text-blue-600 transition duration-200"
+                  icon={faClipboardList}
+                  className="text-gray-900 group-hover:text-gray-900 transition duration-200"
                 />
-                <span className="group-hover:text-blue-600 transition duration-200">Sales</span>
+                <span className="group-hover:text-gray-900 transition duration-200">
+                  Sales
+                </span>
               </div>
               <FontAwesomeIcon
                 icon={openDropdowns.sales ? faChevronDown : faChevronRight}
-                className="text-gray-900 group-hover:text-blue-600 transition duration-200"
+                className="text-gray-900 group-hover:text-gray-900 transition duration-200"
               />
             </div>
             {openDropdowns.sales && (
               <ul className="ml-6 mt-2 space-y-2 text-gray-600">
                 <li>
                   <Link
-                    to="/leads"
-                    className="flex items-center space-x-2 hover:text-gray-900 transition duration-200 p-2 rounded-lg"
-                    onClick={handleOptionClick} // Close sidebar on click
+                    to="/customers"
+                    className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
+                      activeItem === "customers"
+                        ? "bg-blue-500 text-white"
+                        : "hover:text-gray-900"
+                    }`}
+                    onClick={() => handleOptionClick("customers")}
                   >
-                    <FontAwesomeIcon icon={faSackDollar} />
+                    <FontAwesomeIcon icon={faClipboardList} />
+                    <span>Customers</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/leads"
+                    className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
+                      activeItem === "leads"
+                        ? "bg-blue-500 text-white"
+                        : "hover:text-gray-900"
+                    }`}
+                    onClick={() => handleOptionClick("leads")}
+                  >
+                    <FontAwesomeIcon icon={faClipboardList} />
                     <span>Leads</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/quotes"
+                    className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
+                      activeItem === "quotes"
+                        ? "bg-blue-500 text-white"
+                        : "hover:text-gray-900"
+                    }`}
+                    onClick={() => handleOptionClick("quotes")}
+                  >
+                    <FontAwesomeIcon icon={faClipboardList} />
+                    <span>Quotes</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/invoices"
+                    className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
+                      activeItem === "invoices"
+                        ? "bg-blue-500 text-white"
+                        : "hover:text-gray-900"
+                    }`}
+                    onClick={() => handleOptionClick("invoices")}
+                  >
+                    <FontAwesomeIcon icon={faReceipt} />
+                    <span>Invoices</span>
                   </Link>
                 </li>
               </ul>

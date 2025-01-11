@@ -6,7 +6,7 @@ import html2canvas from "html2canvas";
 import { utils, writeFile } from "xlsx";
 import companyLogo from "../../../assets/images/CompanyLogo.jpg";
 
-const API_SALES_URL = process.env.REACT_APP_API_SALES_URL;
+const API_URL = process.env.REACT_APP_API_URL;
 
 const SalesViewInvoice = () => {
   const { invoiceId } = useParams();
@@ -20,7 +20,7 @@ const SalesViewInvoice = () => {
     const fetchInvoiceDetails = async () => {
       try {
         const response = await axios.get(
-          `${API_SALES_URL}/invoice/${invoiceId}`,
+          `${API_URL}/invoice/${invoiceId}`,
           {
             headers: { Authorization: `Bearer ${jwtLoginToken}` },
           }

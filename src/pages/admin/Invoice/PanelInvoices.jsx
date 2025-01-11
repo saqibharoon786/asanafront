@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaDollarSign, FaTrashAlt } from "react-icons/fa";
 
-const API_ADMIN_URL = process.env.REACT_APP_API_ADMIN_URL;
+const API_URL = process.env.REACT_APP_API_URL;
 
 const PanelInvoices = () => {
   const [invoices, setInvoices] = useState([]);
@@ -30,7 +30,7 @@ const PanelInvoices = () => {
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
-        const response = await axios.get(`${API_ADMIN_URL}/invoice/get-invoices`, {
+        const response = await axios.get(`${API_URL}/invoice/get-invoices`, {
           headers: { Authorization: `Bearer ${jwtLoginToken}` },
         });
 
@@ -59,18 +59,17 @@ const PanelInvoices = () => {
           setInvoices(filteredInvoices);
           setTotalInvoices(filteredInvoices.length);
         } else {
-          setError("Failed to load invoices. Please try again.");
+          setError("No Invoices Availible.");
         }
       } catch (err) {
-        console.error("Error fetching invoices:", err);
-        setError("Failed to load invoices. Please check your connection.");
+        setError("No Invoices Availible.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchInvoices();
-  }, [timeFilter, jwtLoginToken]); // Re-fetch invoices when time filter changes
+  }, [invoices]); // Re-fetch invoices when time filter changes
 
   // Handle Search Input Change
   const handleSearchChange = (event) => {
@@ -81,7 +80,7 @@ const PanelInvoices = () => {
     if (window.confirm("Are you sure you want to delete this invoice?")) {
       try {
         const response = await axios.delete(
-          `${API_ADMIN_URL}/invoice/delete/${invoiceId}`, // URL
+          `${API_URL}/invoice/delete/${invoiceId}`, // URL
           {
             headers: {
               Authorization: `Bearer ${jwtLoginToken}`,
@@ -114,7 +113,7 @@ const PanelInvoices = () => {
     if (window.confirm("Are you sure you want to mark this invoice as paid?")) {
       try {
         const response = await axios.patch(
-          `${API_ADMIN_URL}/invoice/set-paid/${invoiceId}`,
+          `${API_URL}/invoice/set-paid/${invoiceId}`,
           {}, // No request body needed here
           {
             headers: {
@@ -179,13 +178,6 @@ const PanelInvoices = () => {
           <option value="Week">Last Week</option>
           <option value="Month">Last Month</option>
         </select>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">
-        <div className="bg-white shadow rounded-lg p-4 flex flex-col justify-between">
-          <div className="text-gray-500 font-medium">Total Invoices</div>
-          <div className="text-2xl font-bold text-blue-600">{totalInvoices}</div>
-        </div>
       </div>
 
       <div className="bg-white shadow rounded-lg p-4 mb-6">

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";  // Import useNavigate
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
-const API_SALES_URL = process.env.REACT_APP_API_SALES_URL;
+const API_URL = process.env.REACT_APP_API_URL;
 
 const SalesAddInvoice = () => {
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
-  const navigate = useNavigate(); // Initialize navigate
+  const navigate = useNavigate(); // Initialize useNavigate hook
 
   const [client, setClient] = useState({
     client_Name: "",
@@ -41,7 +41,7 @@ const SalesAddInvoice = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get(`${API_SALES_URL}/product/get-products`, {
+        const response = await axios.get(`${API_URL}/product/get-products`, {
           headers: { Authorization: `Bearer ${jwtLoginToken}` },
         });
         const products = response.data?.information?.products || [];
@@ -192,16 +192,16 @@ const SalesAddInvoice = () => {
 
     try {
       const response = await axios.post(
-        `${API_SALES_URL}/invoice/create-invoice`,  // Ensure correct URL with protocol
+        `${API_URL}/invoice/create-invoice`,  // Ensure correct URL with protocol
         payload,
         { headers: { Authorization: `Bearer ${jwtLoginToken}` } }
       );
 
       if (response.data.success) {
         alert("Invoice created successfully!");
-        
-        // Navigate to the invoice panel after success
-        navigate("/sales/invoice-panel"); // Change to your invoice panel path
+
+        // Redirect to the invoice panel after success
+        navigate("/sales/invoices"); // Navigate to the invoice panel
 
         // Clear the form after success
         setProducts([]);

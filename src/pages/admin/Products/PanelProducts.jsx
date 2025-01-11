@@ -50,10 +50,7 @@ const PanelProduct = () => {
     fetchProducts();
   }, [products]);
 
-  // Extract unique categories from products
-  const categories = Array.from(
-    new Set(products.map((product) => product.product_Category))
-  );
+
 
   // Handle search input
   const handleSearchChange = (e) => {
@@ -72,20 +69,7 @@ const PanelProduct = () => {
     navigate("/add-product");
   };
 
-  const handleCategoryChange = (e) => {
-    const selectedCategory = e.target.value;
-    setSelectedCategory(selectedCategory);
-
-    if (selectedCategory) {
-      const filtered = products.filter(
-        (product) => product.product_Category === selectedCategory
-      );
-      setFilteredProducts(filtered);
-    } else {
-      setFilteredProducts(products);
-    }
-  };
-
+ 
   // Handle image click to show large version
   const handleImageClick = (imagePath, product) => {
     setSelectedImage(imagePath);
@@ -145,80 +129,10 @@ const PanelProduct = () => {
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-      {/* Sales Overview Section */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">
-        {[
-          {
-            title: "In-Store Sales",
-            value: "$5,345",
-            orders: "5k orders",
-            change: "+5.7%",
-            color: "text-green-500",
-          },
-          {
-            title: "Website Sales",
-            value: "$74,347",
-            orders: "21k orders",
-            change: "+12.4%",
-            color: "text-green-500",
-          },
-          {
-            title: "Discount",
-            value: "$14,235",
-            orders: "6k orders",
-            change: "",
-            color: "text-gray-500",
-          },
-          {
-            title: "Affiliate",
-            value: "$8,345",
-            orders: "150 orders",
-            change: "-3.5%",
-            color: "text-red-500",
-          },
-        ].map((item, index) => (
-          <div
-            key={index}
-            className="bg-white shadow rounded-lg p-4 flex flex-col justify-between"
-          >
-            <div className="text-gray-500 font-medium">{item.title}</div>
-            <div className="text-2xl font-bold">{item.value}</div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-400 text-sm">{item.orders}</span>
-              <span className={`${item.color} text-sm`}>{item.change}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-
+     
       {/* Filter Section */}
       <div className="bg-white shadow rounded-lg p-4">
         <div className="flex gap-4 mb-4 flex-wrap">
-          <select className="border rounded-lg px-4 py-2 w-full sm:w-1/4 md:w-1/4">
-            <option>Select Status</option>
-          </select>
-          <select
-            className="border rounded-lg px-4 py-2 w-full sm:w-1/4 md:w-1/4"
-            value={selectedCategory}
-            onChange={handleCategoryChange}
-          >
-            <option value="">Select Category</option>
-            {categories.map((category, index) => (
-              <option key={index} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-          <select className="border rounded-lg px-4 py-2 w-full sm:w-1/4 md:w-1/4">
-            <option>Stock</option>
-          </select>
-          <input
-            type="text"
-            placeholder="Search"
-            value={search}
-            onChange={handleSearchChange}
-            className="border rounded-lg px-4 py-2 flex-1"
-          />
         </div>
 
         <div className="flex justify-between mb-4">

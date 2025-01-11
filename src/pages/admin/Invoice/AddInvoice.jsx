@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
-const API_ADMIN_URL = process.env.REACT_APP_API_ADMIN_URL;
+const API_URL = process.env.REACT_APP_API_URL;
 
 const AddInvoice = () => {
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
-  const navigate = useNavigate(); // Initialize useNavigate hook
+  const { user } = useSelector((state) => state.auth) || {};
+  const navigate = useNavigate();
+
+  const creator = {
+    name: user?.name || "",
+    email: user?.email || "",
+    contact: user?.contact || "",
+  };
 
   const [client, setClient] = useState({
     client_Name: "",
@@ -28,7 +36,6 @@ const AddInvoice = () => {
     status: "Unpaid",
   });
 
-  // Error states for each section
   const [clientError, setClientError] = useState({
     client_Name: "",
     client_Email: "",
@@ -37,11 +44,12 @@ const AddInvoice = () => {
   });
   const [productError, setProductError] = useState("");
 
-  // Fetch products from backend
   useEffect(() => {
     const fetchProducts = async () => {
+      if (!jwtLoginToken) return;
+
       try {
-        const response = await axios.get(`${API_ADMIN_URL}/product/get-products`, {
+        const response = await axios.get(`${API_URL}/product/get-products`, {
           headers: { Authorization: `Bearer ${jwtLoginToken}` },
         });
         const products = response.data?.information?.products || [];
@@ -61,7 +69,6 @@ const AddInvoice = () => {
     fetchProducts();
   }, [jwtLoginToken]);
 
-  // Handle client input change
   const handleClientChange = (e) => {
     const { name, value } = e.target;
     setClient((prevClient) => ({
@@ -70,7 +77,6 @@ const AddInvoice = () => {
     }));
   };
 
-  // Validate client fields
   const validateClient = () => {
     let isValid = true;
     let errors = { ...clientError };
@@ -107,7 +113,6 @@ const AddInvoice = () => {
     return isValid;
   };
 
-  // Handle product input change
   const handleCurrentProductChange = (e) => {
     const { name, value } = e.target;
 
@@ -129,7 +134,6 @@ const AddInvoice = () => {
     }));
   };
 
-  // Validate product details
   const validateProduct = () => {
     if (!currentProduct.product || currentProduct.product_SellingPrice <= 0 || currentProduct.quantity <= 0) {
       setProductError("Please provide valid product details.");
@@ -139,7 +143,6 @@ const AddInvoice = () => {
     return true;
   };
 
-  // Add product to the quote
   const handleAddProduct = () => {
     if (!validateProduct()) return;
 
@@ -165,7 +168,6 @@ const AddInvoice = () => {
     });
   };
 
-  // Remove product from the quote
   const handleRemoveProduct = (index) => {
     setProducts((prevProducts) => {
       const updatedProducts = [...prevProducts];
@@ -174,42 +176,45 @@ const AddInvoice = () => {
     });
   };
 
-  // Submit the quote to the backend
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateClient()) return; // Validate client details
+    if (!validateClient()) return;
     if (products.length === 0) {
       alert("Please add at least one product!");
       return;
     }
 
     const payload = {
-      invoice_Client: client, // Update to match the backend structure
-      invoice_Products: products, // Update to match the backend structure
-      invoice_Details: quoteDetails, // Update to match the backend structure
+      invoice_Creator: {
+        name: creator.name,
+        email: creator.email,
+        phone: creator.contact,
+      },
+      invoice_Client: client,
+      invoice_Products: products,
+      invoice_Details: quoteDetails,
     };
 
     try {
       const response = await axios.post(
-        `${API_ADMIN_URL}/invoice/create-invoice`,  // Ensure correct URL with protocol
+        `${API_URL}/invoice/create-invoice`,
         payload,
         { headers: { Authorization: `Bearer ${jwtLoginToken}` } }
       );
 
       if (response.data.success) {
         alert("Invoice created successfully!");
-
-        // Redirect to the invoice panel after success
-        navigate("/invoices"); // Navigate to the invoice panel
-
-        // Clear the form after success
+        navigate("/invoices");
         setProducts([]);
         setClient({
-          client_Name: "", client_Email: "", client_Contact: "", client_Address: "",
+          client_Name: "",
+          client_Email: "",
+          client_Contact: "",
+          client_Address: "",
         });
         setQuoteDetails({
-          status: "Pending",
+          status: "Unpaid",
         });
       } else {
         alert("Failed to create invoice. Please try again.");
@@ -221,136 +226,120 @@ const AddInvoice = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-8 bg-white rounded-lg shadow-lg mt-10">
-      <h2 className="text-4xl font-extrabold text-center text-blue-700 mb-6">
-        Create a New Invoice
-      </h2>
+    <div className="max-w-7xl mx-auto p-6 bg-gray-100 rounded shadow-md">
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">New Invoice</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Client Details */}
-        <div className="p-6 bg-gray-50 rounded-lg shadow">
-          <h3 className="text-2xl font-bold mb-4 text-gray-700">Client Details</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {["client_Name", "client_Email", "client_Contact", "client_Address"].map((field) => (
-              <div key={field}>
-                <label htmlFor={field} className="block text-sm font-semibold text-gray-700">
-                  {field.replace("client_", "").replace("_", " ").toUpperCase()}
-                </label>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <section className="bg-white p-6 rounded shadow">
+          <h2 className="text-lg font-semibold text-gray-700 mb-4">Client Details</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              { name: "client_Name", label: "Client Name" },
+              { name: "client_Email", label: "Client Email" },
+              { name: "client_Contact", label: "Client Contact" },
+              { name: "client_Address", label: "Client Address" },
+            ].map(({ name, label }) => (
+              <div key={name}>
+                <label htmlFor={name} className="block text-sm font-medium text-gray-600">{label}</label>
                 <input
-                  type={field === "client_Email" ? "email" : "text"}
-                  name={field}
-                  id={field}
-                  placeholder={`Client's ${field.charAt(0).toUpperCase() + field.slice(1)}`}
-                  value={client[field]}
+                  type={name === "client_Email" ? "email" : "text"}
+                  name={name}
+                  id={name}
+                  value={client[name]}
                   onChange={handleClientChange}
-                  className="p-3 border rounded-lg w-full"
+                  className="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                 />
-                {clientError[field] && <p className="text-red-500 text-sm">{clientError[field]}</p>}
+                {clientError[name] && <p className="text-red-500 text-xs mt-1">{clientError[name]}</p>}
               </div>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* Products Section */}
-        <div className="p-6 bg-gray-50 rounded-lg shadow">
-          <h3 className="text-2xl font-bold mb-4 text-gray-700">Products</h3>
-
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            <select
-              name="product"
-              value={currentProduct.product}
-              onChange={handleCurrentProductChange}
-              className="p-2 border rounded-lg"
-            >
-              <option value="" disabled>Select Product</option>
-              {productOptions.length > 0 ? (
-                productOptions.map((prod) => (
-                  <option key={prod.id} value={prod.name}>{prod.name}</option>
-                ))
-              ) : (
-                <option value="">No products available</option>
-              )}
-            </select>
-
+        <section className="bg-white p-6 rounded shadow">
+          <h2 className="text-lg font-semibold text-gray-700 mb-4">Products</h2>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
             <div>
-              <label htmlFor="product_SellingPrice" className="block text-sm font-medium text-gray-700">
-                Selling Price
-              </label>
-              <input
-                type="number"
-                name="product_SellingPrice"
-                value={currentProduct.product_SellingPrice}
+              <label htmlFor="product" className="block text-sm font-medium text-gray-600">Product</label>
+              <select
+                id="product"
+                name="product"
+                value={currentProduct.product}
                 onChange={handleCurrentProductChange}
-                className="p-2 border rounded-lg"
-                placeholder="Selling Price"
-              />
+                className="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+              >
+                <option value="" disabled>Select a product</option>
+                {productOptions.map(({ id, name }) => (
+                  <option key={id} value={name}>{name}</option>
+                ))}
+              </select>
             </div>
 
-            <div>
-              <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">
-                Quantity
-              </label>
-              <input
-                type="number"
-                name="quantity"
-                value={currentProduct.quantity}
-                onChange={handleCurrentProductChange}
-                className="p-2 border rounded-lg"
-                placeholder="Quantity"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="product_Discount" className="block text-sm font-medium text-gray-700">
-                Discount
-              </label>
-              <input
-                type="number"
-                name="product_Discount"
-                value={currentProduct.product_Discount}
-                onChange={handleCurrentProductChange}
-                className="p-2 border rounded-lg"
-                placeholder="Discount"
-              />
-            </div>
+            {["product_SellingPrice", "product_Discount", "quantity"].map((field) => (
+              <div key={field}>
+                <label htmlFor={field} className="block text-sm font-medium text-gray-600">
+                  {field.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase())}
+                </label>
+                <input
+                  type="number"
+                  name={field}
+                  id={field}
+                  value={currentProduct[field]}
+                  onChange={handleCurrentProductChange}
+                  className="mt-1 block w-full rounded border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                />
+              </div>
+            ))}
 
             <button
               type="button"
               onClick={handleAddProduct}
-              className="px-2 py-2 bg-blue-500 text-white rounded-lg"
+              className="px-4 py-2 bg-blue-400 text-white font-medium rounded hover:bg-blue-600 focus:outline-none"
             >
               Add Product
             </button>
           </div>
 
-          {productError && <p className="text-red-500 text-sm mt-2">{productError}</p>}
+          {productError && <p className="text-red-500 text-xs mt-2">{productError}</p>}
 
           {products.length > 0 && (
             <div className="mt-4">
-              {products.map((prod, index) => (
-                <div
-                  key={index}
-                  className="p-2 bg-gray-100 rounded-lg my-2 flex justify-between items-center"
-                >
-                  <span>
-                    {prod.product} | Price: {prod.product_Price} | Qty: {prod.quantity} | Discount: {prod.product_Discount}%
-                  </span>
-
-                  <button
-                    onClick={() => handleRemoveProduct(index)}
-                    className="bg-red-500 text-white px-2 rounded-lg"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
+              <table className="min-w-full bg-white border border-gray-300">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="text-left px-4 py-2">Product</th>
+                    <th className="text-left px-4 py-2">Price</th>
+                    <th className="text-left px-4 py-2">Quantity</th>
+                    <th className="text-left px-4 py-2">Discount</th>
+                    <th className="text-left px-4 py-2">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map((prod, index) => (
+                    <tr key={index}>
+                      <td className="px-4 py-2 border-t border-gray-300">{prod.product}</td>
+                      <td className="px-4 py-2 border-t border-gray-300">{prod.product_Price}</td>
+                      <td className="px-4 py-2 border-t border-gray-300">{prod.quantity}</td>
+                      <td className="px-4 py-2 border-t border-gray-300">{prod.product_Discount}%</td>
+                      <td className="px-4 py-2 border-t border-gray-300">
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveProduct(index)}
+                          className="text-red-500 hover:underline"
+                        >
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
-        </div>
+        </section>
 
         <button
           type="submit"
-          className="w-full py-4 mt-4 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-bold rounded-lg shadow hover:bg-blue-600"
+          className="w-auto px-6 py-2 bg-blue-400 text-white font-medium rounded hover:bg-blue-500 focus:outline-none mx-auto block"
         >
           Create Invoice
         </button>

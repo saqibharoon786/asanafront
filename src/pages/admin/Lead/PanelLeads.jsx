@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import axios from "axios";
+
 const API_URL = process.env.REACT_APP_API_URL;
 
 const PanelLeads = () => {
@@ -16,6 +18,8 @@ const PanelLeads = () => {
   const [leads, setLeads] = useState([]);
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
 
+  const navigate = useNavigate(); // Initialize useNavigate
+
   // Fetch all leads from the backend
   useEffect(() => {
     const fetchLeads = async () => {
@@ -27,13 +31,27 @@ const PanelLeads = () => {
         });
         setLeads(response.data.information.allLeads); // Set leads data
       } catch (error) {
-        console.error("Error fetching leads:", error.response ? error.response.data : error.message);
-        alert("Error fetching leads: " + (error.response ? error.response.data : error.message));
+        console.error(
+          "Error fetching leads:",
+          error.response ? error.response.data : error.message
+        );
+        alert(
+          "Error fetching leads: " +
+            (error.response ? error.response.data : error.message)
+        );
       }
     };
 
     fetchLeads();
   }, [jwtLoginToken]); // Only run once on component mount
+
+  const handleAddOptionalData = (leadId) => {
+    navigate(`/optional-data-lead/${leadId}`); // Navigate to AdditionalDetails page
+  };
+
+  const handleViewLeadDetails = (leadId) => {
+    navigate(`/lead-detail/${leadId}`); // Navigate to LeadDetails page
+  };
 
   const handleFormSubmit = async (event) => {
     event.preventDefault();
@@ -65,8 +83,14 @@ const PanelLeads = () => {
       alert("Form submitted successfully");
       setShowForm(false);
     } catch (error) {
-      console.error("Error:", error.response ? error.response.data : error.message);
-      alert("Error submitting form: " + (error.response ? error.response.data : error.message));
+      console.error(
+        "Error:",
+        error.response ? error.response.data : error.message
+      );
+      alert(
+        "Error submitting form: " +
+          (error.response ? error.response.data : error.message)
+      );
     }
   };
 
@@ -112,6 +136,7 @@ const PanelLeads = () => {
               <th className="p-3">Title</th>
               <th className="p-3">Organization</th>
               <th className="p-3">Label</th>
+              <th className="p-3">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -121,6 +146,20 @@ const PanelLeads = () => {
                 <td className="p-3">{lead.lead_Title}</td>
                 <td className="p-3">{lead.lead_Organization}</td>
                 <td className="p-3">{lead.lead_Label}</td>
+                <td className="p-3 flex space-x-2">
+                  <button
+                    className="px-2 py-1 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600"
+                    onClick={() => handleAddOptionalData(lead._id)}
+                  >
+                    Add Optional Data
+                  </button>
+                  <button
+                    className="px-2 py-1 bg-gray-500 text-white text-sm rounded-md hover:bg-gray-600"
+                    onClick={() => handleViewLeadDetails(lead._id)}
+                  >
+                    View Details
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -154,7 +193,12 @@ const PanelLeads = () => {
             </div>
             <form onSubmit={handleFormSubmit} className="space-y-6">
               <div>
-                <label htmlFor="clientName" className="block text-gray-700 font-medium">Client Name</label>
+                <label
+                  htmlFor="clientName"
+                  className="block text-gray-700 font-medium"
+                >
+                  Client Name
+                </label>
                 <input
                   id="clientName"
                   type="text"
@@ -165,7 +209,12 @@ const PanelLeads = () => {
                 />
               </div>
               <div>
-                <label htmlFor="clientEmail" className="block text-gray-700 font-medium">Client Email</label>
+                <label
+                  htmlFor="clientEmail"
+                  className="block text-gray-700 font-medium"
+                >
+                  Client Email
+                </label>
                 <input
                   id="clientEmail"
                   type="email"
@@ -176,7 +225,12 @@ const PanelLeads = () => {
                 />
               </div>
               <div>
-                <label htmlFor="clientAddress" className="block text-gray-700 font-medium">Client Address</label>
+                <label
+                  htmlFor="clientAddress"
+                  className="block text-gray-700 font-medium"
+                >
+                  Client Address
+                </label>
                 <input
                   id="clientAddress"
                   type="text"
@@ -187,7 +241,12 @@ const PanelLeads = () => {
                 />
               </div>
               <div>
-                <label htmlFor="clientContact" className="block text-gray-700 font-medium">Client Contact</label>
+                <label
+                  htmlFor="clientContact"
+                  className="block text-gray-700 font-medium"
+                >
+                  Client Contact
+                </label>
                 <input
                   id="clientContact"
                   type="text"
@@ -198,7 +257,12 @@ const PanelLeads = () => {
                 />
               </div>
               <div>
-                <label htmlFor="organization" className="block text-gray-700 font-medium">Organization</label>
+                <label
+                  htmlFor="organization"
+                  className="block text-gray-700 font-medium"
+                >
+                  Organization
+                </label>
                 <input
                   id="organization"
                   type="text"
@@ -209,7 +273,12 @@ const PanelLeads = () => {
                 />
               </div>
               <div>
-                <label htmlFor="title" className="block text-gray-700 font-medium">Title</label>
+                <label
+                  htmlFor="title"
+                  className="block text-gray-700 font-medium"
+                >
+                  Title
+                </label>
                 <input
                   id="title"
                   type="text"
@@ -220,24 +289,24 @@ const PanelLeads = () => {
                 />
               </div>
               <select
-                    id="source"
-                    value={formData.source}
-                    onChange={handleInputChange}
-                    className="w-full border rounded-md p-2 mt-1 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    required
-                  >
-                    <option value="">Select Source</option>
-                    <option value="Prospector">Prospector</option>
-                    <option value="Lead Suggestions">Lead Suggestions</option>
-                    <option value="Web Forms">Web Forms</option>
-                    <option value="Chatbot">Chatbot</option>
-                    <option value="Live Chat">Live Chat</option>
-                    <option value="Web Visitors">Web Visitors</option>
-                    <option value="Campaigns">Campaigns</option>
-                    <option value="Marketplace">Marketplace</option>
-                    <option value="Messaging Inbox">Messaging Inbox</option>
-                    <option value="None">None</option>
-                  </select>
+                id="source"
+                value={formData.source}
+                onChange={handleInputChange}
+                className="w-full border rounded-md p-2 mt-1 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                required
+              >
+                <option value="">Select Source</option>
+                <option value="Prospector">Prospector</option>
+                <option value="Lead Suggestions">Lead Suggestions</option>
+                <option value="Web Forms">Web Forms</option>
+                <option value="Chatbot">Chatbot</option>
+                <option value="Live Chat">Live Chat</option>
+                <option value="Web Visitors">Web Visitors</option>
+                <option value="Campaigns">Campaigns</option>
+                <option value="Marketplace">Marketplace</option>
+                <option value="Messaging Inbox">Messaging Inbox</option>
+                <option value="None">None</option>
+              </select>
               <div className="flex justify-end space-x-4">
                 <button
                   type="button"

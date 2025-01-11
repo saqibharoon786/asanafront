@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
+import { FaEye, FaEdit, FaTrash, FaArrowLeft, FaArrowRight } from "react-icons/fa";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -10,8 +10,9 @@ const PanelDepartment = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1); // Pagination for employees
+  const EMPLOYEES_PER_PAGE = 10; // Number of employees per page
 
-  // Fetch departments data from API
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
@@ -32,7 +33,7 @@ const PanelDepartment = () => {
     };
 
     fetchDepartments();
-  }, [departments]);
+  }, []);
 
   const handleSearchChange = (event) => setSearch(event.target.value);
 
@@ -41,6 +42,22 @@ const PanelDepartment = () => {
   );
 
   const totalDepartments = filteredDepartments.length;
+
+  const paginateEmployees = (employees) => {
+    const startIndex = (currentPage - 1) * EMPLOYEES_PER_PAGE;
+    const endIndex = startIndex + EMPLOYEES_PER_PAGE;
+    return employees.slice(startIndex, endIndex);
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const handleNextPage = () => {
+    if (selectedDepartment?.employees?.length > currentPage * EMPLOYEES_PER_PAGE) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
 
   if (loading) {
     return (
@@ -61,19 +78,6 @@ const PanelDepartment = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="p-6 space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-800">Departments Management</h1>
-        </div>
-
-        {/* Stats Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="bg-white p-6 rounded-lg shadow-md text-center">
-            <h2 className="text-xl font-medium text-gray-600">Total Departments</h2>
-            <p className="text-4xl font-bold text-blue-400">{totalDepartments}</p>
-          </div>
-        </div>
-
         {/* Search Bar */}
         <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-md">
           <input
@@ -106,7 +110,10 @@ const PanelDepartment = () => {
                     <td className="px-4 py-3 text-gray-800">
                       <div className="flex space-x-2">
                         <button
-                          onClick={() => setSelectedDepartment(dept)}
+                          onClick={() => {
+                            setSelectedDepartment(dept);
+                            setCurrentPage(1); // Reset to first page
+                          }}
                           className="text-blue-400 hover:text-blue-700"
                           title="View Department"
                         >
@@ -123,7 +130,6 @@ const PanelDepartment = () => {
                           onClick={() => {
                             if (window.confirm("Are you sure you want to delete this department?")) {
                               console.log("Delete department:", dept);
-                              // Add delete logic here if required
                             }
                           }}
                           className="text-red-500 hover:text-red-600"
@@ -152,7 +158,7 @@ const PanelDepartment = () => {
             </h2>
             <ul className="space-y-2">
               {selectedDepartment.employees?.length > 0 ? (
-                selectedDepartment.employees.map((emp, index) => (
+                paginateEmployees(selectedDepartment.employees).map((emp, index) => (
                   <li
                     key={emp._id || index}
                     className="p-4 bg-gray-100 rounded-lg shadow-sm hover:bg-gray-200 transition"
@@ -165,6 +171,28 @@ const PanelDepartment = () => {
                 <li className="p-4 text-gray-500">No employees found in this department.</li>
               )}
             </ul>
+            <div className="flex justify-between mt-4">
+              <button
+                onClick={handlePreviousPage}
+                className={`px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition ${
+                  currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                disabled={currentPage === 1}
+              >
+                <FaArrowLeft /> Previous
+              </button>
+              <button
+                onClick={handleNextPage}
+                className={`px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition ${
+                  selectedDepartment.employees?.length <= currentPage * EMPLOYEES_PER_PAGE
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
+                disabled={selectedDepartment.employees?.length <= currentPage * EMPLOYEES_PER_PAGE}
+              >
+                Next <FaArrowRight />
+              </button>
+            </div>
             <button
               onClick={() => setSelectedDepartment(null)}
               className="mt-4 w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"

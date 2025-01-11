@@ -1,18 +1,19 @@
-import React, { useEffect, useState, useMemo } from "react";
-import axios from "axios";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaEdit, FaTrashAlt, FaUser } from "react-icons/fa";
+import axios from "axios";
+import { FaEdit, FaTrashAlt } from "react-icons/fa";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
 const PanelStaff = () => {
-  const [users, setUsers] = useState([]);
-  const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [deletingEmail, setDeletingEmail] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1); // Pagination state
+  const [users, setUsers] = useState([]); // Staff data
+  const [loading, setLoading] = useState(true); // Loading state
+  const [error, setError] = useState(null); // Error state
   const navigate = useNavigate();
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
+
+  const pageSize = 5; // Number of staff per page
 
   // Fetch users from backend
   useEffect(() => {
@@ -32,13 +33,9 @@ const PanelStaff = () => {
           .map((user) => {
             let department = "Unknown";
 
-            if (user.access === "HR") {
-              department = "HR";
-            } else if (user.access === "Admin") {
-              department = "Admin";
-            } else if (user.access === "Sales") {
-              department = "Sales";
-            }
+            if (user.access === "HR") department = "HR";
+            if (user.access === "Admin") department = "Admin";
+            if (user.access === "Sales") department = "Sales";
 
             return {
               ...user,
@@ -57,47 +54,27 @@ const PanelStaff = () => {
     fetchUsers();
   }, [jwtLoginToken]);
 
-  // Handle delete action
   const handleDelete = async (email) => {
     if (window.confirm("Are you sure you want to delete this staff member?")) {
       try {
-        setDeletingEmail(email);
+        await axios.delete(`${API_URL}/department/delete-employee`, {
+          data: { email },
+          headers: {
+            Authorization: `Bearer ${jwtLoginToken}`,
+          },
+        });
 
-        const response = await axios.delete(
-          `${API_URL}/department/delete-employee`,
-          {
-            data: { email },
-            headers: {
-              Authorization: `Bearer ${jwtLoginToken}`,
-            },
-          }
+        setUsers((prevUsers) =>
+          prevUsers.filter((user) => user.email !== email)
         );
-
-        if (response.status === 200) {
-          setUsers((prevUsers) =>
-            prevUsers.filter((user) => user.email !== email)
-          );
-          alert("Staff member deleted successfully.");
-        } else {
-          throw new Error(
-            response.data.message || "Failed to delete the staff member."
-          );
-        }
+        alert("Staff member deleted successfully.");
       } catch (error) {
-        const errorMessage =
-          error.response?.data?.message ||
-          error.message ||
-          "An error occurred. Please try again later.";
-        alert(errorMessage);
-      } finally {
-        setDeletingEmail(null);
+        alert("Failed to delete staff member. Try again.");
       }
     }
   };
 
-  // Handle update action
   const handleUpdate = (userId) => {
-    console.log(userId);
     navigate(`/update-staff/${userId}`);
   };
 
@@ -105,123 +82,134 @@ const PanelStaff = () => {
     navigate("/addStaff");
   };
 
-  const handleSearchChange = (event) => {
-    setSearch(event.target.value);
-  };
-
-  const filteredUsers = useMemo(
-    () =>
-      users.filter(
-        (user) =>
-          (user.name?.toLowerCase() || "").includes(
-            search.toLowerCase().trim()
-          ) ||
-          (user.email?.toLowerCase() || "").includes(
-            search.toLowerCase().trim()
-          )
-      ),
-    [users, search]
+  // Pagination
+  const totalPages = Math.ceil(users.length / pageSize);
+  const currentPageData = users.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
   );
 
-  const totalUsersCount = users.length;
+  const renderPageNumbers = () => {
+    return Array.from({ length: totalPages }, (_, index) => (
+      <button
+        key={index + 1}
+        onClick={() => setCurrentPage(index + 1)}
+        className={`px-3 py-1 rounded ${
+          currentPage === index + 1
+            ? "bg-blue-500 text-white"
+            : "bg-gray-200 text-blue-500 hover:bg-blue-100"
+        }`}
+      >
+        {index + 1}
+      </button>
+    ));
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage((prev) => prev - 1);
+    }
+  };
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
 
   if (loading) {
     return (
-      <div className="p-6 flex justify-center items-center min-h-screen bg-gray-100">
-        <p className="text-lg font-semibold text-gray-600">Loading...</p>
+      <div className="flex justify-center items-center h-screen">
+        <p>Loading...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-6 flex justify-center items-center min-h-screen bg-gray-100">
-        <p className="text-lg font-semibold text-red-500">{error}</p>
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-red-500">{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-100">
-      <div className="p-6 flex-1">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
-          <div className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white p-4 rounded-lg shadow-md text-center">
-            <FaUser className="text-4xl mb-2" />
-            <h3 className="text-lg font-semibold">Total Users</h3>
-            <p className="text-4xl font-bold">{totalUsersCount}</p>
-          </div>
-        </div>
-
+    <div className="p-4 bg-gray-100 min-h-screen">
+      {/* Header Section */}
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">Staff Management</h2>
         <button
           onClick={handleAddStaff}
-          className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition-transform transform hover:scale-105"
+          className="px-4 py-2 bg-blue-500 text-white rounded shadow hover:bg-blue-600"
         >
-          Add New Staff
+          Add Staff
         </button>
+      </div>
 
-        <div className="bg-white shadow-lg rounded-lg overflow-hidden mt-6">
-          <div className="p-4 border-b bg-gray-100">
-            <input
-              type="text"
-              placeholder="Search staff..."
-              value={search}
-              onChange={handleSearchChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {filteredUsers.length > 0 ? (
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-gray-200">
-                <tr>
-                  <th className="px-4 py-3">#</th>
-                  <th className="px-4 py-3">Name</th>
-                  <th className="px-4 py-3">Department</th>
-                  <th className="px-4 py-3">Email</th>
-                  <th className="px-4 py-3">Created At</th>
-                  <th className="px-4 py-3 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredUsers.map((user, index) => (
-                  <tr
-                    key={user._id}
-                    className="hover:bg-gray-50 transition-colors border-b last:border-none"
+      {/* Staff Table */}
+      <div className="bg-white rounded shadow p-4">
+        <table className="w-full text-left">
+          <thead>
+            <tr className="border-b">
+              <th className="py-2">#</th>
+              <th className="py-2">Name</th>
+              <th className="py-2">Department</th>
+              <th className="py-2">Email</th>
+              <th className="py-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {currentPageData.map((user, index) => (
+              <tr key={user._id} className="border-b">
+                <td className="py-2">{(currentPage - 1) * pageSize + index + 1}</td>
+                <td className="py-2">{user.name}</td>
+                <td className="py-2">{user.department}</td>
+                <td className="py-2">{user.email}</td>
+                <td className="py-2 flex space-x-3">
+                  <button
+                    onClick={() => handleUpdate(user.userId)}
+                    className="text-yellow-500"
                   >
-                    <td className="px-4 py-3 text-gray-700">{index + 1}</td>
-                    <td className="px-4 py-3">{user.name}</td>
-                    <td className="px-4 py-3 text-gray-700">
-                      {user.department}
-                    </td>
-                    <td className="px-4 py-3">{user.email}</td>
-                    <td className="px-4 py-3 text-gray-700">
-                      {user.createdAt}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {/* Update Button */}
-                      <button
-                        onClick={() => handleUpdate(user.userId)}
-                        className="p-2 bg-yellow-100 text-yellow-600 rounded-full hover:bg-yellow-200 transition"
-                      >
-                        <FaEdit />
-                      </button>
+                    <FaEdit />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(user.email)}
+                    className="text-red-500"
+                  >
+                    <FaTrashAlt />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-                      {/* Delete Button */}
-                      <button
-                        onClick={() => handleDelete(user.email)}
-                        className="p-2 bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition"
-                      >
-                        <FaTrashAlt />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p className="p-4 text-center text-gray-500">No staff found.</p>
-          )}
-        </div>
+      {/* Pagination */}
+      <div className="flex justify-end items-center mt-4 space-x-2">
+        <button
+          onClick={goToPreviousPage}
+          disabled={currentPage === 1}
+          className={`px-3 py-1 rounded ${
+            currentPage === 1
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : "bg-gray-200 text-blue-500 hover:bg-blue-100"
+          }`}
+        >
+          Previous
+        </button>
+        {renderPageNumbers()}
+        <button
+          onClick={goToNextPage}
+          disabled={currentPage === totalPages}
+          className={`px-3 py-1 rounded ${
+            currentPage === totalPages
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : "bg-gray-200 text-blue-500 hover:bg-blue-100"
+          }`}
+        >
+          Next
+        </button>
       </div>
     </div>
   );

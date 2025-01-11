@@ -3,9 +3,9 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaCheck, FaTrashAlt } from "react-icons/fa";
 
-const API_ADMIN_URL = process.env.REACT_APP_API_ADMIN_URL;
+const API_URL = process.env.REACT_APP_API_URL;
 
-const PanelQuotes = () => {
+const PanelQuote = () => {
   const [quotes, setQuotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,7 +24,7 @@ const PanelQuotes = () => {
   useEffect(() => {
     const fetchQuotes = async () => {
       try {
-        const response = await axios.get(`${API_ADMIN_URL}/quote/get-quotes`, {
+        const response = await axios.get(`${API_URL}/quote/get-quotes`, {
           headers: { Authorization: `Bearer ${jwtLoginToken}` },
         });
 
@@ -54,7 +54,7 @@ const PanelQuotes = () => {
     if (window.confirm("Are you sure you want to delete this quote?")) {
       try {
         const response = await axios.delete(
-          `${API_ADMIN_URL}/quote/delete/${quoteId}`,
+          `${API_URL}/quote/delete/${quoteId}`,
           {
             data: { quote_Identifier: quoteId },
             headers: {
@@ -82,7 +82,7 @@ const PanelQuotes = () => {
     if (window.confirm("Are you sure you want to approve this quote?")) {
       try {
         const response = await axios.patch(
-          `${API_ADMIN_URL}/quote/approve/${quoteId}`, 
+          `${API_URL}/quote/approve/${quoteId}`, 
           {},
           {
             headers: {
@@ -129,20 +129,12 @@ const PanelQuotes = () => {
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-blue-800">Quotes Dashboard</h1>
         <button
           onClick={handleNewQuote}
           className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
         >
           + Add New Quote
         </button>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">
-        <div className="bg-white shadow rounded-lg p-4 flex flex-col justify-between">
-          <div className="text-gray-500 font-medium">Total Quotes</div>
-          <div className="text-2xl font-bold text-blue-600">{totalQuotes}</div>
-        </div>
       </div>
 
       <div className="bg-white shadow rounded-lg p-4 mb-6">
@@ -232,4 +224,4 @@ const PanelQuotes = () => {
   );
 };
 
-export default PanelQuotes;
+export default PanelQuote;

@@ -6,8 +6,6 @@ import html2canvas from "html2canvas";
 import { utils, writeFile } from "xlsx";
 import companyLogo from "../../../assets/images/CompanyLogo.jpg";
 
-const API_SALES_URL = process.env.REACT_APP_API_SALES_URL;
-
 const SalesViewQuote = () => {
   const { quoteId } = useParams();
   const [quote, setQuote] = useState(null);
@@ -20,7 +18,7 @@ const SalesViewQuote = () => {
       try {
         const jwtLoginToken = localStorage.getItem("jwtLoginToken");
         const response = await axios.get(
-          `${API_SALES_URL}/quote/${quoteId}`,
+          `http://localhost:3000/quote/${quoteId}`,
           {
             headers: { Authorization: `Bearer ${jwtLoginToken}` },
           }

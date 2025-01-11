@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const API_ADMIN_URL = process.env.REACT_APP_API_ADMIN_URL;
+const API_URL = process.env.REACT_APP_API_URL;
 
 const AddStaff = () => {
   const [formData, setFormData] = useState({
@@ -27,7 +27,7 @@ const AddStaff = () => {
           const jwtLoginToken = localStorage.getItem("jwtLoginToken");
 
           const response = await axios.get(
-            `${API_ADMIN_URL}/department/get-departments`,
+            `${API_URL}/department/get-departments`,
             {
               headers: { Authorization: `Bearer ${jwtLoginToken}` },
             }
@@ -94,7 +94,7 @@ const AddStaff = () => {
       }
 
       const response = await axios.patch(
-        `${API_ADMIN_URL}/department/add-employee`,
+        `${API_URL}/department/add-employee`,
         formDataToSend,
         {
           headers: {

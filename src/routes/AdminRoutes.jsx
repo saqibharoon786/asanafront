@@ -13,13 +13,17 @@ import {
   AddQuote,
   ViewQuote,
   PanelLeads,
-  AddLead,
-  ViewLead,
+  OptionalDataLead,
+  LeadDetails,
   PanelInvoices,
   AddInvoice,
   ViewInvoice,
   AddProduct,
   EditProduct,
+  AdminPayrolls,
+  PanelCalender,
+  PanelCustomers,
+  AddCustomer
 } from "../pages/admin/AdminPages";
 import { AdminLayout } from "../layouts/Layout";
 
@@ -28,6 +32,7 @@ const AdminRoutes = () => (
         <Route path="/admin/:name" element={<AdminProtectedRoute><AdminLayout><AdminDashboard /></AdminLayout></AdminProtectedRoute>} />
 
         <Route path="/staff" element={<AdminProtectedRoute><AdminLayout><PanelStaff /></AdminLayout></AdminProtectedRoute>} />
+        <Route path="/payroll" element={<AdminProtectedRoute><AdminLayout><AdminPayrolls /></AdminLayout></AdminProtectedRoute>} />
         <Route path="/addStaff" element={<AdminProtectedRoute><AdminLayout><AddStaff /></AdminLayout></AdminProtectedRoute>} />
         <Route path="/update-staff/:userId" element={<AdminProtectedRoute><AdminLayout><EditStaff /></AdminLayout></AdminProtectedRoute>} />
 
@@ -36,8 +41,8 @@ const AdminRoutes = () => (
         <Route path="/update-product/:productId" element={<AdminProtectedRoute><AdminLayout><EditProduct /></AdminLayout></AdminProtectedRoute>} />
 
         <Route path="/leads" element={<AdminProtectedRoute><AdminLayout><PanelLeads /></AdminLayout></AdminProtectedRoute>} />
-        <Route path="/add-lead" element={<AdminProtectedRoute><AdminLayout><AddLead /></AdminLayout></AdminProtectedRoute>} />
-        <Route path="/view-lead/:leadId" element={<AdminProtectedRoute><AdminLayout><ViewLead /></AdminLayout></AdminProtectedRoute>} />
+        <Route path="/lead-detail/:id" element={<AdminProtectedRoute><AdminLayout><LeadDetails /></AdminLayout></AdminProtectedRoute>} />
+        <Route path="/optional-data-lead/:leadId" element={<AdminProtectedRoute><AdminLayout> <OptionalDataLead /></AdminLayout></AdminProtectedRoute>}/>
 
         <Route path="/quotes" element={<AdminProtectedRoute><AdminLayout><PanelQuote /></AdminLayout></AdminProtectedRoute>} />
         <Route path="/add-quote" element={<AdminProtectedRoute><AdminLayout><AddQuote /></AdminLayout></AdminProtectedRoute>} />
@@ -48,7 +53,13 @@ const AdminRoutes = () => (
         <Route path="/view-invoice/:invoiceId" element={<AdminProtectedRoute><AdminLayout><ViewInvoice /></AdminLayout></AdminProtectedRoute>} />
 
         <Route path="/departments" element={<AdminProtectedRoute><AdminLayout><PanelDepartment /></AdminLayout></AdminProtectedRoute>} />
-        <Route path="/projects" element={<AdminProtectedRoute><AdminLayout><PanelProjects /></AdminLayout></AdminProtectedRoute>} />
+
+
+        <Route path="/calender" element={<AdminProtectedRoute><AdminLayout><PanelCalender /></AdminLayout></AdminProtectedRoute>} />
+       
+        <Route path="/customers" element={<AdminProtectedRoute><AdminLayout><PanelCustomers /></AdminLayout></AdminProtectedRoute>} />
+        <Route path="/add-customers" element={<AdminProtectedRoute><AdminLayout><AddCustomer /></AdminLayout></AdminProtectedRoute>} />
+
   </>
 );
 

@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaDollarSign, FaTrashAlt } from "react-icons/fa";
 
-const API_SALES_URL = process.env.REACT_APP_API_SALES_URL;
+const API_URL = process.env.REACT_APP_API_URL;
 
 const SalesPanelInvoices = () => {
   const [invoices, setInvoices] = useState([]);
@@ -11,26 +11,53 @@ const SalesPanelInvoices = () => {
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [totalInvoices, setTotalInvoices] = useState(0);
+  const [timeFilter, setTimeFilter] = useState("All"); // New state for time filter
 
   const navigate = useNavigate();
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
 
-  // Navigate to Add New Invoice Page
+  // Define the handleNewInvoice function
   const handleNewInvoice = () => {
-    navigate("/sales/add-invoice");
+    navigate('/sales/add-invoice'); // Adjust the path as needed
+  };
+
+  // Handle Time Filter Change
+  const handleTimeFilterChange = (event) => {
+    setTimeFilter(event.target.value);
   };
 
   // Fetch Invoices from Backend
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
-        const response = await axios.get(`${API_SALES_URL}/invoice/get-invoices`, {
+        const response = await axios.get(`${API_URL}/invoice/get-invoices`, {
           headers: { Authorization: `Bearer ${jwtLoginToken}` },
         });
 
         if (response.data.success) {
-          setInvoices(response.data.information.Invoices); // Show all invoices
-          setTotalInvoices(response.data.information.Invoices.length);
+          let filteredInvoices = response.data.information.Invoices;
+
+          // Apply time filter logic
+          if (timeFilter !== "All") {
+            const now = new Date();
+            filteredInvoices = filteredInvoices.filter((invoice) => {
+              const invoiceDate = new Date(invoice.createdAt);
+              const timeDifference = now - invoiceDate;
+              switch (timeFilter) {
+                case "Day":
+                  return timeDifference <= 24 * 60 * 60 * 1000; // 1 day
+                case "Week":
+                  return timeDifference <= 7 * 24 * 60 * 60 * 1000; // 1 week
+                case "Month":
+                  return timeDifference <= 30 * 24 * 60 * 60 * 1000; // 1 month
+                default:
+                  return true; // No filter
+              }
+            });
+          }
+
+          setInvoices(filteredInvoices);
+          setTotalInvoices(filteredInvoices.length);
         } else {
           setError("Failed to load invoices. Please try again.");
         }
@@ -43,7 +70,7 @@ const SalesPanelInvoices = () => {
     };
 
     fetchInvoices();
-  }, [invoices]); // Re-fetch on JWT token change or initial load
+  }, [timeFilter, jwtLoginToken]); // Re-fetch invoices when time filter changes
 
   // Handle Search Input Change
   const handleSearchChange = (event) => {
@@ -54,15 +81,15 @@ const SalesPanelInvoices = () => {
     if (window.confirm("Are you sure you want to delete this invoice?")) {
       try {
         const response = await axios.delete(
-          `${API_SALES_URL}/invoice/delete/${invoiceId}`,
+          `${API_URL}/invoice/delete/${invoiceId}`, // URL
           {
-            data: { invoice_Identifier: invoiceId },
             headers: {
               Authorization: `Bearer ${jwtLoginToken}`,
             },
+            data: { invoice_Identifier: invoiceId }, // Move data into the second argument
           }
         );
-
+  
         if (response.status === 200) {
           setInvoices((prevInvoices) =>
             prevInvoices.filter((invoice) => invoice._id !== invoiceId)
@@ -72,17 +99,22 @@ const SalesPanelInvoices = () => {
           throw new Error(response.data.message || "Failed to delete the invoice.");
         }
       } catch (error) {
-        const errorMessage = error.response?.data?.message || error.message || "An error occurred. Please try again later.";
+        const errorMessage =
+          error.response?.data?.message ||
+          error.message ||
+          "An error occurred. Please try again later.";
+        console.error("Delete Invoice Error:", error); // Log the error for debugging
         alert(errorMessage);
       }
     }
   };
+  
 
   const handlePaidInvoice = async (invoiceId) => {
     if (window.confirm("Are you sure you want to mark this invoice as paid?")) {
       try {
         const response = await axios.patch(
-          `${API_SALES_URL}/invoice/set-paid/${invoiceId}`,
+          `${API_URL}/invoice/set-paid/${invoiceId}`,
           {}, // No request body needed here
           {
             headers: {
@@ -106,7 +138,7 @@ const SalesPanelInvoices = () => {
       }
     }
   };
-
+  
   // Navigate to View Invoice Page
   const handleViewInvoice = (invoiceId) => {
     navigate(`/sales/view-invoice/${invoiceId}`);
@@ -136,11 +168,17 @@ const SalesPanelInvoices = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">
-        <div className="bg-white shadow rounded-lg p-4 flex flex-col justify-between">
-          <div className="text-gray-500 font-medium">Total Invoices</div>
-          <div className="text-2xl font-bold text-blue-600">{totalInvoices}</div>
-        </div>
+      <div className="mb-6">
+        <select
+          value={timeFilter}
+          onChange={handleTimeFilterChange}
+          className="bg-white border border-gray-300 rounded-lg p-2"
+        >
+          <option value="All">All</option>
+          <option value="Day">Last 24 Hours</option>
+          <option value="Week">Last Week</option>
+          <option value="Month">Last Month</option>
+        </select>
       </div>
 
       <div className="bg-white shadow rounded-lg p-4 mb-6">

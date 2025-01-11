@@ -3,12 +3,12 @@ import axios from "axios";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 
-const API_SALES_URL = process.env.REACT_APP_API_SALES_URL;
+const API_URL = process.env.REACT_APP_API_URL;
 
 const SalesAddQuote = () => {
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
   const { user } = useSelector((state) => state.auth) || {};
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate(); // Initialize the navigate function
 
   const creator = {
     name: user?.name || "",
@@ -51,7 +51,7 @@ const SalesAddQuote = () => {
       if (!jwtLoginToken) return;
 
       try {
-        const response = await axios.get(`${API_SALES_URL}/product/get-products`, {
+        const response = await axios.get(`${API_URL}/product/get-products`, {
           headers: { Authorization: `Bearer ${jwtLoginToken}` },
         });
         const products = response.data?.information?.products || [];
@@ -207,13 +207,16 @@ const SalesAddQuote = () => {
 
     try {
       const response = await axios.post(
-        `${API_SALES_URL}/quote/create-quote`,
+        `${API_URL}/quote/create-quote`,
         payload,
         { headers: { Authorization: `Bearer ${jwtLoginToken}` } }
       );
 
       if (response.data.success) {
         alert("Quote created successfully!");
+
+        // Redirect to the quote panel after success
+        navigate("/sales/quotes"); // Navigate to the quote panel page
 
         // Clear the form after success
         setProducts([]);
@@ -223,9 +226,6 @@ const SalesAddQuote = () => {
         setQuoteDetails({
           status: "Pending",
         });
-
-
-        navigate("/sales/quote-panel");
       } else {
         alert("Failed to create quote. Please try again.");
       }
@@ -326,6 +326,7 @@ const SalesAddQuote = () => {
                 >
                   <span>
                     {prod.product} | Unit Price: ADE {prod.product_Price} | Qty: {prod.quantity} | Discount: {prod.product_Discount}%
+
                   </span>
 
                   <button

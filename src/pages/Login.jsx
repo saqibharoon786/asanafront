@@ -34,9 +34,9 @@ const Login = () => {
           navigate(`/superadmin/${user.name}`);
         } else if (user.access === "Admin") {
           navigate(`/admin/${user.name}`);
-        } else if (user.department === "HR") {
+        } else if (user.access === "HR") {
           navigate(`/hr/${user.name}`);
-        }else if(user.department==="Sales"){
+        }else if(user.access==="Sales"){
           navigate(`/sales/${user.name}`);
         }
         

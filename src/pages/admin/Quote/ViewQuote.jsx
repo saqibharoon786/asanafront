@@ -18,7 +18,7 @@ const ViewQuote = () => {
       try {
         const jwtLoginToken = localStorage.getItem("jwtLoginToken");
         const response = await axios.get(
-          `http://localhost:3000/admin/quote/${quoteId}`,
+          `http://localhost:3000/quote/${quoteId}`,
           {
             headers: { Authorization: `Bearer ${jwtLoginToken}` },
           }
