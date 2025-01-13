@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useParams } from "react-router-dom";
 
-const AddCompanyAdmin = () => {
+const API_URL = process.env.REACT_APP_API_URL;
+
+
+const AddCompanyAdmin = () => {  
   const [formData, setFormData] = useState({
     employee_Access: "Admin",
     employee_Name: "",
@@ -11,6 +15,9 @@ const AddCompanyAdmin = () => {
     employee_Address: "",
     admin_Image: null,
   });
+
+  const { companyId } = useParams();
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -43,7 +50,7 @@ const AddCompanyAdmin = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/superadmin/company/CL-1/add-admin",
+        `${API_URL}/superadmin/company/${companyId}/add-admin`,
         data,
         config
       );

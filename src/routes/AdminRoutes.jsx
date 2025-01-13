@@ -59,7 +59,7 @@ const AdminRoutes = () => (
        
         <Route path="/customers" element={<AdminProtectedRoute><AdminLayout><PanelCustomers /></AdminLayout></AdminProtectedRoute>} />
         <Route path="/add-customers" element={<AdminProtectedRoute><AdminLayout><AddCustomer /></AdminLayout></AdminProtectedRoute>} />
-        <Route path="//view-customer" element={<AdminProtectedRoute><AdminLayout><EditCustomer /></AdminLayout></AdminProtectedRoute>} />
+        <Route path="/view-customer" element={<AdminProtectedRoute><AdminLayout><EditCustomer /></AdminLayout></AdminProtectedRoute>} />
 
   </>
 );

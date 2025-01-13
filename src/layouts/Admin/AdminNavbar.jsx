@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { logout } from "../../features/auth/authSlice";
+import { useDispatch, useSelector } from "react-redux";
 import {
   faUser,
   faEnvelope,
@@ -7,9 +9,9 @@ import {
   faBars,
 } from "@fortawesome/free-solid-svg-icons";
 import companyLogo from "../../assets/images/CompanyLogo.jpg";
-import { useSelector } from "react-redux";
 
 const AdminNavbar = ({ toggleSidebar }) => {
+  const dispatch = useDispatch();
   const API_URL = process.env.REACT_APP_API_URL;
   const [notifications, setNotifications] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -24,10 +26,9 @@ const AdminNavbar = ({ toggleSidebar }) => {
           headers: {
             Authorization: `Bearer ${jwtLoginToken}`,
           },
-        }
-        );
+        });
         const data = await response.json();
-        if (data.success) { 
+        if (data.success) {
           setNotifications(data.notifications);
           const unread = data.notifications.filter((n) => !n.read).length;
           setUnreadCount(unread);
@@ -37,7 +38,15 @@ const AdminNavbar = ({ toggleSidebar }) => {
       }
     };
 
-  }, [API_URL]);
+    if (jwtLoginToken) {
+      fetchNotifications();
+    }
+  }, [API_URL, jwtLoginToken]);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    localStorage.removeItem("jwtLoginToken");
+  };
 
   // Mark notification as read
   const markAsRead = async (notificationId) => {
@@ -96,6 +105,34 @@ const AdminNavbar = ({ toggleSidebar }) => {
             )}
           </div>
           <FontAwesomeIcon icon={faUser} className="hover:text-gray-300" />
+
+          {/* Conditionally Show Login or Logout Button */}
+          {jwtLoginToken ? (
+            <button
+              onClick={handleLogout}
+              className="font-medium py-1 px-3 rounded hover:bg-red-600 transition duration-300"
+              style={{
+                backgroundColor: "#dc3545", // Red
+                color: "#fff", // White text
+              }}
+            >
+              Logout
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                console.log("Redirecting to login...");
+                // Add your login redirection logic here
+              }}
+              className="font-medium py-1 px-3 rounded hover:bg-green-600 transition duration-300"
+              style={{
+                backgroundColor: "#28a745", // Green
+                color: "#fff", // White text
+              }}
+            >
+              Login
+            </button>
+          )}
 
           {/* Sidebar Toggle Button */}
           <button

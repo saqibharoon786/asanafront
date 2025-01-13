@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { FaEye } from "react-icons/fa"; // Import only the edit icon
+import { FaEdit, FaTrashAlt, FaUser } from "react-icons/fa"; // Import icons
 
-const API_SALES_URL = process.env.REACT_APP_API_SALES_URL;
+const API_URL = process.env.REACT_APP_API_URL;
 
 const SalesPanelProducts = () => {
   const [products, setProducts] = useState([]);
@@ -14,6 +14,7 @@ const SalesPanelProducts = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null); // State for selected product in modal
+  const [deletingProductId, setDeletingProductId] = useState(null); // Added deleting product name state
   const navigate = useNavigate();
 
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
@@ -23,7 +24,7 @@ const SalesPanelProducts = () => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get(
-          `${API_SALES_URL}/product/get-products`,
+          `${API_URL}/product/get-products`,
           {
             headers: {
               Authorization: `Bearer ${jwtLoginToken}`, // Corrected template literal syntax
@@ -49,10 +50,7 @@ const SalesPanelProducts = () => {
     fetchProducts();
   }, [products]);
 
-  // Extract unique categories from products
-  const categories = Array.from(
-    new Set(products.map((product) => product.product_Category))
-  );
+
 
   // Handle search input
   const handleSearchChange = (e) => {
@@ -71,20 +69,7 @@ const SalesPanelProducts = () => {
     navigate("/add-product");
   };
 
-  const handleCategoryChange = (e) => {
-    const selectedCategory = e.target.value;
-    setSelectedCategory(selectedCategory);
-
-    if (selectedCategory) {
-      const filtered = products.filter(
-        (product) => product.product_Category === selectedCategory
-      );
-      setFilteredProducts(filtered);
-    } else {
-      setFilteredProducts(products);
-    }
-  };
-
+ 
   // Handle image click to show large version
   const handleImageClick = (imagePath, product) => {
     setSelectedImage(imagePath);
@@ -98,88 +83,65 @@ const SalesPanelProducts = () => {
   };
 
   const handleUpdate = (productId) => {
-    navigate(`/sales/view-product/${productId}`);
+    navigate(`/update-product/${productId}`);
+  };
+
+  const handleDelete = async (productId) => {
+    if (window.confirm("Are you sure you want to delete this product?")) {
+      try {
+        setDeletingProductId(productId);
+
+        // Send delete request to the backend
+        const response = await axios.delete(
+          `${API_URL}/product/delete-product/${productId}`,
+          {
+            // data: { _id: productId }, // Send the product name in the request body
+            headers: {
+              Authorization: `Bearer ${jwtLoginToken}`, // Add the JWT token for authentication
+            },
+          }
+        );
+
+        if (response.status === 200) {
+          // Update the state to remove the deleted product from the list
+          setProducts((prevProducts) =>
+            prevProducts.filter(
+              (product) => product._id !== productId
+            )
+          );
+          alert("Product deleted successfully.");
+        } else {
+          throw new Error(
+            response.data.message || "Failed to delete the product."
+          );
+        }
+      } catch (error) {
+        const errorMessage =
+          error.response?.data?.message ||
+          error.message ||
+          "An error occurred. Please try again later.";
+        alert(errorMessage);
+      } finally {
+        setDeletingProductId(null); // Reset deleting state
+      }
+    }
   };
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-      {/* Sales Overview Section */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">
-        {[
-          {
-            title: "In-Store Sales",
-            value: "$5,345",
-            orders: "5k orders",
-            change: "+5.7%",
-            color: "text-green-500",
-          },
-          {
-            title: "Website Sales",
-            value: "$74,347",
-            orders: "21k orders",
-            change: "+12.4%",
-            color: "text-green-500",
-          },
-          {
-            title: "Discount",
-            value: "$14,235",
-            orders: "6k orders",
-            change: "",
-            color: "text-gray-500",
-          },
-          {
-            title: "Affiliate",
-            value: "$8,345",
-            orders: "150 orders",
-            change: "-3.5%",
-            color: "text-red-500",
-          },
-        ].map((item, index) => (
-          <div
-            key={index}
-            className="bg-white shadow rounded-lg p-4 flex flex-col justify-between"
-          >
-            <div className="text-gray-500 font-medium">{item.title}</div>
-            <div className="text-2xl font-bold">{item.value}</div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-400 text-sm">{item.orders}</span>
-              <span className={`${item.color} text-sm`}>{item.change}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-
+     
       {/* Filter Section */}
       <div className="bg-white shadow rounded-lg p-4">
         <div className="flex gap-4 mb-4 flex-wrap">
-          <select className="border rounded-lg px-4 py-2 w-full sm:w-1/4 md:w-1/4">
-            <option>Select Status</option>
-          </select>
-          <select
-            className="border rounded-lg px-4 py-2 w-full sm:w-1/4 md:w-1/4"
-            value={selectedCategory}
-            onChange={handleCategoryChange}
-          >
-            <option value="">Select Category</option>
-            {categories.map((category, index) => (
-              <option key={index} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-          <select className="border rounded-lg px-4 py-2 w-full sm:w-1/4 md:w-1/4">
-            <option>Stock</option>
-          </select>
-          <input
-            type="text"
-            placeholder="Search"
-            value={search}
-            onChange={handleSearchChange}
-            className="border rounded-lg px-4 py-2 flex-1"
-          />
         </div>
 
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-between mb-4">
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+            onClick={handleNavigateAddProductPage}
+          >
+            + Add Product
+          </button>
           <button className="bg-gray-200 px-4 py-2 rounded-lg">Export</button>
         </div>
 
@@ -187,13 +149,14 @@ const SalesPanelProducts = () => {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr>
-              <th className="py-2 px-4 border">Image</th>
+            <th className="py-2 px-4 border">Image</th>
               <th className="py-2 px-4 border">Product Name</th>
               <th className="py-2 px-4 border">Category</th>
               <th className="py-2 px-4 border">Stock</th>
               <th className="py-2 px-4 border">Selling Price</th>
               <th className="py-2 px-4 border">Status</th>
               <th className="py-2 px-4 border">Actions</th>
+              
             </tr>
           </thead>
           <tbody>
@@ -218,7 +181,7 @@ const SalesPanelProducts = () => {
             ) : (
               filteredProducts.map((product, index) => (
                 <tr key={index} className="border-t">
-                  <td className="py-2 px-4">
+                        <td className="py-2 px-4">
                     {product.product_Image && product.product_Image.filePath ? (
                       <img
                         src={`http://localhost:3000${product.product_Image.filePath}`}
@@ -252,14 +215,21 @@ const SalesPanelProducts = () => {
                         : "Out of Stock"}
                     </span>
                   </td>
-                  <td className="flex justify-center items-center gap-2">
+                  <td className="py-2 px-4 flex gap-2">
                     <button
-                      className="text-blue-500 flex items-center justify-center gap-1"
+                      className="text-blue-500 flex items-center gap-1"
                       onClick={() => handleUpdate(product._id)}
                     >
-                      <FaEye className="text-3xl"/>
+                      <FaEdit />
+                    </button>
+                    <button
+                      className="text-red-500 flex items-center gap-1"
+                      onClick={() => handleDelete(product._id)}
+                    >
+                      <FaTrashAlt />
                     </button>
                   </td>
+            
                 </tr>
               ))
             )}
@@ -269,18 +239,16 @@ const SalesPanelProducts = () => {
 
       {/* Modal for showing the larger image */}
       {selectedImage && (
-        <div className="fixed inset-0 bg-red bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-4 rounded relative">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-4 rounded">
             <img
               src={selectedImage}
               alt="Selected"
               className="max-w-full max-h-96"
             />
-            <button
-              className="absolute top-2 right-2 text-white bg-red-500 hover:bg-red-700 focus:ring-2 focus:ring-red-300 focus:outline-none rounded-full w-8 h-8 flex items-center justify-center"
-              onClick={closeModal}
-            >
-              &times;
+            <div className="py-2 px-4 flex gap-2"></div>
+            <button className="text-gray-500" onClick={closeModal}>
+              Close
             </button>
           </div>
         </div>

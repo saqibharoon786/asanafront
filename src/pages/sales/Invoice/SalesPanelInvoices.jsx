@@ -59,18 +59,17 @@ const SalesPanelInvoices = () => {
           setInvoices(filteredInvoices);
           setTotalInvoices(filteredInvoices.length);
         } else {
-          setError("Failed to load invoices. Please try again.");
+          setError("No Invoices Availible.");
         }
       } catch (err) {
-        console.error("Error fetching invoices:", err);
-        setError("Failed to load invoices. Please check your connection.");
+        setError("No Invoices Availible.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchInvoices();
-  }, [timeFilter, jwtLoginToken]); // Re-fetch invoices when time filter changes
+  }, [invoices]); // Re-fetch invoices when time filter changes
 
   // Handle Search Input Change
   const handleSearchChange = (event) => {

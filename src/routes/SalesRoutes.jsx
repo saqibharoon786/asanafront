@@ -14,7 +14,10 @@ import {
   SalesLeadDetails,
   SalesOptionalDataLead,
   SalesPanelLeads,
-  SalesCalender
+  SalesCalender,
+  SalesPanelCustomer,
+  SalesAddCustomer,
+  SalesEditCustomer
 } from "../pages/sales/SalesPages";
 import { SalesLayout } from "../layouts/Layout";
 
@@ -36,7 +39,12 @@ const SalesRoutes = () => (
     <Route path="/sales/leads" element={<SalesProtectedRoute><SalesLayout><SalesPanelLeads /></SalesLayout></SalesProtectedRoute>} />
     <Route path="/sales/lead-detail/:id" element={<SalesProtectedRoute><SalesLayout><SalesLeadDetails /></SalesLayout></SalesProtectedRoute>} />
     <Route path="/sales/optional-data-lead/:leadId" element={<SalesProtectedRoute><SalesLayout> <SalesOptionalDataLead /></SalesLayout></SalesProtectedRoute>}/>
-    <Route path="/sales/calenders" element={<SalesProtectedRoute><SalesLayout> <SalesCalender /></SalesLayout></SalesProtectedRoute>}/>
+
+    <Route path="/sales/calender" element={<SalesProtectedRoute><SalesLayout> <SalesCalender /></SalesLayout></SalesProtectedRoute>}/>
+
+    <Route path="/sales/customers" element={<SalesProtectedRoute><SalesLayout><SalesPanelCustomer /></SalesLayout></SalesProtectedRoute>} />
+    <Route path="/sales/add-customers" element={<SalesProtectedRoute><SalesLayout><SalesAddCustomer /></SalesLayout></SalesProtectedRoute>} />
+    <Route path="/sales/view-customer" element={<SalesProtectedRoute><SalesLayout><SalesEditCustomer /></SalesLayout></SalesProtectedRoute>} />
   </>
 );
 

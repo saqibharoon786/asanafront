@@ -18,7 +18,6 @@ const PanelCalender = () => {
     title: "",
     endTime: "",
     description: "",
-    startTime: "",
   });
 
   useEffect(() => {
@@ -33,8 +32,8 @@ const PanelCalender = () => {
           const formattedEvents = response.data.data.map((event) => ({
             id: event._id,
             title: event.event_Title,
-            start: event.start_Time,
-            end: event.end_Time,
+            start: new Date(event.start_Time).toISOString(),
+            end: new Date(event.end_Time).toISOString(),
             description: event.event_Description,
           }));
           setEvents(formattedEvents);
@@ -58,25 +57,27 @@ const PanelCalender = () => {
   }, []);
 
   const handleDateSelect = (selectInfo) => {
-    setNewEvent((prev) => ({
-      ...prev,
-      startTime: selectInfo.startStr,
-    }));
+    setNewEvent({
+      title: "",
+      endTime: "",
+      description: "",
+    });
     setShowModal(true);
   };
 
   const handleAddEvent = async () => {
-    const { title, startTime, endTime, description } = newEvent;
+    const { title, endTime, description } = newEvent;
 
     if (!title || !endTime || !description) {
       alert("Please fill in all fields.");
       return;
     }
 
+    const startTime = new Date().toISOString(); // Automatically pick current time
     const eventToSave = {
       event_Title: title,
       start_Time: startTime,
-      end_Time: endTime,
+      end_Time: new Date(endTime).toISOString(),
       event_Description: description,
     };
 
@@ -106,7 +107,6 @@ const PanelCalender = () => {
           title: "",
           endTime: "",
           description: "",
-          startTime: "",
         });
         setShowModal(false);
       } else {
@@ -187,8 +187,8 @@ const PanelCalender = () => {
             onClick={() =>
               handleEventUpdate(eventInfo.event.id, {
                 title: eventInfo.event.title,
-                startTime: eventInfo.event.start,
-                endTime: eventInfo.event.end,
+                startTime: new Date(eventInfo.event.start).toISOString(),
+                endTime: new Date(eventInfo.event.end).toISOString(),
                 description: eventInfo.event.extendedProps.description,
               })
             }
@@ -256,7 +256,9 @@ const PanelCalender = () => {
             placeholder="End Time"
             className="w-full p-2 mb-4 border border-gray-300 rounded"
             value={newEvent.endTime}
-            onChange={(e) => setNewEvent({ ...newEvent, endTime: e.target.value })}
+            onChange={(e) =>
+              setNewEvent({ ...newEvent, endTime: e.target.value })
+            }
           />
           <textarea
             placeholder="Event Description"
