@@ -5,6 +5,8 @@ import SalesViewQuote from './Quote/SalesViewQuote'
 import SalesPanelQuote from './Quote/SalesPanelQuote'
 
 import SalesPanelProducts from './Products/SalesPanelProducts'
+import SalesAddProduct from './Products/SalesAddProduct'
+import SalesEditProduct from './Products/SalesEditProduct'
 import SalesViewProduct from './Products/SalesViewProduct'
 
 import SalesPanelInvoices from './Invoice/SalesPanelInvoices'
@@ -21,4 +23,4 @@ import SalesPanelCustomer from './Customers/SalesPanelCustomer'
 import SalesAddCustomer from './Customers/SalesAddCustomer'
 import SalesEditCustomer from './Customers/salesEditCustomer'
 
-export {SalesDashboard,SalesViewQuote,SalesAddQuote,SalesPanelQuote, SalesLeadDetails, SalesOptionalDataLead, SalesPanelLeads, SalesPanelProducts,SalesViewProduct,SalesPanelInvoices,SalesViewInvoice,SalesAddInvoice,SalesCalender, SalesPanelCustomer, SalesAddCustomer, SalesEditCustomer}
+export {SalesDashboard,SalesViewQuote,SalesAddQuote,SalesPanelQuote, SalesLeadDetails, SalesOptionalDataLead, SalesPanelLeads, SalesPanelProducts, SalesAddProduct, SalesEditProduct, SalesViewProduct,SalesPanelInvoices,SalesViewInvoice,SalesAddInvoice,SalesCalender, SalesPanelCustomer, SalesAddCustomer, SalesEditCustomer}

@@ -66,7 +66,7 @@ const SalesPanelProducts = () => {
   };
 
   const handleNavigateAddProductPage = () => {
-    navigate("/add-product");
+    navigate("/sales/add-product");
   };
 
  
@@ -83,7 +83,7 @@ const SalesPanelProducts = () => {
   };
 
   const handleUpdate = (productId) => {
-    navigate(`/update-product/${productId}`);
+    navigate(`/sales/update-product/${productId}`);
   };
 
   const handleDelete = async (productId) => {

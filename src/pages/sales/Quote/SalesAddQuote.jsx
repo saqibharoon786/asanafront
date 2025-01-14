@@ -206,7 +206,7 @@ const SalesAddQuote = () => {
 
       if (response.data.success) {
         alert("Quote created successfully!");
-        navigate("/quotes");
+        navigate("/sales/quotes");
         setProducts([]);
         setClient({
           client_Name: "",

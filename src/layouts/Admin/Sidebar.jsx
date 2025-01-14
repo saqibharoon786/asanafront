@@ -255,7 +255,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
             </div>
             {openDropdowns.sales && (
               <ul className="ml-6 mt-2 space-y-2 text-gray-600">
-                <li>
+                {/* <li>
                   <Link
                     to="/customers"
                     className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
@@ -268,7 +268,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                     <FontAwesomeIcon icon={faClipboardList} />
                     <span>Customers</span>
                   </Link>
-                </li>
+                </li> */}
                 <li>
                   <Link
                     to="/leads"

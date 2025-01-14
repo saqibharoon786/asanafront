@@ -195,7 +195,7 @@ const SalesSidebar = ({ isSidebarOpen, toggleSidebar }) => {
             {openDropdowns.sales && (
               <ul className="ml-6 mt-2 space-y-2 text-gray-600">
                 <li>
-                  <Link
+                  {/* <Link
                     to="/sales/customers"
                     className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
                       activeItem === "customers"
@@ -208,7 +208,7 @@ const SalesSidebar = ({ isSidebarOpen, toggleSidebar }) => {
                     <span>Customers</span>
                   </Link>
                 </li>
-                <li>
+                <li> */}
                   <Link
                     to="/sales/leads"
                     className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${

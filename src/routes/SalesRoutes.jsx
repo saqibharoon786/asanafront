@@ -7,7 +7,9 @@ import {
   SalesViewQuote,
   SalesPanelQuote,
   SalesPanelProducts,
+  SalesAddProduct,
   SalesViewProduct,
+  SalesEditProduct,
   SalesPanelInvoices,
   SalesViewInvoice,
   SalesAddInvoice,
@@ -30,7 +32,9 @@ const SalesRoutes = () => (
     <Route path="/sales/view-quote/:quoteId" element={<SalesProtectedRoute><SalesLayout><SalesViewQuote /></SalesLayout></SalesProtectedRoute>} />
             
     <Route path="/sales/products" element={<SalesProtectedRoute><SalesLayout><SalesPanelProducts /></SalesLayout></SalesProtectedRoute>} />
-    <Route path="/sales/view-product/:productId" element={<SalesProtectedRoute><SalesLayout><SalesViewProduct /></SalesLayout></SalesProtectedRoute>} />
+    <Route path="/sales/add-product" element={<SalesProtectedRoute><SalesLayout><SalesAddProduct /></SalesLayout></SalesProtectedRoute>} />
+    <Route path="/sales/update-product/:productId" element={<SalesProtectedRoute><SalesLayout><SalesEditProduct /></SalesLayout></SalesProtectedRoute>} />
+    {/* <Route path="/sales/view-product/:productId" element={<SalesProtectedRoute><SalesLayout><SalesViewProduct /></SalesLayout></SalesProtectedRoute>} /> */}
         
     <Route path="/sales/invoices" element={<SalesProtectedRoute><SalesLayout><SalesPanelInvoices /></SalesLayout></SalesProtectedRoute>} />
     <Route path="/sales/add-invoice" element={<SalesProtectedRoute><SalesLayout><SalesAddInvoice /></SalesLayout></SalesProtectedRoute>} />

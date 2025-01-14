@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 
 const LeadDetails = () => {
+  
   const { id } = useParams(); // Get the lead ID from the URL
   const [leadDetails, setLeadDetails] = useState(null);
   const [loading, setLoading] = useState(true);
