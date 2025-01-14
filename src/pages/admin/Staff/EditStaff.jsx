@@ -3,7 +3,6 @@ import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 
 const API_URL = process.env.REACT_APP_API_URL;
-const API_ADMIN_URL = process.env.REACT_APP_API_ADMIN_URL;
 
 const EditStaff = () => {
   const { userId } = useParams();
@@ -29,7 +28,7 @@ const EditStaff = () => {
     const fetchDepartments = async () => {
       try {
         const response = await axios.get(
-          `${API_ADMIN_URL}/department/get-departments`,
+          `${API_URL}/department/get-departments`,
           {
             headers: {
               Authorization: `Bearer ${jwtLoginToken}`,
@@ -51,7 +50,7 @@ const EditStaff = () => {
     const fetchUserData = async () => {
       try {
         const response = await axios.get(
-          `${API_ADMIN_URL}/department/get-employee/${userId}`,
+          `${API_URL}/department/get-employee/${userId}`,
           {
             headers: {
               Authorization: `Bearer ${jwtLoginToken}`,
@@ -128,7 +127,7 @@ const EditStaff = () => {
 
     try {
       const response = await axios.patch(
-        `${API_ADMIN_URL}/department/update-employee/${userId}`,
+        `${API_URL}/department/update-employee/${userId}`,
         formDataToSend,
         {
           headers: {

@@ -83,8 +83,6 @@ const AddProduct = () => {
       );
 
       if (response.data.success) {
-        alert("Product created successfully!");
-        // Reset form after success
         setProductData({
           product_Name: "",
           product_CostPrice: "",
@@ -103,7 +101,7 @@ const AddProduct = () => {
             vendor_Contact: "",
           },
         });
-        navigate("/products"); // Redirect to product list page
+        navigate("/products"); 
       } else {
         alert("Failed to create product: " + response.data.message);
       }

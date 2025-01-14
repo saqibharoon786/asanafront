@@ -83,7 +83,6 @@ const SalesAddProduct = () => {
       );
 
       if (response.data.success) {
-        alert("Product created successfully!");
         // Reset form after success
         setProductData({
           product_Name: "",

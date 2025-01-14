@@ -4,6 +4,9 @@ import { useParams, useNavigate } from "react-router-dom";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
+
+
+
 const EditProduct = () => {
   const { productId } = useParams();
   const navigate = useNavigate();

@@ -182,7 +182,6 @@ const AddQuote = () => {
 
     if (!validateClient()) return;
     if (products.length === 0) {
-      alert("Please add at least one product!");
       return;
     }
 
@@ -205,7 +204,7 @@ const AddQuote = () => {
       );
 
       if (response.data.success) {
-        alert("Quote created successfully!");
+     
         navigate("/quotes");
         setProducts([]);
         setClient({

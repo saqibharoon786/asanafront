@@ -71,8 +71,6 @@ const PanelLeads = () => {
         },
       });
 
-      console.log(response);
-      alert("Form submitted successfully");
       setShowForm(false);
     } catch (error) {
       console.error("Error:", error.response ? error.response.data : error.message);
@@ -97,9 +95,11 @@ const PanelLeads = () => {
             </button>
           </div>
         </div>
+
         <table className="w-full border-collapse text-sm text-gray-700">
           <thead className="bg-gray-50 border-b text-left">
             <tr>
+            <th className="p-3">Created at</th>
               <th className="p-3">Lead Creator</th>
               <th className="p-3">Title</th>
               <th className="p-3">Organization</th>
@@ -109,7 +109,9 @@ const PanelLeads = () => {
           </thead>
           <tbody>
             {leads.map((lead) => (
+              
               <tr className="border-b hover:bg-gray-100" key={lead._id}>
+                <td className="p-3">{new Date(lead.createdAt).toLocaleDateString()}</td>
                 <td className="p-3">{lead.lead_CreaterName}</td>
                 <td className="p-3">{lead.lead_Title}</td>
                 <td className="p-3">{lead.lead_Organization}</td>

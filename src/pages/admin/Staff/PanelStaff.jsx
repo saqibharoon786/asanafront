@@ -5,17 +5,48 @@ import { FaEdit, FaTrashAlt } from "react-icons/fa";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
+const Modal = ({ isOpen, title, message, onClose, onConfirm }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <div className="bg-white rounded-lg p-6 shadow-lg w-96">
+        <h2 className="text-xl font-bold text-gray-800">{title}</h2>
+        <p className="text-gray-600 mt-2">{message}</p>
+        <div className="flex justify-end mt-4 space-x-4">
+          {onConfirm && (
+            <button
+              onClick={onConfirm}
+              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+            >
+              Confirm
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const PanelStaff = () => {
-  const [currentPage, setCurrentPage] = useState(1); // Pagination state
-  const [users, setUsers] = useState([]); // Staff data
-  const [loading, setLoading] = useState(true); // Loading state
-  const [error, setError] = useState(null); // Error state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalAction, setModalAction] = useState(null);
   const navigate = useNavigate();
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
 
-  const pageSize = 5; // Number of staff per page
+  const pageSize = 5;
 
-  // Fetch users from backend
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -54,8 +85,10 @@ const PanelStaff = () => {
     fetchUsers();
   }, [jwtLoginToken]);
 
-  const handleDelete = async (email) => {
-    if (window.confirm("Are you sure you want to delete this staff member?")) {
+  const handleDelete = (email) => {
+    setModalTitle("Delete Staff Member");
+    setModalMessage("Are you sure you want to delete this staff member?");
+    setModalAction(() => async () => {
       try {
         await axios.delete(`${API_URL}/department/delete-employee`, {
           data: { email },
@@ -67,11 +100,12 @@ const PanelStaff = () => {
         setUsers((prevUsers) =>
           prevUsers.filter((user) => user.email !== email)
         );
-        alert("Staff member deleted successfully.");
+        setIsModalOpen(false);
       } catch (error) {
         alert("Failed to delete staff member. Try again.");
       }
-    }
+    });
+    setIsModalOpen(true);
   };
 
   const handleUpdate = (userId) => {
@@ -82,7 +116,6 @@ const PanelStaff = () => {
     navigate("/addStaff");
   };
 
-  // Pagination
   const totalPages = Math.ceil(users.length / pageSize);
   const currentPageData = users.slice(
     (currentPage - 1) * pageSize,
@@ -135,7 +168,6 @@ const PanelStaff = () => {
 
   return (
     <div className="p-4 bg-gray-100 min-h-screen">
-      {/* Header Section */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Staff Management</h2>
         <button
@@ -146,7 +178,6 @@ const PanelStaff = () => {
         </button>
       </div>
 
-      {/* Staff Table */}
       <div className="bg-white rounded shadow p-4">
         <table className="w-full text-left">
           <thead>
@@ -185,7 +216,6 @@ const PanelStaff = () => {
         </table>
       </div>
 
-      {/* Pagination */}
       <div className="flex justify-end items-center mt-4 space-x-2">
         <button
           onClick={goToPreviousPage}
@@ -211,6 +241,14 @@ const PanelStaff = () => {
           Next
         </button>
       </div>
+
+      <Modal
+        isOpen={isModalOpen}
+        title={modalTitle}
+        message={modalMessage}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={modalAction}
+      />
     </div>
   );
 };

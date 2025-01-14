@@ -18,7 +18,8 @@ const SalesNavbar = ({ toggleSidebar }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
 
-  // Fetch notifications on component mount
+  // Fetch notifications on component mount (commented out)
+  /*
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
@@ -42,6 +43,7 @@ const SalesNavbar = ({ toggleSidebar }) => {
       fetchNotifications();
     }
   }, [API_URL, jwtLoginToken]);
+  */
 
   const handleLogout = () => {
     dispatch(logout());

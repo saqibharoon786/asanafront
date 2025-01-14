@@ -194,7 +194,6 @@ const SalesAddInvoice = () => {
 
     if (!validateClient()) return;
     if (products.length === 0) {
-      alert("Please add at least one product!");
       return;
     }
 
@@ -217,7 +216,6 @@ const SalesAddInvoice = () => {
       );
 
       if (response.data.success) {
-        alert("Invoice created successfully!");
         navigate("/sales/invoices");
         setProducts([]);
         setClient({

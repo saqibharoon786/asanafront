@@ -72,7 +72,6 @@ const SalesPanelLeads = () => {
       });
 
       console.log(response);
-      alert("Form submitted successfully");
       setShowForm(false);
     } catch (error) {
       console.error("Error:", error.response ? error.response.data : error.message);

@@ -5,28 +5,58 @@ import { FaEye, FaDollarSign, FaTrashAlt } from "react-icons/fa";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
+const Modal = ({ isOpen, title, message, onClose, onConfirm }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <div className="bg-white rounded-lg p-6 shadow-lg w-96">
+        <h2 className="text-xl font-bold text-gray-800">{title}</h2>
+        <p className="text-gray-600 mt-2">{message}</p>
+        <div className="flex justify-end mt-4 space-x-4">
+          {onConfirm && (
+            <button
+              onClick={onConfirm}
+              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+            >
+              Confirm
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const PanelInvoices = () => {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [totalInvoices, setTotalInvoices] = useState(0);
-  const [timeFilter, setTimeFilter] = useState("All"); // New state for time filter
+  const [timeFilter, setTimeFilter] = useState("All");
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalAction, setModalAction] = useState(null);
 
   const navigate = useNavigate();
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
 
-  // Define the handleNewInvoice function
   const handleNewInvoice = () => {
-    navigate('/add-invoice'); // Adjust the path as needed
+    navigate('/add-invoice');
   };
 
-  // Handle Time Filter Change
   const handleTimeFilterChange = (event) => {
     setTimeFilter(event.target.value);
   };
 
-  // Fetch Invoices from Backend
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
@@ -37,7 +67,6 @@ const PanelInvoices = () => {
         if (response.data.success) {
           let filteredInvoices = response.data.information.Invoices;
 
-          // Apply time filter logic
           if (timeFilter !== "All") {
             const now = new Date();
             filteredInvoices = filteredInvoices.filter((invoice) => {
@@ -45,13 +74,13 @@ const PanelInvoices = () => {
               const timeDifference = now - invoiceDate;
               switch (timeFilter) {
                 case "Day":
-                  return timeDifference <= 24 * 60 * 60 * 1000; // 1 day
+                  return timeDifference <= 24 * 60 * 60 * 1000;
                 case "Week":
-                  return timeDifference <= 7 * 24 * 60 * 60 * 1000; // 1 week
+                  return timeDifference <= 7 * 24 * 60 * 60 * 1000;
                 case "Month":
-                  return timeDifference <= 30 * 24 * 60 * 60 * 1000; // 1 month
+                  return timeDifference <= 30 * 24 * 60 * 60 * 1000;
                 default:
-                  return true; // No filter
+                  return true;
               }
             });
           }
@@ -59,91 +88,82 @@ const PanelInvoices = () => {
           setInvoices(filteredInvoices);
           setTotalInvoices(filteredInvoices.length);
         } else {
-          setError("No Invoices Availible.");
+          setError("No Invoices Available.");
         }
       } catch (err) {
-        setError("No Invoices Availible.");
+        setError("No Invoices Available.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchInvoices();
-  }, [invoices]); // Re-fetch invoices when time filter changes
+  }, [invoices]);
 
-  // Handle Search Input Change
   const handleSearchChange = (event) => {
     setSearch(event.target.value);
   };
 
-  const handleDeleteInvoice = async (invoiceId) => {
-    if (window.confirm("Are you sure you want to delete this invoice?")) {
+  const handleDeleteInvoice = (invoiceId) => {
+    setModalTitle("Delete Invoice");
+    setModalMessage("Are you sure you want to delete this invoice?");
+    setModalAction(() => async () => {
+      setIsModalOpen(false);
       try {
         const response = await axios.delete(
-          `${API_URL}/invoice/delete/${invoiceId}`, // URL
+          `${API_URL}/invoice/delete/${invoiceId}`,
           {
-            headers: {
-              Authorization: `Bearer ${jwtLoginToken}`,
-            },
-            data: { invoice_Identifier: invoiceId }, // Move data into the second argument
+            headers: { Authorization: `Bearer ${jwtLoginToken}` },
+            data: { invoice_Identifier: invoiceId },
           }
         );
-  
+
         if (response.status === 200) {
           setInvoices((prevInvoices) =>
             prevInvoices.filter((invoice) => invoice._id !== invoiceId)
           );
-          alert("Invoice deleted successfully.");
-        } else {
-          throw new Error(response.data.message || "Failed to delete the invoice.");
+
         }
       } catch (error) {
-        const errorMessage =
-          error.response?.data?.message ||
-          error.message ||
-          "An error occurred. Please try again later.";
-        console.error("Delete Invoice Error:", error); // Log the error for debugging
-        alert(errorMessage);
+        setModalMessage("Failed to delete the invoice. Please try again.");
+        setModalAction(null);
+        setIsModalOpen(true);
       }
-    }
+    });
+    setIsModalOpen(true);
   };
-  
 
-  const handlePaidInvoice = async (invoiceId) => {
-    if (window.confirm("Are you sure you want to mark this invoice as paid?")) {
+  const handlePaidInvoice = (invoiceId) => {
+    setModalTitle("Mark as Paid");
+    setModalMessage("Are you sure you want to mark this invoice as paid?");
+    setModalAction(() => async () => {
+      setIsModalOpen(false);
       try {
         const response = await axios.patch(
           `${API_URL}/invoice/set-paid/${invoiceId}`,
-          {}, // No request body needed here
-          {
-            headers: {
-              Authorization: `Bearer ${jwtLoginToken}`,
-            },
-          }
+          {},
+          { headers: { Authorization: `Bearer ${jwtLoginToken}` } }
         );
-  
+
         if (response.status === 200) {
           setInvoices((prevInvoices) =>
             prevInvoices.filter((invoice) => invoice._id !== invoiceId)
           );
-          alert(`Invoice marked as paid successfully.`);
-        } else {
-          throw new Error(response.data.message || "Failed to mark invoice as paid.");
+
         }
       } catch (error) {
-        const errorMessage =
-          error.response?.data?.message || error.message || "An error occurred. Please try again later.";
-        alert(`Error: ${errorMessage}`);
+        setModalMessage("Failed to mark the invoice as paid. Please try again.");
+        setModalAction(null);
+        setIsModalOpen(true);
       }
-    }
+    });
+    setIsModalOpen(true);
   };
-  
-  // Navigate to View Invoice Page
+
   const handleViewInvoice = (invoiceId) => {
     navigate(`/view-invoice/${invoiceId}`);
   };
 
-  // Determine the background color based on the invoice's status
   const getStatusClass = (status) => {
     switch (status) {
       case "Paid":
@@ -207,62 +227,67 @@ const PanelInvoices = () => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr>
+              <th className="py-2 px-4 border">Created At</th>
                 <th className="py-2 px-4 border">Invoice Identifier</th>
                 <th className="py-2 px-4 border">Created By</th>
                 <th className="py-2 px-4 border">Client Name</th>
                 <th className="py-2 px-4 border">Total Price</th>
                 <th className="py-2 px-4 border">Status</th>
+                <th className="py-2 px-4 border">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {invoices.length > 0 ? (
-                invoices.map((invoice) => (
-                  <tr
-                    key={invoice._id}
-                    className={`border-t ${getStatusClass(invoice.invoice_Details?.status)}`}
-                  >
-                    <td className="py-2 px-4">{invoice.invoice_Identifier || "Unknown"}</td>
-                    <td className="py-2 px-4">{invoice.invoice_Creater?.name || "N/A"}</td>
-                    <td className="py-2 px-4">{invoice.invoice_Client?.client_Name || "Unknown"}</td>
-                    <td className="py-2 px-4">{invoice.invoice_TotalPrice || "N/A"}</td>
-                    <td className="py-2 px-4">{invoice.invoice_Details?.status || "N/A"}</td>
-                    <td className="py-2 px-4">
-                      <button
-                        className="text-blue-500 flex items-center gap-1"
-                        onClick={() => handlePaidInvoice(invoice._id)}
-                      >
-                        <FaDollarSign /> Paid
-                      </button>
+              {invoices.map((invoice) => (
+                <tr
+                  key={invoice._id}
+                  className={`border-t ${getStatusClass(invoice.invoice_Details?.status)}`}
+                >
+                  <td className="py-2 px-4">
+                      {invoice.createdAt
+                        ? new Date(invoice.createdAt).toLocaleDateString()
+                        : "Unknown"}
                     </td>
-                    <td className="py-2 px-4">
-                      <button
-                        className="text-red-500 flex items-center gap-1"
-                        onClick={() => handleDeleteInvoice(invoice._id)}
-                      >
-                        <FaTrashAlt /> Delete
-                      </button>
-                    </td>
-                    <td className="py-2 px-4">
-                      <button
-                        className="text-blue-500 flex items-center gap-1"
-                        onClick={() => handleViewInvoice(invoice._id)}
-                      >
-                        <FaEye /> View
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="6" className="text-center py-4">
-                    No invoices found matching your search.
+                  <td className="py-2 px-4">{invoice.invoice_Identifier || "Unknown"}</td>
+                  <td className="py-2 px-4">{invoice.invoice_Creater?.name || "N/A"}</td>
+                  <td className="py-2 px-4">{invoice.invoice_Client?.client_Name || "Unknown"}</td>
+                  <td className="py-2 px-4">{invoice.invoice_TotalPrice || "N/A"}</td>
+                  <td className="py-2 px-4">{invoice.invoice_Details?.status || "N/A"}</td>
+                  <td className="py-2 px-4 space-x-2">
+                  <div className="flex items-center space-x-4">
+  <button
+    className="text-blue-500 flex items-center gap-1"
+    onClick={() => handlePaidInvoice(invoice._id)}
+  >
+    <FaDollarSign /> Paid
+  </button>
+  <button
+    className="text-red-500 flex items-center gap-1"
+    onClick={() => handleDeleteInvoice(invoice._id)}
+  >
+    <FaTrashAlt /> Delete
+  </button>
+  <button
+    className="text-blue-500 flex items-center gap-1"
+    onClick={() => handleViewInvoice(invoice._id)}
+  >
+    <FaEye /> View
+  </button>
+</div>
                   </td>
                 </tr>
-              )}
+              ))}
             </tbody>
           </table>
         </div>
       )}
+
+<Modal
+        isOpen={isModalOpen}
+        title={modalTitle}
+        message={modalMessage}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={modalAction}
+      />
     </div>
   );
 };

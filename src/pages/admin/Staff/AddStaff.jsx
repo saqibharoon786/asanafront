@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -16,6 +17,7 @@ const AddStaff = () => {
     previewUrl: null,    // For image preview
   });
 
+  const navigate = useNavigate();
   const [departments, setDepartments] = useState([]);
   const [showNewProjectForm, setShowNewProjectForm] = useState(true);
 
@@ -69,7 +71,7 @@ const AddStaff = () => {
     }
   };
 
-  // Handle form submission
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -105,7 +107,8 @@ const AddStaff = () => {
       );
 
       if (response.status === 201) {
-        alert("Employee added successfully!");
+        navigate("/staff");
+
         setFormData({
           department_Name: "Human Resources",
           employee_Name: "",

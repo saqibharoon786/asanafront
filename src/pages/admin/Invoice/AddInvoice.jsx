@@ -11,6 +11,11 @@ import {
 
 const API_URL = process.env.REACT_APP_API_URL;
 
+
+const Modal = ({ isOpen, content, onClose }) => {
+  if (!isOpen) return null;
+}
+
 const AddInvoice = () => {
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
   const { user } = useSelector((state) => state.auth) || {};
@@ -217,7 +222,6 @@ const AddInvoice = () => {
       );
 
       if (response.data.success) {
-        alert("Invoice created successfully!");
         navigate("/invoices");
         setProducts([]);
         setClient({
