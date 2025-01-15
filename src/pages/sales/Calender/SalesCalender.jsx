@@ -6,6 +6,8 @@ import interactionPlugin from "@fullcalendar/interaction";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash, faEdit } from "@fortawesome/free-solid-svg-icons";
+import moment from "moment-timezone";
+
 
 const API_URL = process.env.REACT_APP_API_URL;
 const jwtLoginToken = localStorage.getItem("jwtLoginToken");
@@ -67,19 +69,23 @@ const SalesCalender = () => {
 
   const handleAddEvent = async () => {
     const { title, startTime, endTime, description } = newEvent;
-
-    if (!title || !endTime || !description) {
+  
+    if (!title || !endTime || !description || !startTime) {
       alert("Please fill in all fields.");
       return;
     }
-
+  
+    // Convert the time to ISO 8601 string in Asia/Karachi timezone
+    const parsedStartTime = moment.tz(startTime, "Asia/Karachi").format(); 
+    const parsedEndTime = moment.tz(endTime, "Asia/Karachi").format();
+  
     const eventToSave = {
       event_Title: title,
-      start_Time: startTime,
-      end_Time: endTime,
+      start_Time: parsedStartTime,
+      end_Time: parsedEndTime,
       event_Description: description,
     };
-
+    console.log(eventToSave)
     try {
       const response = await axios.post(`${API_URL}/event/add-event`, eventToSave, {
         headers: {
@@ -87,7 +93,7 @@ const SalesCalender = () => {
           "Content-Type": "application/json",
         },
       });
-
+  
       if (response.data.success) {
         const addedEvent = response.data.data;
         setEvents([
@@ -100,8 +106,8 @@ const SalesCalender = () => {
             description: addedEvent.event_Description,
           },
         ]);
-
-        // Reset form and close modal
+        
+  
         setNewEvent({
           title: "",
           endTime: "",
@@ -116,6 +122,10 @@ const SalesCalender = () => {
       console.error("Error adding new event:", error);
     }
   };
+  
+  
+  
+  
 
   const handleEventUpdate = async (eventId, updatedEventData) => {
     try {

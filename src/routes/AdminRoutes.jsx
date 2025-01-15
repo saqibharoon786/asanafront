@@ -16,6 +16,7 @@ import {
   LeadDetails,
   PanelInvoices,
   AddInvoice,
+  EditInvoice,
   ViewInvoice,
   AddProduct,
   EditProduct,
@@ -50,6 +51,7 @@ const AdminRoutes = () => (
 
         <Route path="/invoices" element={<AdminProtectedRoute><AdminLayout><PanelInvoices /></AdminLayout></AdminProtectedRoute>} />
         <Route path="/add-invoice" element={<AdminProtectedRoute><AdminLayout><AddInvoice /></AdminLayout></AdminProtectedRoute>} />
+        <Route path="/edit-invoice/:invoiceId" element={<AdminProtectedRoute><AdminLayout><EditInvoice /></AdminLayout></AdminProtectedRoute>} />
         <Route path="/view-invoice/:invoiceId" element={<AdminProtectedRoute><AdminLayout><ViewInvoice /></AdminLayout></AdminProtectedRoute>} />
 
         <Route path="/departments" element={<AdminProtectedRoute><AdminLayout><PanelDepartment /></AdminLayout></AdminProtectedRoute>} />

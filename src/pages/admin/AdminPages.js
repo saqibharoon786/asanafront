@@ -12,6 +12,7 @@ import LeadDetails from "./Lead/LeadDetails";
 import OptionalDataLead from "./Lead/OptionalDataLead";
 import PanelInvoices from "./Invoice/PanelInvoices";
 import AddInvoice from "./Invoice/AddInvoice";
+import EditInvoice from "./Invoice/EditInvoice";
 import ViewInvoice from "./Invoice/ViewInvoice";
 import EditStaff from "./Staff/EditStaff";
 import AddProduct from "./Products/AddProduct";
@@ -39,6 +40,7 @@ export {
   LeadDetails,
   PanelInvoices,
   AddInvoice,
+  EditInvoice,
   ViewInvoice,
   AddProduct,
   EditProduct,
@@ -46,5 +48,4 @@ export {
   PanelCustomers,
   AddCustomer,
   EditCustomer,
-  
 };

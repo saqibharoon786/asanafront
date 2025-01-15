@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
@@ -13,18 +14,17 @@ const ViewInvoice = () => {
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
+  const navigate = useNavigate();
+
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
 
   useEffect(() => {
     const fetchInvoiceDetails = async () => {
       try {
-        const response = await axios.get(
-          `${API_URL}/invoice/${invoiceId}`,
-          {
-            headers: { Authorization: `Bearer ${jwtLoginToken}` },
-          }
-        );
+        const response = await axios.get(`${API_URL}/invoice/${invoiceId}`, {
+          headers: { Authorization: `Bearer ${jwtLoginToken}` },
+        });
 
         if (response.data.success) {
           setInvoice(response.data.information.invoice);
@@ -48,65 +48,64 @@ const ViewInvoice = () => {
     try {
       // Create a new jsPDF document with A4 size
       const pdfDoc = new jsPDF("p", "mm", "a4");
-      
+
       // Select the element that contains the content for the PDF
       const element = document.querySelector(".pdf-content");
-  
+
       if (!element) {
         console.error("PDF content element not found!");
         return; // Exit if the element is not found
       }
-  
+
       // Temporarily hide the button section if it exists to prevent it from appearing in the PDF
       const buttonSection = document.querySelector(".button-section");
       if (buttonSection) buttonSection.style.display = "none";
-  
+
       // Capture the content of the element as a low-quality canvas (to reduce file size)
       const canvas = await html2canvas(element, {
-        scale: 1,  // Reduce scale for lower resolution and smaller file size
-        useCORS: true,  // Handle cross-origin images
-        allowTaint: true,  // Allow tainted images (images from different origins)
+        scale: 1, // Reduce scale for lower resolution and smaller file size
+        useCORS: true, // Handle cross-origin images
+        allowTaint: true, // Allow tainted images (images from different origins)
       });
-  
+
       // Revert the button section visibility after canvas capture
       if (buttonSection) buttonSection.style.display = "";
-  
+
       // Convert the canvas to a JPEG image with much lower quality (to reduce file size)
-      const imgData = canvas.toDataURL("image/jpeg", 0.2);  // Reduced quality to 20%
-  
+      const imgData = canvas.toDataURL("image/jpeg", 0.2); // Reduced quality to 20%
+
       // Calculate the dimensions for the A4 page
-      const pageHeight = 297;  // Height of A4 paper in mm
-      const pageWidth = 210;   // Width of A4 paper in mm
-      const imgHeight = (canvas.height * pageWidth) / canvas.width;  // Adjust image height based on width
-  
+      const pageHeight = 297; // Height of A4 paper in mm
+      const pageWidth = 210; // Width of A4 paper in mm
+      const imgHeight = (canvas.height * pageWidth) / canvas.width; // Adjust image height based on width
+
       // Track the current position on the PDF page (starting at the top)
       let position = 0;
       let pageNum = 1; // Page number tracker
-  
+
       // Loop through the image and add it to the PDF, splitting it into pages if necessary
       while (position < imgHeight) {
         // Add the image to the current page, with adjusted position
         pdfDoc.addImage(imgData, "JPEG", 0, -position, pageWidth, imgHeight);
-  
+
         // Add page number at the footer
         const footerText = `Page ${pageNum}`;
         pdfDoc.setFontSize(10); // Adjust font size for footer text
-        pdfDoc.text(footerText, pageWidth - 20, pageHeight - 10);  // Position of footer text
-  
+        pdfDoc.text(footerText, pageWidth - 20, pageHeight - 10); // Position of footer text
+
         // Move to the next page position
         position += pageHeight;
-  
+
         // If content exceeds the current page, add a new page
         if (position < imgHeight) {
           pdfDoc.addPage();
           pageNum++; // Increment page number
         }
       }
-  
+
       // Save the PDF with a dynamic filename based on the invoice identifier
       const fileName = `Invoice_${invoice.invoice_Identifier || "N/A"}.pdf`;
       pdfDoc.save(fileName);
-  
     } catch (error) {
       // Log any errors that occur during the PDF generation process
       console.error("Error generating PDF:", error);
@@ -128,11 +127,21 @@ const ViewInvoice = () => {
       const workbook = utils.book_new();
       utils.book_append_sheet(workbook, worksheet, "Invoice Items");
 
-      writeFile(workbook, `Invoice_${invoice.invoice_Identifier || "N/A"}.xlsx`);
+      writeFile(
+        workbook,
+        `Invoice_${invoice.invoice_Identifier || "N/A"}.xlsx`
+      );
     } catch (error) {
       console.error("Error generating Excel:", error);
     }
   };
+
+  const handleNavigateToEditInvoice = () => {
+    navigate(`/edit-invoice/${invoiceId}`);
+  };
+  const hasDiscount = invoice?.invoice_Products?.some(
+    (product) => product.product_DiscountPercentage > 0
+  );
 
   if (loading) {
     return (
@@ -180,7 +189,9 @@ const ViewInvoice = () => {
           {/* Invoice Heading */}
           <div className="text-right">
             <h1 className="text-5xl font-bold text-gray-800">INVOICE</h1>
-            <p className="text-xl text-gray-600 mt-2">{invoice.invoice_Identifier || "N/A"}</p>
+            <p className="text-xl text-gray-600 mt-2">
+              {invoice.invoice_Identifier || "N/A"}
+            </p>
           </div>
         </div>
 
@@ -190,8 +201,9 @@ const ViewInvoice = () => {
         <div className="flex justify-end items-center mb-4">
           <p className="text-xl text-gray-600">
             <strong>Invoice Date:</strong>{" "}
-            {new Date(invoice.invoice_Details?.dateCreated).toLocaleDateString() ||
-              "N/A"}
+            {new Date(
+              invoice.invoice_Details?.dateCreated
+            ).toLocaleDateString() || "N/A"}
           </p>
         </div>
 
@@ -199,21 +211,31 @@ const ViewInvoice = () => {
         <div className="mb-6">
           <h2 className="text-3xl font-bold text-gray-700">Bill To</h2>
           <p className="text-xl text-gray-600">
-            <strong>Name:</strong> {invoice.invoice_Client?.client_Name || "N/A"}
+            <strong>Name:</strong>{" "}
+            {invoice.invoice_Client?.client_Name || "N/A"}
           </p>
           <p className="text-xl text-gray-600">
-            <strong>Email:</strong> {invoice.invoice_Client?.client_Email || "N/A"}
+            <strong>Email:</strong>{" "}
+            {invoice.invoice_Client?.client_Email || "N/A"}
           </p>
           <p className="text-xl text-gray-600">
-            <strong>Contact:</strong> {invoice.invoice_Client?.client_Contact || "N/A"}
+            <strong>Contact:</strong>{" "}
+            {invoice.invoice_Client?.client_Contact || "N/A"}
           </p>
           <p className="text-xl text-gray-600">
-            <strong>Address:</strong> {invoice.invoice_Client?.client_Address || "N/A"}
+            <strong>Address:</strong>{" "}
+            {invoice.invoice_Client?.client_Address || "N/A"}
           </p>
           <p className="text-xl text-gray-600">
             <strong>TRN:</strong> {invoice.invoice_Client?.trn || "N/A"}
           </p>
         </div>
+
+        {/* Initial Payment Information */}
+        <p className="text-xl text-gray-600">
+          <strong>Initial Payment</strong>{" "}
+          {invoice.invoice_InitialPayment || "N/A"}%
+        </p>
 
         {/* Items Table */}
         <div className="mb-6">
@@ -222,53 +244,124 @@ const ViewInvoice = () => {
           <table className="w-full border-collapse border border-gray-300 mt-4 text-xl">
             <thead className="bg-gray-200">
               <tr>
-                <th className="border border-gray-300 px-4 py-2 text-left">Item</th>
-                <th className="border border-gray-300 px-4 py-2 text-left">Qty</th>
-                <th className="border border-gray-300 px-4 py-2 text-left">Rate</th>
-                <th className="border border-gray-300 px-4 py-2 text-left">Tax</th>
-                <th className="border border-gray-300 px-4 py-2 text-left">Discount</th>
-                <th className="border border-gray-300 px-4 py-2 text-left">Amount</th>
+                <th className="border border-gray-300 px-4 py-2 text-center">
+                  S#
+                </th>
+                <th className="border border-gray-300 px-4 py-2 text-left">
+                  Item
+                </th>
+                <th className="border border-gray-300 px-4 py-2 text-center">
+                  Qty
+                </th>
+                <th className="border border-gray-300 px-4 py-2 text-right">
+                  Rate (AED)
+                </th>
+                <th className="border border-gray-300 px-4 py-2 text-right">
+                  Tax
+                </th>
+                {invoice.invoice_Products.some(
+                  (product) => product.product_DiscountPercentage > 0
+                ) && (
+                  <th className="border border-gray-300 px-4 py-2 text-right">
+                    Discount %
+                  </th>
+                )}
+                <th className="border border-gray-300 px-4 py-2 text-right">
+                  Amount (AED)
+                </th>
               </tr>
             </thead>
 
             <tbody>
-              {invoice.invoice_Products?.map((product, index) => {
-                return (
-                  <tr key={index} className="hover:bg-gray-100">
-                    <td className="border border-gray-300 px-4 py-2">{product.product}</td>
-                    <td className="border border-gray-300 px-4 py-2">{product.quantity}</td>
-                    <td className="border border-gray-300 px-4 py-2">AED {product.product_Price}</td>
-                    <td className="border border-gray-300 px-4 py-2">{product.product_Tax}</td>
-                    <td className="border border-gray-300 px-4 py-2">{product.product_Discount}%</td>
-                    <td className="border border-gray-300 px-4 py-2">AED {product.product_FinalAmount}</td>
-                  </tr>
-                );
-              })}
+              {invoice.invoice_Products?.map((product, index) => (
+                <tr key={index} className="hover:bg-gray-100">
+                  <td className="border border-gray-300 px-4 py-2 text-center">
+                    {index + 1}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {product.product}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-center">
+                    {product.quantity}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-right">
+                    {product.product_BeforeTaxPrice}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-right">
+                    {product.product_Tax}
+                  </td>
+                  {invoice.invoice_Products.some(
+                    (prod) => prod.product_DiscountPercentage > 0
+                  ) && (
+                    <td className="border border-gray-300 px-4 py-2 text-right">
+                      {product.product_DiscountPercentage}
+                    </td>
+                  )}
+                  <td className="border border-gray-300 px-4 py-2 text-right">
+                    {product.product_AfterDiscountPrice}
+                  </td>
+                </tr>
+              ))}
             </tbody>
 
             <tfoot>
               <tr>
-                <td colSpan="5" className="text-right font-bold px-4 py-2">Subtotal (Tax)</td>
-                <td className="border border-gray-300 px-4 py-2 font-bold">
-                  AED {invoice.invoice_Products?.reduce((totalTax, product) => totalTax + product.product_Tax, 0)}
+                <td
+                  colSpan={
+                    invoice.invoice_Products.some(
+                      (product) => product.product_DiscountPercentage > 0
+                    )
+                      ? 6
+                      : 5
+                  }
+                  className="text-right font-bold px-4 py-2"
+                >
+                  Total
+                </td>
+                <td className="border border-gray-300 px-4 py-2 font-bold text-right">
+                  AED {invoice.invoice_BeforeTaxPrice}
                 </td>
               </tr>
-
               <tr>
-                <td colSpan="5" className="text-right font-bold px-4 py-2">Subtotal (Amount)</td>
-                <td className="border border-gray-300 px-4 py-2 font-bold">
-                  AED {invoice.invoice_Products?.reduce((sum, product) => sum + product.product_FinalAmount, 0)}
+                <td
+                  colSpan={
+                    invoice.invoice_Products.some(
+                      (product) => product.product_DiscountPercentage > 0
+                    )
+                      ? 6
+                      : 5
+                  }
+                  className="text-right font-bold px-4 py-2"
+                >
+                  VAT Total
+                </td>
+                <td className="border border-gray-300 px-4 py-2 font-bold text-right">
+                  AED{" "}
+                  {invoice?.invoice_Products?.reduce(
+                    (totalTax, product) =>
+                      totalTax + (product.product_Tax || 0),
+                    0
+                  )}
                 </td>
               </tr>
-
               <tr>
-                <td colSpan="5" className="text-right font-bold px-4 py-2">Total</td>
-                <td className="border border-gray-300 px-4 py-2 font-bold">
-                  AED {invoice.invoice_TotalPrice}
+                <td
+                  colSpan={
+                    invoice.invoice_Products.some(
+                      (product) => product.product_DiscountPercentage > 0
+                    )
+                      ? 6
+                      : 5
+                  }
+                  className="text-right font-bold px-4 py-2"
+                >
+                  Grand Total
+                </td>
+                <td className="border border-gray-300 px-4 py-2 font-bold text-right">
+                  AED {invoice.invoice_AfterDiscountPrice}
                 </td>
               </tr>
             </tfoot>
-
           </table>
         </div>
 
@@ -286,14 +379,33 @@ const ViewInvoice = () => {
               </thead>
               <tbody>
                 <tr className="border-t">
-                  <td className="py-2 px-4">Standard Rate (5%)</td>
-                  <td className="py-2 px-4">        {invoice.invoice_TotalPrice || "N/A"}</td>
-                  <td className="py-2 px-4">        {invoice.invoice_Products?.reduce((totalTax, product) => totalTax + product.product_Tax, 0)}</td>
+                  <td className="border border-gray-300 px-4 py-2 text-right">
+                    Standard Rate (5%)
+                  </td>
+                  <td className="py-2 px-4 text-right">
+                    {invoice.invoice_BeforeTaxPrice || "0"}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-right">
+                    {invoice?.invoice_Products?.reduce(
+                      (totalTax, product) =>
+                        totalTax + (product.product_Tax || 0),
+                      0
+                    )}{" "}
+                  </td>
                 </tr>
-                <tr className="border-t font-bold">
+                <tr className="border-t font-bold text-right">
                   <td className="py-2 px-4">Total</td>
-                  <td className="py-2 px-4">AED   {invoice.invoice_TotalPrice || "N/A"}</td>
-                  <td className="py-2 px-4">AED   {invoice.invoice_Products?.reduce((totalTax, product) => totalTax + product.product_Tax, 0)}</td>
+                  <td className="py-2 px-4">
+                    AED {invoice.invoice_BeforeTaxPrice || "N/A"}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-right">
+                    AED{" "}
+                    {invoice?.invoice_Products?.reduce(
+                      (totalTax, product) =>
+                        totalTax + (product.product_Tax || 0),
+                      0
+                    )}{" "}
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -308,18 +420,27 @@ const ViewInvoice = () => {
           <div className="mb-4">
             <h2 className="text-3xl font-bold text-gray-700 mb-4">Notes</h2>
             <p className="text-xl text-gray-600">
-              Supply, Installation, Testing, Commission, Training. Looking forward to your business.
+              Supply, Installation, Testing, Commission, Training. Looking
+              forward to your business.
             </p>
           </div>
 
           {/* Terms & Conditions Section */}
           <div className="mb-4">
-            <h2 className="text-3xl font-bold text-gray-700 mb-4">Terms & Conditions</h2>
+            <h2 className="text-3xl font-bold text-gray-700 mb-4">
+              Terms & Conditions
+            </h2>
             <ol className="list-decimal list-inside text-xl text-gray-600 space-y-2">
               <li>Invoice Validity: 07 days</li>
-              <li>Payment Terms: 50% Advance, 25% on delivery, 25% after Installation</li>
+              <li>
+                Payment Terms: 50% Advance, 25% on delivery, 25% after
+                Installation
+              </li>
               <li>Delivery/Installation Time: 1 to 2 weeks / As per actual</li>
-              <li>We will provide one year warranty & free services against manufacturing faults.</li>
+              <li>
+                We will provide one year warranty & free services against
+                manufacturing faults.
+              </li>
             </ol>
             <p className="mt-6 text-xl text-gray-600">
               <strong>Authorized Signature:</strong>
@@ -341,6 +462,13 @@ const ViewInvoice = () => {
             className="bg-green-500 text-white text-lg font-semibold py-2 px-6 rounded-lg hover:bg-green-600"
           >
             Download as Excel
+          </button>
+
+          <button
+            onClick={handleNavigateToEditInvoice}
+            className="bg-green-500 text-white text-lg font-semibold py-2 px-6 rounded-lg hover:bg-green-600"
+          >
+            Edit
           </button>
         </div>
       </div>

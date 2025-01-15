@@ -3,18 +3,22 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 
 const SalesLeadDetails = () => {
-  
   const { id } = useParams(); // Get the lead ID from the URL
   const [leadDetails, setLeadDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showNotePopup, setShowNotePopup] = useState(false);
   const [showPipelinePopup, setShowPipelinePopup] = useState(false);
+  const [showLeadTransferPopup, setShowLeadTransferPopup] = useState(false);
+  const [salesEmployees, setSalesEmployees] = useState([]);
+
+
   const [noteInput, setNoteInput] = useState("");
   const [pipelineInput, setPipelineInput] = useState({
     stage_Name: "",
     stage_Detail: "",
   });
+  const [transferUserId, setTransferUserId] = useState("");
 
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
 
@@ -35,7 +39,7 @@ const SalesLeadDetails = () => {
     };
 
     fetchLeadDetails();
-  }, [leadDetails]);
+  }, [id]);
 
   const handleAddNote = async () => {
     try {
@@ -74,6 +78,61 @@ const SalesLeadDetails = () => {
       alert(err.response ? err.response.data.message : err.message);
     }
   };
+  const fetchSalesEmployees = async () => {
+    try {
+      const response = await axios.get("http://localhost:3000/department/get-sales-employees", {
+        headers: {
+          Authorization: `Bearer ${jwtLoginToken}`,
+        },
+      });
+      console.log(response.data);
+  
+      if (response.data.success && response.data.information && response.data.information.users) {
+        setSalesEmployees(response.data.information.users); 
+        console.log('Sales Employees:', response.data.information.users);
+      } else {
+        console.error("No users found or invalid response structure.");
+      }
+    } catch (err) {
+      console.error("Error fetching sales employees:", err);
+    }
+  };
+  
+  
+  useEffect(() => {
+    if (showLeadTransferPopup) {
+      fetchSalesEmployees();
+    }
+  }, [showLeadTransferPopup, jwtLoginToken]);
+  
+  
+
+
+  const handleLeadTransfer = async () => {
+    if (!transferUserId) {
+      alert("Please provide a valid user ID.");
+      return;
+    }
+
+    try {
+      const response = await axios.patch(
+        `http://localhost:3000/lead/transfer-lead/${id}`,
+        { receivedById: transferUserId },
+        {
+          headers: {
+            Authorization: `Bearer ${jwtLoginToken}`,
+          },
+        }
+      );
+      console.log("Transfer Response:", response);
+      alert("Lead successfully transferred!");
+      setShowLeadTransferPopup(false);
+      setTransferUserId(""); // Clear the input field
+    } catch (err) {
+      console.error("Error during lead transfer:", err);
+      alert(err.response ? err.response.data.message : err.message);
+    }
+  };
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -90,6 +149,7 @@ const SalesLeadDetails = () => {
     lead_Source,
     lead_Notes,
     lead_Pipeline,
+    lead_TransferredBy,
   } = leadDetails;
 
   return (
@@ -156,6 +216,16 @@ const SalesLeadDetails = () => {
         </div>
       </div>
 
+      <h3 className="text-lg font-semibold text-gray-700 mt-6">Lead Transferred</h3>
+      <div className="space-y-2">
+        {lead_TransferredBy.map((transfer) => (
+          <div key={transfer._id} className="border p-4 rounded-md">
+            <p>Transferred By: {transfer.userId}</p>
+            <p className="text-sm text-gray-500 mt-2">Transferred At: {new Date(transfer.transferredAt).toLocaleString()}</p>
+          </div>
+        ))}
+      </div>
+
       <div className="w-full md:w-1/3 bg-white shadow-lg rounded-lg p-6">
         <h2 className="text-xl font-bold text-gray-800 border-b pb-4">Actions</h2>
         <div className="mt-4 space-y-4">
@@ -171,9 +241,16 @@ const SalesLeadDetails = () => {
           >
             Add Pipeline
           </button>
+          <button
+            className="w-full bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
+            onClick={() => setShowLeadTransferPopup(true)}
+          >
+            Transfer Lead
+          </button>
         </div>
       </div>
 
+      {/* Note Popup */}
       {showNotePopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-lg w-full max-w-lg">
@@ -202,6 +279,7 @@ const SalesLeadDetails = () => {
         </div>
       )}
 
+      {/* Pipeline Popup */}
       {showPipelinePopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-lg w-full max-w-lg">
@@ -237,6 +315,40 @@ const SalesLeadDetails = () => {
           </div>
         </div>
       )}
+
+{showLeadTransferPopup && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+    <div className="bg-white p-6 rounded-lg w-full max-w-lg">
+      <h3 className="text-lg font-bold text-gray-700">Transfer Lead</h3>
+      <select
+  className="w-full p-2 border rounded-md mt-4"
+  value={transferUserId}
+  onChange={(e) => setTransferUserId(e.target.value)}
+>
+  <option value="" disabled>Select Sales Employee</option>
+  {salesEmployees.map((employee) => (
+    <option key={employee._id} value={employee.userId}>
+      {employee.name}
+    </option>
+  ))}
+</select>
+      <div className="mt-4 flex justify-end space-x-2">
+        <button
+          className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+          onClick={() => setShowLeadTransferPopup(false)}
+        >
+          Cancel
+        </button>
+        <button
+          className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
+          onClick={handleLeadTransfer}
+        >
+          Transfer
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };
