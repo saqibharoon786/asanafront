@@ -67,20 +67,29 @@ const PanelCalender = () => {
 
   const handleAddEvent = async () => {
     const { title, endTime, description } = newEvent;
-
+  
     if (!title || !endTime || !description) {
       alert("Please fill in all fields.");
       return;
     }
-
-    const startTime = new Date().toISOString(); // Automatically pick current time
+  
+    // Get current UTC time and subtract 5 hours
+    const startTime = new Date();
+    startTime.setHours(startTime.getHours() + 5); 
+    const formattedStartTime = startTime.toISOString();
+  
+    // Convert provided endTime to UTC, then subtract 5 hours
+    const endUtcTime = new Date(endTime);
+    endUtcTime.setHours(endUtcTime.getHours() + 5);
+    const formattedEndTime = endUtcTime.toISOString();
+  
     const eventToSave = {
       event_Title: title,
-      start_Time: startTime,
-      end_Time: new Date(endTime).toISOString(),
+      start_Time: formattedStartTime, // UTC - 5 hours
+      end_Time: formattedEndTime,    // UTC - 5 hours
       event_Description: description,
     };
-
+  
     try {
       const response = await axios.post(`${API_URL}/event/add-event`, eventToSave, {
         headers: {
@@ -88,7 +97,7 @@ const PanelCalender = () => {
           "Content-Type": "application/json",
         },
       });
-
+  
       if (response.data.success) {
         const addedEvent = response.data.data;
         setEvents([
@@ -96,12 +105,12 @@ const PanelCalender = () => {
           {
             id: addedEvent._id,
             title: addedEvent.event_Title,
-            start: addedEvent.start_Time,
-            end: addedEvent.end_Time,
+            start: addedEvent.start_Time, // Already adjusted to UTC - 5
+            end: addedEvent.end_Time,     // Already adjusted to UTC - 5
             description: addedEvent.event_Description,
           },
         ]);
-
+  
         // Reset form and close modal
         setNewEvent({
           title: "",
@@ -116,6 +125,7 @@ const PanelCalender = () => {
       console.error("Error adding new event:", error);
     }
   };
+  
 
   const handleEventUpdate = async (eventId, updatedEventData) => {
     try {

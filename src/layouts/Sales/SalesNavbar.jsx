@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { logout } from "../../features/auth/authSlice";
 import { useDispatch, useSelector } from "react-redux";
+import axios from "axios";
 import {
   faUser,
   faEnvelope,
@@ -18,8 +19,7 @@ const SalesNavbar = ({ toggleSidebar }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
 
-  // Fetch notifications on component mount (commented out)
-  /*
+  // Fetch notifications on component mount
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
@@ -30,9 +30,8 @@ const SalesNavbar = ({ toggleSidebar }) => {
         });
         const data = await response.json();
         if (data.success) {
-          setNotifications(data.notifications);
-          const unread = data.notifications.filter((n) => !n.read).length;
-          setUnreadCount(unread);
+          setNotifications(data.information.events);
+          setUnreadCount(data.information.events.filter((n) => !n.event_Read).length);
         }
       } catch (error) {
         console.error("Error fetching notifications:", error);
@@ -40,10 +39,12 @@ const SalesNavbar = ({ toggleSidebar }) => {
     };
 
     if (jwtLoginToken) {
-      fetchNotifications();
+      fetchNotifications(); // Initial fetch
+      const intervalId = setInterval(fetchNotifications, 3000); // Poll every 3 seconds
+
+      return () => clearInterval(intervalId); // Clean up interval on component unmount
     }
   }, [API_URL, jwtLoginToken]);
-  */
 
   const handleLogout = () => {
     dispatch(logout());
@@ -51,22 +52,26 @@ const SalesNavbar = ({ toggleSidebar }) => {
   };
 
   // Mark notification as read
+  
+
   const markAsRead = async (notificationId) => {
     try {
-      const response = await fetch(`${API_URL}/notifications/${notificationId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ read: true }),
-      });
-
-      const data = await response.json();
-      if (data.success) {
+      const response = await axios.patch(
+        `${API_URL}/event/marked-as-read/${notificationId}`,
+        { read: true },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${jwtLoginToken}`, // Ensure the token is passed
+          },
+        }
+      );
+  
+      if (response.data.success) {
         setNotifications((prevNotifications) =>
           prevNotifications.map((notification) =>
-            notification.id === notificationId
-              ? { ...notification, read: true }
+            notification._id === notificationId
+              ? { ...notification, event_Read: true }
               : notification
           )
         );
@@ -76,11 +81,11 @@ const SalesNavbar = ({ toggleSidebar }) => {
       console.error("Error marking notification as read:", error);
     }
   };
-
+  
   return (
     <div className="relative shadow-md">
       {/* Primary Navbar */}
-      <div className="flex items-center justify-between bg-gray-900 text-white h-12 px-4">
+      <div className="flex item s-center justify-between bg-gray-900 text-white h-12 px-4">
         {/* Logo and Company Name */}
         <div className="flex items-center space-x-4">
           <img
@@ -152,28 +157,19 @@ const SalesNavbar = ({ toggleSidebar }) => {
           <div className="bg-white rounded-lg w-96 p-4">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold">Notifications</h2>
-              <button
-                className="text-gray-500 hover:text-gray-700"
-                onClick={() => setShowModal(false)}
-              >
+              <button className="text-gray-500 hover:text-gray-700" onClick={() => setShowModal(false)}>
                 ✖
               </button>
             </div>
             <div className="space-y-4">
               {notifications.length > 0 ? (
                 notifications.map((notification) => (
-                  <div
-                    key={notification.id}
-                    className={`p-3 rounded ${
-                      notification.read ? "bg-gray-100" : "bg-blue-100"
-                    }`}
-                  >
-                    <p>{notification.message}</p>
-                    {!notification.read && (
-                      <button
-                        className="mt-2 text-sm text-white bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
-                        onClick={() => markAsRead(notification.id)}
-                      >
+                  <div key={notification._id} className={`p-3 rounded ${notification.event_Read ? "bg-gray-100" : "bg-blue-100"}`}>
+                    <h1>{notification.event_Title}</h1>
+                    <p>{notification.event_Description}</p>
+
+                    {!notification.event_Read && (
+                      <button className="mt-2 text-sm text-white bg-blue-500 px-3 py-1 rounded hover:bg-blue-600" onClick={() => markAsRead(notification._id)}>
                         Mark as Read
                       </button>
                     )}

@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { FaEye, FaCheck, FaTrashAlt } from "react-icons/fa";
+import { FaEye, FaDollarSign, FaTrashAlt } from "react-icons/fa";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
-// Modal Component
 const Modal = ({ isOpen, title, message, onClose, onConfirm }) => {
   if (!isOpen) return null;
   return (
@@ -40,6 +39,7 @@ const PanelQuote = () => {
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [totalQuotes, setTotalQuotes] = useState(0);
+  const [timeFilter, setTimeFilter] = useState("All");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
@@ -50,7 +50,11 @@ const PanelQuote = () => {
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
 
   const handleNewQuote = () => {
-    navigate("/add-quote");
+    navigate('/add-quote');
+  };
+
+  const handleTimeFilterChange = (event) => {
+    setTimeFilter(event.target.value);
   };
 
   useEffect(() => {
@@ -61,14 +65,33 @@ const PanelQuote = () => {
         });
 
         if (response.data.success) {
-          setQuotes(response.data.information.quotes);
-          setTotalQuotes(response.data.information.quotes.length);
+          let filteredQuotes = response.data.information.Quotes;
+
+          if (timeFilter !== "All") {
+            const now = new Date();
+            filteredQuotes = filteredQuotes.filter((quote) => {
+              const quoteDate = new Date(quote.createdAt);
+              const timeDifference = now - quoteDate;
+              switch (timeFilter) {
+                case "Day":
+                  return timeDifference <= 24 * 60 * 60 * 1000;
+                case "Week":
+                  return timeDifference <= 7 * 24 * 60 * 60 * 1000;
+                case "Month":
+                  return timeDifference <= 30 * 24 * 60 * 60 * 1000;
+                default:
+                  return true;
+              }
+            });
+          }
+
+          setQuotes(filteredQuotes);
+          setTotalQuotes(filteredQuotes.length);
         } else {
-          setError("Failed to load quotes. Please try again.");
+          setError("No Quotes Available.");
         }
       } catch (err) {
-        console.error("Error fetching quotes:", err);
-        setError("Failed to load quotes. Please check your connection.");
+        setError("No Quotes Available.");
       } finally {
         setLoading(false);
       }
@@ -90,9 +113,8 @@ const PanelQuote = () => {
         const response = await axios.delete(
           `${API_URL}/quote/delete/${quoteId}`,
           {
-            headers: {
-              Authorization: `Bearer ${jwtLoginToken}`,
-            },
+            headers: { Authorization: `Bearer ${jwtLoginToken}` },
+            data: { quote_Identifier: quoteId },
           }
         );
 
@@ -100,45 +122,39 @@ const PanelQuote = () => {
           setQuotes((prevQuotes) =>
             prevQuotes.filter((quote) => quote._id !== quoteId)
           );
-        } else {
-          throw new Error(
-            response.data.message || "Failed to delete the quote."
-          );
+
         }
       } catch (error) {
-        console.error("Error deleting quote:", error);
+        setModalMessage("Failed to delete the quote. Please try again.");
+        setModalAction(null);
+        setIsModalOpen(true);
       }
     });
     setIsModalOpen(true);
   };
 
-  const handleApproveQuote = (quoteId) => {
-    setModalTitle("Approve Quote");
-    setModalMessage("Are you sure you want to approve this quote?");
+  const handlePaidQuote = (quoteId) => {
+    setModalTitle("Mark as Paid");
+    setModalMessage("Are you sure you want to mark this quote as paid?");
     setModalAction(() => async () => {
       setIsModalOpen(false);
       try {
         const response = await axios.patch(
-          `${API_URL}/quote/approve/${quoteId}`,
+          `${API_URL}/quotes/set-paid/${quoteId}`,
           {},
-          {
-            headers: {
-              Authorization: `Bearer ${jwtLoginToken}`,
-            },
-          }
+          { headers: { Authorization: `Bearer ${jwtLoginToken}` } }
         );
 
         if (response.status === 200) {
           setQuotes((prevQuotes) =>
             prevQuotes.filter((quote) => quote._id !== quoteId)
           );
-        } else {
-          throw new Error(
-            response.data.message || "Failed to approve the quote."
-          );
+
         }
       } catch (error) {
-        console.error("Error approving quote:", error);
+        setModalMessage("Failed to mark the quote as paid. Please try again.");
+        setModalAction(null);
+        setIsModalOpen(true);
       }
     });
     setIsModalOpen(true);
@@ -150,11 +166,9 @@ const PanelQuote = () => {
 
   const getStatusClass = (status) => {
     switch (status) {
-      case "Pending":
-        return "bg-white";
-      case "Approved":
+      case "Paid":
         return "bg-green-100";
-      case "Rejected":
+      case "Unpaid":
         return "bg-red-100";
       default:
         return "bg-white";
@@ -164,12 +178,26 @@ const PanelQuote = () => {
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-blue-800">Quotes Dashboard</h1>
         <button
           onClick={handleNewQuote}
           className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
         >
           + Add New Quote
         </button>
+      </div>
+
+      <div className="mb-6">
+        <select
+          value={timeFilter}
+          onChange={handleTimeFilterChange}
+          className="bg-white border border-gray-300 rounded-lg p-2"
+        >
+          <option value="All">All</option>
+          <option value="Day">Last 24 Hours</option>
+          <option value="Week">Last Week</option>
+          <option value="Month">Last Month</option>
+        </select>
       </div>
 
       <div className="bg-white shadow rounded-lg p-4 mb-6">
@@ -192,9 +220,7 @@ const PanelQuote = () => {
         </div>
       ) : totalQuotes === 0 ? (
         <div className="bg-white p-6 rounded-lg shadow mb-6">
-          <p className="text-red-500 text-center font-medium">
-            No quotes available.
-          </p>
+          <p className="text-red-500 text-center font-medium">No quotes available.</p>
         </div>
       ) : (
         <div className="bg-white shadow rounded-lg p-4">
@@ -211,40 +237,28 @@ const PanelQuote = () => {
               </tr>
             </thead>
             <tbody>
-              {quotes.length > 0 ? (
-                quotes.map((quote) => (
-                  <tr
-                    key={quote._id}
-                    className={`border-t ${getStatusClass(
-                      quote.quote_Details?.status
-                    )}`}
-                  >
-                    <td className="py-2 px-4">
-                      {quote.createdAt
-                        ? new Date(quote.createdAt).toLocaleDateString()
-                        : "Unknown"}
-                    </td>
-                    <td className="py-2 px-4">
-                      {quote.quote_Identifier || "Unknown"}
-                    </td>
-                    <td className="py-2 px-4">
-                      {quote.quote_Creater?.name || "N/A"}
-                    </td>
-                    <td className="py-2 px-4">
-                      {quote.quote_Client?.client_Name || "Unknown"}
-                    </td>
-                    <td className="py-2 px-4">
-                      {quote.quote_TotalPrice || "N/A"}
-                    </td>
-                    <td className="py-2 px-4">
-                      {quote.quote_Details?.status || "N/A"}
-                    </td>
-                    <td className="py-2 px-4 flex gap-2">
+              {quotes.map((quote) => (
+                <tr
+                  key={quote._id}
+                  className={`border-t ${getStatusClass(quote.quote_Details?.status)}`}
+                >
+                  <td className="py-2 px-4">
+                    {quote.createdAt
+                      ? new Date(quote.createdAt).toLocaleDateString()
+                      : "Unknown"}
+                  </td>
+                  <td className="py-2 px-4">{quote.quote_Identifier || "Unknown"}</td>
+                  <td className="py-2 px-4">{quote.quote_Creater?.name || "N/A"}</td>
+                  <td className="py-2 px-4">{quote.quote_Client?.client_Name || "Unknown"}</td>
+                  <td className="py-2 px-4">{quote.quote_AfterDiscountPrice || "N/A"}</td>
+                  <td className="py-2 px-4">{quote.quote_Details?.status || "N/A"}</td>
+                  <td className="py-2 px-4 space-x-2">
+                    <div className="flex items-center space-x-4">
                       <button
                         className="text-blue-500 flex items-center gap-1"
-                        onClick={() => handleApproveQuote(quote._id)}
+                        onClick={() => handlePaidQuote(quote._id)}
                       >
-                        <FaCheck /> Approve
+                        <FaDollarSign /> Paid
                       </button>
                       <button
                         className="text-red-500 flex items-center gap-1"
@@ -258,16 +272,10 @@ const PanelQuote = () => {
                       >
                         <FaEye /> View
                       </button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="7" className="text-center py-4">
-                    No quotes found matching your search.
+                    </div>
                   </td>
                 </tr>
-              )}
+              ))}
             </tbody>
           </table>
         </div>

@@ -6,13 +6,11 @@ import interactionPlugin from "@fullcalendar/interaction";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash, faEdit } from "@fortawesome/free-solid-svg-icons";
-import moment from "moment-timezone";
-
 
 const API_URL = process.env.REACT_APP_API_URL;
 const jwtLoginToken = localStorage.getItem("jwtLoginToken");
 
-const SalesCalender = () => {
+const SalesPanelCalender = () => {
   const [events, setEvents] = useState([]);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showModal, setShowModal] = useState(false);
@@ -20,7 +18,6 @@ const SalesCalender = () => {
     title: "",
     endTime: "",
     description: "",
-    startTime: "",
   });
 
   useEffect(() => {
@@ -35,8 +32,8 @@ const SalesCalender = () => {
           const formattedEvents = response.data.data.map((event) => ({
             id: event._id,
             title: event.event_Title,
-            start: event.start_Time,
-            end: event.end_Time,
+            start: new Date(event.start_Time).toISOString(),
+            end: new Date(event.end_Time).toISOString(),
             description: event.event_Description,
           }));
           setEvents(formattedEvents);
@@ -60,32 +57,39 @@ const SalesCalender = () => {
   }, []);
 
   const handleDateSelect = (selectInfo) => {
-    setNewEvent((prev) => ({
-      ...prev,
-      startTime: selectInfo.startStr,
-    }));
+    setNewEvent({
+      title: "",
+      endTime: "",
+      description: "",
+    });
     setShowModal(true);
   };
 
   const handleAddEvent = async () => {
-    const { title, startTime, endTime, description } = newEvent;
+    const { title, endTime, description } = newEvent;
   
-    if (!title || !endTime || !description || !startTime) {
+    if (!title || !endTime || !description) {
       alert("Please fill in all fields.");
       return;
     }
   
-    // Convert the time to ISO 8601 string in Asia/Karachi timezone
-    const parsedStartTime = moment.tz(startTime, "Asia/Karachi").format(); 
-    const parsedEndTime = moment.tz(endTime, "Asia/Karachi").format();
+    // Get current UTC time and subtract 5 hours
+    const startTime = new Date();
+    startTime.setHours(startTime.getHours() + 5); 
+    const formattedStartTime = startTime.toISOString();
+  
+    // Convert provided endTime to UTC, then subtract 5 hours
+    const endUtcTime = new Date(endTime);
+    endUtcTime.setHours(endUtcTime.getHours() + 5);
+    const formattedEndTime = endUtcTime.toISOString();
   
     const eventToSave = {
       event_Title: title,
-      start_Time: parsedStartTime,
-      end_Time: parsedEndTime,
+      start_Time: formattedStartTime, // UTC - 5 hours
+      end_Time: formattedEndTime,    // UTC - 5 hours
       event_Description: description,
     };
-    console.log(eventToSave)
+  
     try {
       const response = await axios.post(`${API_URL}/event/add-event`, eventToSave, {
         headers: {
@@ -101,18 +105,17 @@ const SalesCalender = () => {
           {
             id: addedEvent._id,
             title: addedEvent.event_Title,
-            start: addedEvent.start_Time,
-            end: addedEvent.end_Time,
+            start: addedEvent.start_Time, // Already adjusted to UTC - 5
+            end: addedEvent.end_Time,     // Already adjusted to UTC - 5
             description: addedEvent.event_Description,
           },
         ]);
-        
   
+        // Reset form and close modal
         setNewEvent({
           title: "",
           endTime: "",
           description: "",
-          startTime: "",
         });
         setShowModal(false);
       } else {
@@ -122,9 +125,6 @@ const SalesCalender = () => {
       console.error("Error adding new event:", error);
     }
   };
-  
-  
-  
   
 
   const handleEventUpdate = async (eventId, updatedEventData) => {
@@ -197,8 +197,8 @@ const SalesCalender = () => {
             onClick={() =>
               handleEventUpdate(eventInfo.event.id, {
                 title: eventInfo.event.title,
-                startTime: eventInfo.event.start,
-                endTime: eventInfo.event.end,
+                startTime: new Date(eventInfo.event.start).toISOString(),
+                endTime: new Date(eventInfo.event.end).toISOString(),
                 description: eventInfo.event.extendedProps.description,
               })
             }
@@ -266,7 +266,9 @@ const SalesCalender = () => {
             placeholder="End Time"
             className="w-full p-2 mb-4 border border-gray-300 rounded"
             value={newEvent.endTime}
-            onChange={(e) => setNewEvent({ ...newEvent, endTime: e.target.value })}
+            onChange={(e) =>
+              setNewEvent({ ...newEvent, endTime: e.target.value })
+            }
           />
           <textarea
             placeholder="Event Description"
@@ -299,4 +301,4 @@ const SalesCalender = () => {
   );
 };
 
-export default SalesCalender;
+export default SalesPanelCalender;

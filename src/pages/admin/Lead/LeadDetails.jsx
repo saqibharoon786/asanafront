@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 
 const LeadDetails = () => {
-  const { id } = useParams(); // Get the lead ID from the URL
+  const { leadId } = useParams(); // Get the lead ID from the URL
   const [leadDetails, setLeadDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,11 +24,14 @@ const LeadDetails = () => {
   useEffect(() => {
     const fetchLeadDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/lead/${id}`, {
-          headers: {
-            Authorization: `Bearer ${jwtLoginToken}`,
-          },
-        });
+        const response = await axios.get(
+          `http://localhost:3000/lead/${leadId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${jwtLoginToken}`,
+            },
+          }
+        );
         setLeadDetails(response.data.information.lead);
         setLoading(false);
       } catch (err) {
@@ -38,12 +41,12 @@ const LeadDetails = () => {
     };
 
     fetchLeadDetails();
-  }, [id]);
+  }, [leadDetails]);
 
   const handleAddNote = async () => {
     try {
       await axios.post(
-        `http://localhost:3000/lead/add-note/${id}`,
+        `http://localhost:3000/lead/add-note/${leadId}`,
         { note: noteInput },
         {
           headers: {
@@ -62,7 +65,7 @@ const LeadDetails = () => {
   const handleAddPipeline = async () => {
     try {
       await axios.post(
-        `http://localhost:3000/lead/add-pipeline/${id}`,
+        `http://localhost:3000/lead/add-pipeline/${leadId}`,
         pipelineInput,
         {
           headers: {
@@ -118,7 +121,7 @@ const LeadDetails = () => {
 
     try {
       const response = await axios.patch(
-        `http://localhost:3000/lead/transfer-lead/${id}`,
+        `http://localhost:3000/lead/transfer-lead/${leadId}`,
         { receivedById: transferUserId },
         {
           headers: {
@@ -151,7 +154,7 @@ const LeadDetails = () => {
     lead_Source,
     lead_Notes,
     lead_Pipeline,
-    lead_TransferredBy,
+    lead_TransferAndAssign,
   } = leadDetails;
 
   return (
@@ -250,9 +253,10 @@ const LeadDetails = () => {
         Lead Transferred
       </h3>
       <div className="space-y-2">
-        {lead_TransferredBy.map((transfer) => (
-          <div key={transfer._id} className="border p-4 rounded-md">
-            <p>Transferred By: {transfer.userId}</p>
+        {lead_TransferAndAssign.map((transfer) => (
+          <div key={transfer.transferredAt} className="border p-4 rounded-md">
+            <p>Transferred By: {transfer.lead_TransferredByUserId}</p>
+            <p>Assigned To: {transfer.lead_AssignedToUserId}</p>
             <p className="text-sm text-gray-500 mt-2">
               Transferred At:{" "}
               {new Date(transfer.transferredAt).toLocaleString()}

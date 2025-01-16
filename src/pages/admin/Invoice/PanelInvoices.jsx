@@ -250,7 +250,7 @@ const PanelInvoices = () => {
                   <td className="py-2 px-4">{invoice.invoice_Identifier || "Unknown"}</td>
                   <td className="py-2 px-4">{invoice.invoice_Creater?.name || "N/A"}</td>
                   <td className="py-2 px-4">{invoice.invoice_Client?.client_Name || "Unknown"}</td>
-                  <td className="py-2 px-4">{invoice.invoice_TotalPrice || "N/A"}</td>
+                  <td className="py-2 px-4">{invoice.invoice_AfterDiscountPrice || "N/A"}</td>
                   <td className="py-2 px-4">{invoice.invoice_Details?.status || "N/A"}</td>
                   <td className="py-2 px-4 space-x-2">
                   <div className="flex items-center space-x-4">

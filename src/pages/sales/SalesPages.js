@@ -17,10 +17,10 @@ import SalesLeadDetails from './Lead/SalesLeadDetails'
 import SalesOptionalDataLead from './Lead/SalesOptionalDataLead'
 import SalesPanelLeads from './Lead/SalesPanelLeads'
 
-import SalesCalender from "./Calender/SalesCalender"
+import SalesPanelCalender from "./Calender/SalesPanelCalender"
 
 import SalesPanelCustomer from './Customers/SalesPanelCustomer'
 import SalesAddCustomer from './Customers/SalesAddCustomer'
 import SalesEditCustomer from './Customers/salesEditCustomer'
 
-export {SalesDashboard,SalesViewQuote,SalesAddQuote,SalesPanelQuote, SalesLeadDetails, SalesOptionalDataLead, SalesPanelLeads, SalesPanelProducts, SalesAddProduct, SalesEditProduct, SalesViewProduct,SalesPanelInvoices,SalesViewInvoice,SalesAddInvoice,SalesCalender, SalesPanelCustomer, SalesAddCustomer, SalesEditCustomer}
+export {SalesDashboard,SalesViewQuote,SalesAddQuote,SalesPanelQuote, SalesLeadDetails, SalesOptionalDataLead, SalesPanelLeads, SalesPanelProducts, SalesAddProduct, SalesEditProduct, SalesViewProduct,SalesPanelInvoices,SalesViewInvoice,SalesAddInvoice,SalesPanelCalender, SalesPanelCustomer, SalesAddCustomer, SalesEditCustomer}

@@ -42,7 +42,7 @@ const AdminRoutes = () => (
         <Route path="/update-product/:productId" element={<AdminProtectedRoute><AdminLayout><EditProduct /></AdminLayout></AdminProtectedRoute>} />
 
         <Route path="/leads" element={<AdminProtectedRoute><AdminLayout><PanelLeads /></AdminLayout></AdminProtectedRoute>} />
-        <Route path="/lead-detail/:id" element={<AdminProtectedRoute><AdminLayout><LeadDetails /></AdminLayout></AdminProtectedRoute>} />
+        <Route path="/lead-detail/:leadId" element={<AdminProtectedRoute><AdminLayout><LeadDetails /></AdminLayout></AdminProtectedRoute>} />
         <Route path="/optional-data-lead/:leadId" element={<AdminProtectedRoute><AdminLayout> <OptionalDataLead /></AdminLayout></AdminProtectedRoute>}/>
 
         <Route path="/quotes" element={<AdminProtectedRoute><AdminLayout><PanelQuote /></AdminLayout></AdminProtectedRoute>} />

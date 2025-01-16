@@ -64,6 +64,7 @@ const SalesOptionalDataLead = () => {
         }
       );
       console.log("Response:", response.data);
+      window.alert("Form submitted successfully!"); // Alert for successful submission
     } catch (error) {
       console.error("Error:", error);
     }
