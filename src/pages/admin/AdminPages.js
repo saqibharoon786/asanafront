@@ -10,6 +10,7 @@ import ViewQuote from "./Quote/ViewQuote";
 import PanelLeads from "./Lead/PanelLeads";
 import LeadDetails from "./Lead/LeadDetails";
 import OptionalDataLead from "./Lead/OptionalDataLead";
+import LeadToQuoteConversion from "./Lead/LeadToQuoteConversion";
 import PanelInvoices from "./Invoice/PanelInvoices";
 import AddInvoice from "./Invoice/AddInvoice";
 import EditInvoice from "./Invoice/EditInvoice";
@@ -38,6 +39,7 @@ export {
   PanelLeads,
   OptionalDataLead,
   LeadDetails,
+  LeadToQuoteConversion,
   PanelInvoices,
   AddInvoice,
   EditInvoice,

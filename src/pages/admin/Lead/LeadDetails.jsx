@@ -3,45 +3,48 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 
 const LeadDetails = () => {
+  const jwtLoginToken = localStorage.getItem("jwtLoginToken");
   const { leadId } = useParams(); // Get the lead ID from the URL
   const [leadDetails, setLeadDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showNotePopup, setShowNotePopup] = useState(false);
-  const [showPipelinePopup, setShowPipelinePopup] = useState(false);
-  const [showLeadTransferPopup, setShowLeadTransferPopup] = useState(false);
+  const [showInteractionHistoryPopup, setShowInteractionHistoryPopup] =
+    useState(false);
   const [salesEmployees, setSalesEmployees] = useState([]);
+  const [leadTransferHistoryUsersNames, setLeadTransferHistoryUsersNames] =
+    useState([]);
 
   const [noteInput, setNoteInput] = useState("");
-  const [pipelineInput, setPipelineInput] = useState({
+  const [interactionHistoryInput, setInteractionHistoryInput] = useState({
     stage_Name: "",
     stage_Detail: "",
   });
-  const [transferUserId, setTransferUserId] = useState("");
 
-  const jwtLoginToken = localStorage.getItem("jwtLoginToken");
+  const fetchLeadDetails = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:3000/lead/${leadId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${jwtLoginToken}`,
+          },
+        }
+      );
+      setLeadDetails(response.data.information.lead);
+      setLeadTransferHistoryUsersNames(
+        response.data.information.leadTransferHistoryUsersNames
+      );
+      setLoading(false);
+    } catch (err) {
+      setError(err.response ? err.response.data.message : err.message);
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchLeadDetails = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:3000/lead/${leadId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${jwtLoginToken}`,
-            },
-          }
-        );
-        setLeadDetails(response.data.information.lead);
-        setLoading(false);
-      } catch (err) {
-        setError(err.response ? err.response.data.message : err.message);
-        setLoading(false);
-      }
-    };
-
     fetchLeadDetails();
-  }, [leadDetails]);
+  }, [noteInput, interactionHistoryInput]);
 
   const handleAddNote = async () => {
     try {
@@ -62,24 +65,25 @@ const LeadDetails = () => {
     }
   };
 
-  const handleAddPipeline = async () => {
+  const handleAddInteractionHistory = async () => {
     try {
       await axios.post(
-        `http://localhost:3000/lead/add-pipeline/${leadId}`,
-        pipelineInput,
+        `http://localhost:3000/lead/add-interaction-history/${leadId}`,
+        interactionHistoryInput,
         {
           headers: {
             Authorization: `Bearer ${jwtLoginToken}`,
           },
         }
       );
-      alert("Pipeline stage added successfully!");
-      setShowPipelinePopup(false);
-      setPipelineInput({ stage_Name: "", stage_Detail: "" });
+      alert("Interaction stage added successfully!");
+      setShowInteractionHistoryPopup(false);
+      setInteractionHistoryInput({ stage_Name: "", stage_Detail: "" });
     } catch (err) {
       alert(err.response ? err.response.data.message : err.message);
     }
   };
+
   const fetchSalesEmployees = async () => {
     try {
       const response = await axios.get(
@@ -107,38 +111,6 @@ const LeadDetails = () => {
     }
   };
 
-  useEffect(() => {
-    if (showLeadTransferPopup) {
-      fetchSalesEmployees();
-    }
-  }, [showLeadTransferPopup, jwtLoginToken]);
-
-  const handleLeadTransfer = async () => {
-    if (!transferUserId) {
-      alert("Please provide a valid user ID.");
-      return;
-    }
-
-    try {
-      const response = await axios.patch(
-        `http://localhost:3000/lead/transfer-lead/${leadId}`,
-        { receivedById: transferUserId },
-        {
-          headers: {
-            Authorization: `Bearer ${jwtLoginToken}`,
-          },
-        }
-      );
-      console.log("Transfer Response:", response);
-      alert("Lead successfully transferred!");
-      setShowLeadTransferPopup(false);
-      setTransferUserId("");
-    } catch (err) {
-      console.error("Error during lead transfer:", err);
-      alert(err.response ? err.response.data.message : err.message);
-    }
-  };
-
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
@@ -153,16 +125,32 @@ const LeadDetails = () => {
     lead_Label,
     lead_Source,
     lead_Notes,
-    lead_Pipeline,
+    lead_InteractionHistory,
     lead_TransferAndAssign,
   } = leadDetails;
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen flex flex-col md:flex-row gap-6">
-      <div className="w-full md:w-2/3 bg-white shadow-lg rounded-lg p-6">
+    <>
+        <div className="flex flex-row gap-6">
+      {/* Lead Details Section */}
+      <div className="w-2/3 bg-white shadow-lg rounded-lg p-6">
         <h1 className="text-2xl font-bold text-gray-800 border-b pb-4">
           Lead Details
         </h1>
+        <div className="m-2 space-y-4 space-x-3">
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 mx-1"
+            onClick={() => setShowNotePopup(true)}
+          >
+            Add Note
+          </button>
+          <button
+            className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
+            onClick={() => setShowInteractionHistoryPopup(true)}
+          >
+            Add Interaction History
+          </button>
+        </div>
         <div className="mt-4">
           <h2 className="text-xl font-semibold text-gray-700">{lead_Title}</h2>
           <p className="text-gray-600">Organization: {lead_Organization}</p>
@@ -176,7 +164,6 @@ const LeadDetails = () => {
             <p>Name: {lead_Client.client_Name}</p>
             <p>Email: {lead_Client.client_Email}</p>
             <p>Address: {lead_Client.client_Address}</p>
-            <p>Contact: {lead_Client.client_Contact}</p>
           </div>
 
           <h3 className="text-lg font-semibold text-gray-700 mt-6">
@@ -234,14 +221,17 @@ const LeadDetails = () => {
             ))}
           </div>
 
-          <h3 className="text-lg font-semibold text-gray-700 mt-6">Pipeline</h3>
-          <div className="space-y-2">
-            {lead_Pipeline.map((stage) => (
+          <h3 className="text-lg font-semibold text-gray-700 mt-6">
+            Interaction History
+          </h3>
+          <div className="">
+            {lead_InteractionHistory.map((stage) => (
               <div key={stage._id} className="border p-4 rounded-md">
                 <p>Stage: {stage.stage_Name}</p>
                 <p>Details: {stage.stage_Detail}</p>
                 <p className="text-sm text-gray-500 mt-2">
-                  Created At: {new Date(stage.stage_CreatedAt).toLocaleString()}
+                  Created At:{" "}
+                  {new Date(stage.stage_CreatedAt).toLocaleString()}
                 </p>
               </div>
             ))}
@@ -249,14 +239,15 @@ const LeadDetails = () => {
         </div>
       </div>
 
-      <h3 className="text-lg font-semibold text-gray-700 mt-6">
-        Lead Transferred
-      </h3>
-      <div className="space-y-2">
-        {lead_TransferAndAssign.map((transfer) => (
+      {/* Lead Transfer History Section */}
+      <div className="w-1/3 bg-white shadow-lg rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-gray-700 border-b pb-4">
+          Lead Transfer History
+        </h3>
+        {leadTransferHistoryUsersNames.map((transfer) => (
           <div key={transfer.transferredAt} className="border p-4 rounded-md">
-            <p>Transferred By: {transfer.lead_TransferredByUserId}</p>
-            <p>Assigned To: {transfer.lead_AssignedToUserId}</p>
+            <p>Transferred By: {transfer.transferredBy}</p>
+            <p>Assigned To: {transfer.assignedTo}</p>
             <p className="text-sm text-gray-500 mt-2">
               Transferred At:{" "}
               {new Date(transfer.transferredAt).toLocaleString()}
@@ -264,32 +255,7 @@ const LeadDetails = () => {
           </div>
         ))}
       </div>
-
-      <div className="w-full md:w-1/3 bg-white shadow-lg rounded-lg p-6">
-        <h2 className="text-xl font-bold text-gray-800 border-b pb-4">
-          Actions
-        </h2>
-        <div className="mt-4 space-y-4">
-          <button
-            className="w-full bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-            onClick={() => setShowNotePopup(true)}
-          >
-            Add Note
-          </button>
-          <button
-            className="w-full bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
-            onClick={() => setShowPipelinePopup(true)}
-          >
-            Add Pipeline
-          </button>
-          <button
-            className="w-full bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
-            onClick={() => setShowLeadTransferPopup(true)}
-          >
-            Transfer Lead
-          </button>
-        </div>
-      </div>
+    </div>
 
       {/* Note Popup */}
       {showNotePopup && (
@@ -320,21 +286,21 @@ const LeadDetails = () => {
         </div>
       )}
 
-      {/* Pipeline Popup */}
-      {showPipelinePopup && (
+      {/* Interaction History Popup */}
+      {showInteractionHistoryPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-lg w-full max-w-lg">
             <h3 className="text-lg font-bold text-gray-700">
-              Add Pipeline Stage
+              Add Interaction History Stage
             </h3>
             <input
               type="text"
               placeholder="Stage Name"
               className="w-full p-2 border rounded-md mt-4"
-              value={pipelineInput.stage_Name}
+              value={interactionHistoryInput.stage_Name}
               onChange={(e) =>
-                setPipelineInput({
-                  ...pipelineInput,
+                setInteractionHistoryInput({
+                  ...interactionHistoryInput,
                   stage_Name: e.target.value,
                 })
               }
@@ -343,10 +309,10 @@ const LeadDetails = () => {
               placeholder="Stage Detail"
               className="w-full p-2 border rounded-md mt-4"
               rows="4"
-              value={pipelineInput.stage_Detail}
+              value={interactionHistoryInput.stage_Detail}
               onChange={(e) =>
-                setPipelineInput({
-                  ...pipelineInput,
+                setInteractionHistoryInput({
+                  ...interactionHistoryInput,
                   stage_Detail: e.target.value,
                 })
               }
@@ -354,13 +320,13 @@ const LeadDetails = () => {
             <div className="mt-4 flex justify-end space-x-2">
               <button
                 className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
-                onClick={() => setShowPipelinePopup(false)}
+                onClick={() => setShowInteractionHistoryPopup(false)}
               >
                 Cancel
               </button>
               <button
                 className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
-                onClick={handleAddPipeline}
+                onClick={handleAddInteractionHistory}
               >
                 Save
               </button>
@@ -368,43 +334,7 @@ const LeadDetails = () => {
           </div>
         </div>
       )}
-
-      {showLeadTransferPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg w-full max-w-lg">
-            <h3 className="text-lg font-bold text-gray-700">Transfer Lead</h3>
-            <select
-              className="w-full p-2 border rounded-md mt-4"
-              value={transferUserId}
-              onChange={(e) => setTransferUserId(e.target.value)}
-            >
-              <option value="" disabled>
-                Select Sales Employee
-              </option>
-              {salesEmployees.map((employee) => (
-                <option key={employee._id} value={employee.userId}>
-                  {employee.name}
-                </option>
-              ))}
-            </select>
-            <div className="mt-4 flex justify-end space-x-2">
-              <button
-                className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
-                onClick={() => setShowLeadTransferPopup(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
-                onClick={handleLeadTransfer}
-              >
-                Transfer
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </>
   );
 };
 

@@ -2,10 +2,21 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { LeadFunnel } from "./components/LeadComponents";
 import {
-  faUser, faEnvelope, faAddressBook, faPhone, faBuilding,
-  faTag, faGlobe, faSlidersH, faTimes, faMapMarkerAlt,
-  faFire
+  faUser,
+  faEnvelope,
+  faAddressBook,
+  faPhone,
+  faBuilding,
+  faTag,
+  faGlobe,
+  faTimes,
+  faMapMarkerAlt,
+  faFire,
+  faSun,
+  faSnowflake,
+  faCaretSquareDown,
 } from "@fortawesome/free-solid-svg-icons";
 
 const API_URL = process.env.REACT_APP_API_URL;
@@ -13,16 +24,24 @@ const API_URL = process.env.REACT_APP_API_URL;
 const PanelLeads = () => {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
-    clientName: "", clientEmail: "", clientAddress: "",
-    clientContact: "", organization: "", leadScope: "",
-    title: "", source: ""
+    clientName: "",
+    clientEmail: "",
+    clientAddress: "",
+    clientContactPersonName: "",
+    clientContactPersonEmail: "",
+    clientContactPersonContact: "",
+    organization: "",
+    leadScope: "",
+    contactPerson: "",
+    title: "",
+    source: "",
   });
-
   const [leads, setLeads] = useState([]);
   const [salesEmployees, setSalesEmployees] = useState([]);
   const [showLeadTransferPopup, setShowLeadTransferPopup] = useState(false);
   const [transferUserId, setTransferUserId] = useState("");
   const [leadId, setLeadId] = useState("");
+  const [showActionPopup, setShowActionPopup] = useState(false);
 
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
   const navigate = useNavigate();
@@ -30,9 +49,12 @@ const PanelLeads = () => {
   /** Fetch Sales Employees */
   const fetchSalesEmployees = async () => {
     try {
-      const response = await axios.get(`${API_URL}/department/get-sales-employees`, {
-        headers: { Authorization: `Bearer ${jwtLoginToken}` },
-      });
+      const response = await axios.get(
+        `${API_URL}/department/get-sales-employees`,
+        {
+          headers: { Authorization: `Bearer ${jwtLoginToken}` },
+        }
+      );
       if (response.data.success && response.data.information?.users) {
         setSalesEmployees(response.data.information.users);
       }
@@ -55,21 +77,11 @@ const PanelLeads = () => {
 
   useEffect(() => {
     fetchLeads();
-  }, []); // Fetch only once on component mount
-
-  useEffect(() => {
-    if (showLeadTransferPopup) {
-      fetchSalesEmployees();
-    }
-  }, [showLeadTransferPopup]);
+    fetchSalesEmployees();
+  }, [leads]); // Fetch only once on component mount
 
   /** Handle Lead Transfer */
   const handleLeadTransfer = async () => {
-    if (!transferUserId) {
-      alert("Please select a user.");
-      return;
-    }
-
     try {
       await axios.patch(
         `${API_URL}/lead/transfer-lead/${leadId}`,
@@ -80,7 +92,6 @@ const PanelLeads = () => {
       alert("Lead successfully transferred!");
       setShowLeadTransferPopup(false);
       setTransferUserId("");
-      fetchLeads(); // Refresh leads after transfer
     } catch (err) {
       console.error("Error during lead transfer:", err);
       alert(err.response?.data?.message || "Error transferring lead.");
@@ -100,11 +111,16 @@ const PanelLeads = () => {
         client_Name: formData.clientName,
         client_Email: formData.clientEmail,
         client_Address: formData.clientAddress,
-        client_Contact: parseInt(formData.clientContact),
+      },
+      lead_ClientContactPerson: {
+        client_ClientContactPersonName: formData.clientContactPersonName,
+        client_ClientContactPersonEmail: formData.clientContactPersonEmail,
+        client_ClientContactPersonContact: formData.clientContactPersonContact,
       },
       lead_Organization: formData.organization,
       lead_Scope: formData.leadScope,
       lead_Title: formData.title,
+      lead_ContactPerson: formData.contactPerson,
       lead_Source: formData.source,
     };
 
@@ -121,6 +137,7 @@ const PanelLeads = () => {
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
+      <LeadFunnel />
       <div className="bg-white shadow-lg rounded-lg">
         <div className="flex justify-between items-center p-4 border-b">
           <h2 className="text-xl font-semibold text-gray-800">Leads</h2>
@@ -142,58 +159,138 @@ const PanelLeads = () => {
               <th className="p-3">Organization</th>
               <th className="p-3">Label</th>
               <th className="p-3">Transferred By</th>
+              <th className="p-3">Previous Owner</th>
               <th className="p-3">Assigned To</th>
               <th className="p-3">Actions</th>
             </tr>
           </thead>
           <tbody>
             {leads.map((lead) => (
-              <tr key={lead._id} className="border-b hover:bg-gray-100">
-                <td className="p-3">{new Date(lead.createdAt).toLocaleDateString()}</td>
-                <td className="p-3">{lead.lead_CreaterName}</td>
-                <td className="p-3">{lead.lead_Title}</td>
-                <td className="p-3">{lead.lead_Organization}</td>
-                <td className="p-3 flex items-center space-x-2">
-                  {lead.lead_Label === "Hot" ? (
-                    <FontAwesomeIcon icon={faFire} className="text-red-500 text-lg" />
-                  ) : (
-                    lead.lead_Label
+              <tr
+                key={lead._id}
+                className="border-b hover:bg-gray-200 hover:cursor-pointer"
+              >
+                <td
+                  className="p-3"
+                  onClick={() => navigate(`/lead-detail/${lead._id}`)}
+                >
+                  {new Date(lead.createdAt).toLocaleDateString()}
+                </td>
+                <td
+                  className="p-3"
+                  onClick={() => navigate(`/lead-detail/${lead._id}`)}
+                >
+                  {lead.lead_CreaterName}
+                </td>
+                <td
+                  className="p-3"
+                  onClick={() => navigate(`/lead-detail/${lead._id}`)}
+                >
+                  {lead.lead_Title}
+                </td>
+                <td
+                  className="p-3"
+                  onClick={() => navigate(`/lead-detail/${lead._id}`)}
+                >
+                  {lead.lead_Organization}
+                </td>
+                <td
+                  className="p-3 flex items-center space-x-2"
+                  onClick={() => navigate(`/lead-detail/${lead._id}`)}
+                >
+                  {lead.lead_Label === "Hot" && (
+                    <FontAwesomeIcon
+                      icon={faFire}
+                      className="text-red-500 text-lg"
+                    />
+                  )}
+                  {lead.lead_Label === "Warm" && (
+                    <FontAwesomeIcon
+                      icon={faSun}
+                      className="text-orange-500 text-lg"
+                    />
+                  )}
+                  {lead.lead_Label === "Cold" && (
+                    <FontAwesomeIcon
+                      icon={faSnowflake}
+                      className="text-blue-500 text-lg"
+                    />
                   )}
                 </td>
-                <td className="p-3">
+
+                <td
+                  className="p-3"
+                  onClick={() => navigate(`/lead-detail/${lead._id}`)}
+                >
                   {lead.lead_TransferredByUserName}
                 </td>
-                <td className="p-3">
+                <td
+                  className="p-3"
+                  onClick={() => navigate(`/lead-detail/${lead._id}`)}
+                >
+                  {lead.lead_PreviousOwnerName}
+                </td>
+                <td
+                  className="p-3"
+                  onClick={() => navigate(`/lead-detail/${lead._id}`)}
+                >
                   {lead.lead_AssignedToUserName}
                 </td>
-                <td className="p-3 flex space-x-2">
+
+                <td className="p-3 relative">
                   <button
                     className="px-2 py-1 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600"
-                    onClick={() => navigate(`/optional-data-lead/${lead._id}`)}
-                  >
-                    Add Optional Data
-                  </button>
-                  <button
-                    className="px-2 py-1 bg-green-500 text-white text-sm rounded-md hover:bg-green-600"
                     onClick={() => {
-                      setShowLeadTransferPopup(true);
-                      setLeadId(lead._id);
+                      setShowActionPopup(lead._id); // Store the lead ID to identify the active popup
+                      setLeadId(lead._id); // Store the lead ID to identify the active popup
                     }}
                   >
-                    Transfer Lead
+                    <FontAwesomeIcon icon={faCaretSquareDown} />
                   </button>
-                  <button
-                    className="px-2 py-1 bg-gray-500 text-white text-sm rounded-md hover:bg-gray-600"
-                    onClick={() => navigate(`/lead-detail/${lead._id}`)}
-                  >
-                    View Details
-                  </button>
+                  {showActionPopup === lead._id && (
+                    <div className="absolute top-full mt-2 right-0 bg-white border border-gray-300 rounded-md shadow-lg p-4 z-10">
+                      <h3 className="text-lg font-semibold mb-2">
+                        Choose an Action
+                      </h3>
+                      <div className="flex flex-col space-y-2">
+                        <button
+                          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                          onClick={() => {
+                            navigate(`/optional-data-lead/${lead._id}`);
+                            setShowActionPopup(null);
+                          }}
+                        >
+                          Add Optional Data
+                        </button>
+                        <button
+                          className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+                          onClick={() => {
+                            setShowLeadTransferPopup(true);
+                            setShowActionPopup(null);
+                          }}
+                        >
+                          Transfer Lead
+                        </button>
+                        <button
+                          className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+                          onClick={() => {navigate(`/lead-to-quote-conversion/${lead._id}`)}}
+                        >
+                          Convert to Quote
+                        </button>
+                        <button
+                          className="mt-2 px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400"
+                          onClick={() => setShowActionPopup(null)}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-
       </div>
 
       {showForm && (
@@ -249,17 +346,41 @@ const PanelLeads = () => {
                   placeholder="Client Address"
                 />
               </div>
-              {/* Client Contact */}
+              {/* Client Contact Person Details */}
               <div className="flex items-center space-x-2 mt-4">
                 <FontAwesomeIcon icon={faPhone} />
                 <input
-                  id="clientContact"
+                  id="clientContactPersonName"
                   type="text"
-                  value={formData.clientContact}
+                  value={formData.clientContactPersonName}
                   onChange={handleInputChange}
                   className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500"
                   required
-                  placeholder="Client Contact Number"
+                  placeholder="Client Contact Person Name"
+                />
+              </div>
+              <div className="flex items-center space-x-2 mt-4">
+                <FontAwesomeIcon icon={faPhone} />
+                <input
+                  id="clientContactPersonEmail"
+                  type="text"
+                  value={formData.clientContactPersonEmail}
+                  onChange={handleInputChange}
+                  className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500"
+                  required
+                  placeholder="Client Contact Person Email"
+                />
+              </div>
+              <div className="flex items-center space-x-2 mt-4">
+                <FontAwesomeIcon icon={faPhone} />
+                <input
+                  id="clientContactPersonContact"
+                  type="text"
+                  value={formData.clientContactPersonContact}
+                  onChange={handleInputChange}
+                  className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500"
+                  required
+                  placeholder="Client Contact Person Contact"
                 />
               </div>
               {/* Organization */}
@@ -317,6 +438,7 @@ const PanelLeads = () => {
                   <option value="Calls">Calls</option>
                   <option value="Website Forms">Website Forms</option>
                   <option value="References">References</option>
+                  <option value="Social Media">Social Media</option>
                 </select>
               </div>
 
@@ -339,7 +461,7 @@ const PanelLeads = () => {
             </form>
           </div>
         </div>
-      )}  
+      )}
 
       {/* Lead Transfer Popup */}
       {showLeadTransferPopup && (
@@ -358,10 +480,16 @@ const PanelLeads = () => {
                 </option>
               ))}
             </select>
-            <button className="mt-4 px-4 py-2 bg-green-500 text-white rounded-md" onClick={handleLeadTransfer}>
+            <button
+              className="mt-4 px-4 py-2 bg-green-500 text-white rounded-md"
+              onClick={handleLeadTransfer}
+            >
               Transfer
             </button>
-            <button className="mt-4 mx-5 px-4 py-2 bg-red-500 text-white rounded-md" onClick={() => setShowLeadTransferPopup(false)}>
+            <button
+              className="mt-4 mx-5 px-4 py-2 bg-red-500 text-white rounded-md"
+              onClick={() => setShowLeadTransferPopup(false)}
+            >
               Close
             </button>
           </div>

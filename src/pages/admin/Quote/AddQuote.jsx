@@ -14,7 +14,6 @@ const TAX_RATE = 0.05; // Define tax rate here
 
 const AddQuote = () => {
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
-  const { user } = useSelector((state) => state.auth) || {};
   const [grandTotal, setGrandTotal] = useState(0);
   const [beforeTaxTotal, setBeforeTaxTotal] = useState(0);
   const [afterTaxTotal, setAfterTaxTotal] = useState(0);

@@ -13,6 +13,7 @@ import {
   ViewQuote,
   PanelLeads,
   OptionalDataLead,
+  LeadToQuoteConversion,
   LeadDetails,
   PanelInvoices,
   AddInvoice,
@@ -44,6 +45,7 @@ const AdminRoutes = () => (
         <Route path="/leads" element={<AdminProtectedRoute><AdminLayout><PanelLeads /></AdminLayout></AdminProtectedRoute>} />
         <Route path="/lead-detail/:leadId" element={<AdminProtectedRoute><AdminLayout><LeadDetails /></AdminLayout></AdminProtectedRoute>} />
         <Route path="/optional-data-lead/:leadId" element={<AdminProtectedRoute><AdminLayout> <OptionalDataLead /></AdminLayout></AdminProtectedRoute>}/>
+        <Route path="/lead-to-quote-conversion/:leadId" element={<AdminProtectedRoute><AdminLayout> <LeadToQuoteConversion /></AdminLayout></AdminProtectedRoute>}/>
 
         <Route path="/quotes" element={<AdminProtectedRoute><AdminLayout><PanelQuote /></AdminLayout></AdminProtectedRoute>} />
         <Route path="/add-quote" element={<AdminProtectedRoute><AdminLayout><AddQuote /></AdminLayout></AdminProtectedRoute>} />
