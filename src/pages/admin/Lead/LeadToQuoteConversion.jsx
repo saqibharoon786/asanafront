@@ -96,7 +96,7 @@ const LeadToQuoteConversion = () => {
       setLoading(false);
     }
   };
-  
+
 
   useEffect(() => {
     if (jwtLoginToken && leadId) {
@@ -329,61 +329,58 @@ const LeadToQuoteConversion = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-8 bg-white rounded-lg shadow-lg">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">
+    <div className="max-w-4xl mx-auto p-8">
+      <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">
         Convert Lead to Quote
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <section className="p-6 border border-gray-300 rounded-md bg-gray-50">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">
-            Client Details
-          </h2>
           {leadDetails ? (
-            <>
-              <p>
-                <strong>Client Name:</strong>{" "}
-                {leadDetails.lead_Client.client_Name}
+            <div className="p-6">
+              <p className="text-lg">
+                <strong className="font-semibold text-gray-700">Client Name:</strong>{" "}
+                <span className="text-gray-900">{leadDetails.lead_Client.client_Name}</span>
               </p>
-              <p>
-                <strong>Client Email:</strong>{" "}
-                {leadDetails.lead_Client.client_Email}
+              <p className="text-lg">
+                <strong className="font-semibold text-gray-700">Client Email:</strong>{" "}
+                <span className="text-gray-900">{leadDetails.lead_Client.client_Email}</span>
               </p>
-              <p>
-                <strong>Client Address:</strong>{" "}
-                {leadDetails.lead_Client.client_Address}
+              <p className="text-lg">
+                <strong className="font-semibold text-gray-700">Client Address:</strong>{" "}
+                <span className="text-gray-900">{leadDetails.lead_Client.client_Address}</span>
               </p>
-              <p>
-                <strong>Contact Person Name:</strong>{" "}
-                {
-                  leadDetails.lead_ClientContactPerson
-                    .client_ClientContactPersonName
-                }
+              <p className="text-lg">
+                <strong className="font-semibold text-gray-700">Contact Person Name:</strong>{" "}
+                <span className="text-gray-900">
+                  {leadDetails.lead_ClientContactPerson.client_ClientContactPersonName}
+                </span>
               </p>
-              <p>
-                <strong>Contact Person Email:</strong>{" "}
-                {
-                  leadDetails.lead_ClientContactPerson
-                    .client_ClientContactPersonEmail
-                }
+              <p className="text-lg">
+                <strong className="font-semibold text-gray-700">Contact Person Email:</strong>{" "}
+                <span className="text-gray-900">
+                  {leadDetails.lead_ClientContactPerson.client_ClientContactPersonEmail}
+                </span>
               </p>
-              <p>
-                <strong>Contact Person Phone:</strong>{" "}
-                {
-                  leadDetails.lead_ClientContactPerson
-                    .client_ClientContactPersonContact
-                }
+              <p className="text-lg">
+                <strong className="font-semibold text-gray-700">Contact Person Phone:</strong>{" "}
+                <span className="text-gray-900">
+                  {leadDetails.lead_ClientContactPerson.client_ClientContactPersonContact}
+                </span>
               </p>
-              <p>
-                <strong>Lead Title:</strong> {leadDetails.lead_Title}
+              <p className="text-lg">
+                <strong className="font-semibold text-gray-700">Lead Title:</strong>{" "}
+                <span className="text-gray-900">{leadDetails.lead_Title}</span>
               </p>
-              <p>
-                <strong>Lead Scope:</strong> {leadDetails.lead_Scope}
+              <p className="text-lg">
+                <strong className="font-semibold text-gray-700">Lead Scope:</strong>{" "}
+                <span className="text-gray-900">{leadDetails.lead_Scope}</span>
               </p>
-            </>
+            </div>
           ) : (
-            <p>Loading client details...</p>
+            <p className="text-center text-gray-500">Loading client details...</p>
           )}
+
         </section>
 
         <div className="mt-6">
@@ -455,7 +452,7 @@ const LeadToQuoteConversion = () => {
           <button
             type="button"
             onClick={handleAddProduct}
-            className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-md"
+            className="mt-4 px-4 py-2 bg-btnPrimaryClr hover:bg-btnHoverClr text-white rounded-md"
           >
             Add Product
           </button>
@@ -520,7 +517,7 @@ const LeadToQuoteConversion = () => {
 
         <button
           type="submit"
-          className="w-full px-4 py-2 bg-green-600 text-white rounded-md"
+          className="w-full px-4 py-2 bg-btnPrimaryClr hover:bg-btnHoverClr text-white rounded-md"
         >
           Submit Quote
         </button>

@@ -184,12 +184,12 @@ const PanelProduct = () => {
                         <td className="py-2 px-4">
                     {product.product_Image && product.product_Image.filePath ? (
                       <img
-                        src={`http://localhost:3000${product.product_Image.filePath}`}
+                        src={`${API_URL}/${product.product_Image.filePath}`}
                         alt={product.product_Name}
                         className="w-16 h-16 object-cover rounded cursor-pointer"
                         onClick={() =>
                           handleImageClick(
-                            `http://localhost:3000${product.product_Image.filePath}`,
+                            `${API_URL}/${product.product_Image.filePath}`,
                             product
                           )
                         }

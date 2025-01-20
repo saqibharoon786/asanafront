@@ -30,6 +30,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
     HR: false,
     product: false,
     sales: false,
+    reporting: false,
   });
 
   const toggleDropdown = (section) => {
@@ -50,12 +51,12 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
         isSidebarOpen ? "translate-x-0" : "lg:translate-x-0 -translate-x-full"
       }`}
     >
-      <div className="m-8  overflow-y-auto h-[calc(100vh-6rem)]">
+      <div className="m-8 h-[calc(100vh-6rem)]">
         <ul className="text-gray-800 font-poppins">
           {/* Dashboard */}
           <li
             className={`${
-              activeItem === "dashboard" ? "bg-blue-500 text-white" : ""
+              activeItem === "dashboard" ? "bg-btnPrimaryClr text-white" : ""
             } flex items-center justify-between p-3 cursor-pointer hover:bg-blue-100 rounded-lg transition duration-200`}
             onClick={() => handleOptionClick("dashboard")}
           >
@@ -96,7 +97,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                 <span
                   className={`transition duration-200 ${
                     activeItem === "HR"
-                      ? "bg-blue-500 text-white p-1 rounded-lg"
+                      ? "bg-btnPrimaryClr text-white p-1 rounded-lg"
                       : "hover:text-gray-900"
                   }`}
                 >
@@ -115,7 +116,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                     to="/staff"
                     className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
                       activeItem === "staff"
-                        ? "bg-blue-500 text-white"
+                        ? "bg-btnPrimaryClr text-white"
                         : "hover:text-gray-900"
                     }`}
                     onClick={() => handleOptionClick("staff")}
@@ -129,7 +130,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                     to="/payroll"
                     className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
                       activeItem === "payroll"
-                        ? "bg-blue-500 text-white"
+                        ? "bg-btnPrimaryClr text-white"
                         : "hover:text-gray-900"
                     }`}
                     onClick={() => handleOptionClick("payroll")}
@@ -169,7 +170,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                     to="/products"
                     className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
                       activeItem === "products"
-                        ? "bg-blue-500 text-white"
+                        ? "bg-btnPrimaryClr text-white"
                         : "hover:text-gray-900"
                     }`}
                     onClick={() => handleOptionClick("products")}
@@ -183,7 +184,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                     to="/vendor"
                     className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
                       activeItem === "vendor"
-                        ? "bg-blue-500 text-white"
+                        ? "bg-btnPrimaryClr text-white"
                         : "hover:text-gray-900"
                     }`}
                     onClick={() => handleOptionClick("vendor")}
@@ -197,7 +198,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                     to="/expenses"
                     className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
                       activeItem === "expenses"
-                        ? "bg-blue-500 text-white"
+                        ? "bg-btnPrimaryClr text-white"
                         : "hover:text-gray-900"
                     }`}
                     onClick={() => handleOptionClick("expenses")}
@@ -211,7 +212,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                     to="/bills"
                     className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
                       activeItem === "bills"
-                        ? "bg-blue-500 text-white"
+                        ? "bg-btnPrimaryClr text-white"
                         : "hover:text-gray-900"
                     }`}
                     onClick={() => handleOptionClick("bills")}
@@ -251,7 +252,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                     to="/leads"
                     className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
                       activeItem === "leads"
-                        ? "bg-blue-500 text-white"
+                        ? "bg-btnPrimaryClr text-white"
                         : "hover:text-gray-900"
                     }`}
                     onClick={() => handleOptionClick("leads")}
@@ -265,7 +266,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                     to="/quotes"
                     className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
                       activeItem === "quotes"
-                        ? "bg-blue-500 text-white"
+                        ? "bg-btnPrimaryClr text-white"
                         : "hover:text-gray-900"
                     }`}
                     onClick={() => handleOptionClick("quotes")}
@@ -279,7 +280,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                     to="/invoices"
                     className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
                       activeItem === "invoices"
-                        ? "bg-blue-500 text-white"
+                        ? "bg-btnPrimaryClr text-white"
                         : "hover:text-gray-900"
                     }`}
                     onClick={() => handleOptionClick("invoices")}
@@ -293,7 +294,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                     to="/calender"
                     className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
                       activeItem === "calender"
-                        ? "bg-blue-500 text-white"
+                        ? "bg-btnPrimaryClr text-white"
                         : "hover:text-gray-900"
                     }`}
                     onClick={() => handleOptionClick("calender")}
@@ -305,6 +306,76 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
               </ul>
             )}
           </li>
+
+          {/* Sales */}
+          <li>
+            <div
+              className="flex items-center justify-between p-3 cursor-pointer hover:bg-blue-100 rounded-lg transition duration-200"
+              onClick={() => toggleDropdown("reporting")}
+            >
+              <div className="flex items-center space-x-2 group">
+                <FontAwesomeIcon
+                  icon={faClipboardList}
+                  className="text-gray-900 group-hover:text-gray-900 transition duration-200"
+                />
+                <span className="group-hover:text-gray-900 transition duration-200">
+                  Reporting
+                </span>
+              </div>
+              <FontAwesomeIcon
+                icon={openDropdowns.reporting ? faChevronDown : faChevronRight}
+                className="text-gray-900 group-hover:text-gray-900 transition duration-200"
+              />
+            </div>
+
+            {openDropdowns.reporting && (
+              <ul className="ml-6 mt-2 space-y-2 text-gray-600">
+                <li>
+                  <Link
+                    to="/leads"
+                    className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
+                      activeItem === "leads"
+                        ? "bg-btnPrimaryClr text-white"
+                        : "hover:text-gray-900"
+                    }`}
+                    onClick={() => handleOptionClick("leads")}
+                  >
+                    <FontAwesomeIcon icon={faClipboardList} />
+                    <span>HR</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/quotes"
+                    className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
+                      activeItem === "quotes"
+                        ? "bg-btnPrimaryClr text-white"
+                        : "hover:text-gray-900"
+                    }`}
+                    onClick={() => handleOptionClick("quotes")}
+                  >
+                    <FontAwesomeIcon icon={faClipboardList} />
+                    <span>Procurements</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/invoices"
+                    className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
+                      activeItem === "invoices"
+                        ? "bg-btnPrimaryClr text-white"
+                        : "hover:text-gray-900"
+                    }`}
+                    onClick={() => handleOptionClick("invoices")}
+                  >
+                    <FontAwesomeIcon icon={faReceipt} />
+                    <span>Sales</span>
+                  </Link>
+                </li>
+              </ul>
+            )}
+          </li>
+
         </ul>
       </div>
     </div>

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 const LeadDetails = () => {
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
   const { leadId } = useParams(); // Get the lead ID from the URL
@@ -24,7 +26,7 @@ const LeadDetails = () => {
   const fetchLeadDetails = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:3000/lead/${leadId}`,
+        `${API_URL}/lead/${leadId}`,
         {
           headers: {
             Authorization: `Bearer ${jwtLoginToken}`,
@@ -49,7 +51,7 @@ const LeadDetails = () => {
   const handleAddNote = async () => {
     try {
       await axios.post(
-        `http://localhost:3000/lead/add-note/${leadId}`,
+        `${API_URL}/lead/add-note/${leadId}`,
         { note: noteInput },
         {
           headers: {
@@ -68,7 +70,7 @@ const LeadDetails = () => {
   const handleAddInteractionHistory = async () => {
     try {
       await axios.post(
-        `http://localhost:3000/lead/add-interaction-history/${leadId}`,
+        `${API_URL}/lead/add-interaction-history/${leadId}`,
         interactionHistoryInput,
         {
           headers: {
@@ -87,7 +89,7 @@ const LeadDetails = () => {
   const fetchSalesEmployees = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:3000/department/get-sales-employees",
+        `${API_URL}/department/get-sales-employees`,
         {
           headers: {
             Authorization: `Bearer ${jwtLoginToken}`,

@@ -37,14 +37,16 @@ const PanelLeads = () => {
   });
   const [leads, setLeads] = useState([]);
   const [salesEmployees, setSalesEmployees] = useState([]);
-  const [showMassLeadTransferPopup, setShowMassLeadTransferPopup] =
-    useState(false);
+  const [showMassLeadTransferPopup, setShowMassLeadTransferPopup] = useState(false);
   const [transferUserId, setTransferUserId] = useState("");
   const [leadId, setLeadId] = useState("");
+  const [search, setSearch] = useState("");
   const [showActionPopup, setShowActionPopup] = useState(false);
   const [showMassActionsPopup, setShowMassActionsPopup] = useState(false);
   const [selectedLeads, setSelectedLeads] = useState([]);
+  const [totalLeads, setTotalLeads] = useState(0);
   const [selectAll, setSelectAll] = useState(false);
+  const [timeFilter, setTimeFilter] = useState("All");
 
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
   const navigate = useNavigate();
@@ -72,9 +74,35 @@ const PanelLeads = () => {
       const response = await axios.get(`${API_URL}/lead/all-leads`, {
         headers: { Authorization: `Bearer ${jwtLoginToken}` },
       });
-      setLeads(response.data.information.allLeads);
-    } catch (error) {
-      console.error("Error fetching leads:", error);
+
+      if (response.data.success) {
+        let filteredLeads = response.data.information.allLeads;
+
+        if (timeFilter !== "All") {
+          const now = new Date();
+          filteredLeads = filteredLeads.filter((quote) => {
+            const quoteDate = new Date(quote.createdAt);
+            const timeDifference = now - quoteDate;
+            switch (timeFilter) {
+              case "Day":
+                return timeDifference <= 24 * 60 * 60 * 1000;
+              case "Week":
+                return timeDifference <= 7 * 24 * 60 * 60 * 1000;
+              case "Month":
+                return timeDifference <= 30 * 24 * 60 * 60 * 1000;
+              default:
+                return true;
+            }
+          });
+        }
+
+        setLeads(filteredLeads);
+        setTotalLeads(filteredLeads.length);
+      } else {
+        console.log("Error fetching leads ",);
+      }
+    } catch (err) {
+      console.log("Error fetching leads ");
     }
   };
 
@@ -88,6 +116,11 @@ const PanelLeads = () => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
+  /** Time Filter Change */
+  const handleTimeFilterChange = (event) => {
+    setTimeFilter(event.target.value);
+  };
+
   /** Handle Checkbox Submission */
   const handleCheckboxChange = (leadId) => {
     setSelectedLeads((prev) =>
@@ -95,6 +128,11 @@ const PanelLeads = () => {
         ? prev.filter((id) => id !== leadId)
         : [...prev, leadId].map((id) => id.toString().replace(/'/g, '"'))
     );
+  };
+
+  /** Handle Search Change */
+  const handleSearchChange = (event) => {
+    setSearch(event.target.value);
   };
 
   // Handle Select All
@@ -193,17 +231,18 @@ const PanelLeads = () => {
   };
 
   return (
-    <div className="pt-2 bg-delta min-h-screen">
+    <div className="p-5 bg-delta min-h-screen">
       <div className="relative">
-        <button
-          className="px-4 py-2 text-white bg-[#4C585B] hover:bg-blue-700"
-          onClick={() => setShowMassActionsPopup(!showMassActionsPopup)}
-        >
-          Actions
-        </button>
+        <input
+          type="text"
+          placeholder="Search for leads..."
+          value={search}
+          onChange={handleSearchChange}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
 
         {showMassActionsPopup && (
-          <div className="absolute mt-2 w-48 bg-white border border-gray-200">
+          <div className="absolute right-0 mt-16 w-48 bg-white border border-gray-200 rounded-md shadow-lg">
             <button
               className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-red-100 hover:text-red-700"
               onClick={handleMassDelete}
@@ -212,9 +251,7 @@ const PanelLeads = () => {
             </button>
             <button
               className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-blue-100 hover:text-blue-700"
-              onClick={() => {
-                setShowMassLeadTransferPopup(true);
-              }}
+              onClick={() => setShowMassLeadTransferPopup(true)}
             >
               Transfer
             </button>
@@ -222,15 +259,34 @@ const PanelLeads = () => {
         )}
       </div>
 
-      <div className="bg-white">
+      <section className="">
         <div className="flex justify-between items-center p-4 border-b">
-          <h2 className="text-xl font-semibold text-gray-800">Leads</h2>
-          <button
-            className="px-4 py-2 text-white bg-pr hover:bg-green-700"
-            onClick={() => setShowForm(true)}
-          >
-            + Lead
-          </button>
+          <h1 className="text-3xl font-bold text-textPrimaryClr">Leads</h1>
+          <div className="space-x-2">
+
+            <select
+              value={timeFilter}
+              onChange={handleTimeFilterChange}
+              className="bg-white border border-gray-300 rounded-lg p-2"
+            >
+              <option value="All">All</option>
+              <option value="Day">Last 24 Hours</option>
+              <option value="Week">Last Week</option>
+              <option value="Month">Last Month</option>
+            </select>
+            <button
+              className="px-4 py-2 text-white bg-btnPrimaryClr hover:bg-btnHoverClr rounded-lg"
+              onClick={() => setShowMassActionsPopup(!showMassActionsPopup)}
+            >
+              Actions
+            </button>
+            <button
+              className="px-4 py-2 text-white bg-btnPrimaryClr hover:bg-btnHoverClr rounded-lg"
+              onClick={() => setShowForm(true)}
+            >
+              + Lead
+            </button>
+          </div>
         </div>
 
         {/* Leads Table */}
@@ -276,7 +332,7 @@ const PanelLeads = () => {
               </tr>
             </thead>
             <tbody>
-              {leads.map((lead) => (
+              {[...leads].reverse().map((lead) => (
                 <tr key={lead._id} className="hover:bg-gray-100 border-b">
                   <td className="px-4 py-2 border">
                     <input
@@ -353,7 +409,7 @@ const PanelLeads = () => {
                   </td>
                   <td className="px-4 py-2 border">
                     <button
-                      className="relative px-2 py-1 bg-pr text-white text-sm hover:bg-blue-600"
+                      className="relative px-2 py-1 bg-btnPrimaryClr text-white text-sm hover:bg-btnHoverClr"
                       onClick={() => {
                         setShowActionPopup(lead._id);
                         setLeadId(lead._id);
@@ -362,13 +418,13 @@ const PanelLeads = () => {
                       <FontAwesomeIcon icon={faCaretSquareDown} />
                     </button>
                     {showActionPopup === lead._id && (
-                      <div className="absolute mt-1 right-0 bg-white border border-gray-300 p-4 z-10">
+                      <div className="absolute mt-1 right-0 bg-white border border-btnPrimaryClr p-4 z-10">
                         <h3 className="text-lg font-semibold mb-2">
                           Choose an Action
                         </h3>
                         <div className="flex flex-col">
                           <button
-                            className="px-4 py-2 bg-pr text-white hover:bg-blue-600"
+                            className="px-4 my-2 py-2 bg-btnSecClr hover:bg-btnSecHoverClr"
                             onClick={() => {
                               navigate(`/optional-data-lead/${lead._id}`);
                               setShowActionPopup(null);
@@ -377,7 +433,7 @@ const PanelLeads = () => {
                             Add Optional Data
                           </button>
                           <button
-                            className="px-4 py-2 bg-pr text-white hover:bg-pr"
+                            className="px-4 py-2 bg-btnSecClr hover:bg-btnSecHoverClr"
                             onClick={() => {
                               navigate(`/lead-to-quote-conversion/${lead._id}`);
                             }}
@@ -385,7 +441,7 @@ const PanelLeads = () => {
                             Convert to Quote
                           </button>
                           <button
-                            className="mt-2 px-4 py-2 bg-gray-300 text-gray-800 hover:bg-gray-400"
+                            className="mt-2 px-4 py-2 bg-btnTerClr text-gray-800 hover:bg-btnTerHoverClr"
                             onClick={() => setShowActionPopup(null)}
                           >
                             Cancel
@@ -399,11 +455,11 @@ const PanelLeads = () => {
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
 
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
-          <div className="bg-white w-full max-w-lg p-8">
+          <div className="bg-white w-full max-w-lg p-5 rounded-lg">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-semibold text-gray-800">Add Lead</h3>
               <button
@@ -413,131 +469,41 @@ const PanelLeads = () => {
                 <FontAwesomeIcon icon={faTimes} className="h-6 w-6" />
               </button>
             </div>
-            <form onSubmit={handleFormSubmit} className="space-y-6">
+            <form onSubmit={handleFormSubmit} className="space-y-4">
               {/* Input fields with icons */}
-              {/* Client Name */}
-              <div className="flex items-center">
-                <FontAwesomeIcon icon={faUser} />
-                <input
-                  id="clientName"
-                  type="text"
-                  value={formData.clientName}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 focus:ring-2 focus:ring-green-500"
-                  required
-                  placeholder="Client Name"
-                />
-              </div>
-              {/* Client Email */}
-              <div className="flex items-center mt-4">
-                <FontAwesomeIcon icon={faEnvelope} />
-                <input
-                  id="clientEmail"
-                  type="email"
-                  value={formData.clientEmail}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 focus:ring-2 focus:ring-green-500"
-                  required
-                  placeholder="Client Email"
-                />
-              </div>
-              {/* Client Address */}
-              <div className="flex items-center mt-4">
-                <FontAwesomeIcon icon={faAddressBook} />
-                <input
-                  id="clientAddress"
-                  type="text"
-                  value={formData.clientAddress}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 focus:ring-2 focus:ring-green-500"
-                  required
-                  placeholder="Client Address"
-                />
-              </div>
-              {/* Client Contact Person Details */}
-              <div className="flex items-center mt-4">
-                <FontAwesomeIcon icon={faPhone} />
-                <input
-                  id="clientContactPersonName"
-                  type="text"
-                  value={formData.clientContactPersonName}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 focus:ring-2 focus:ring-green-500"
-                  required
-                  placeholder="Client Contact Person Name"
-                />
-              </div>
-              <div className="flex items-center mt-4">
-                <FontAwesomeIcon icon={faPhone} />
-                <input
-                  id="clientContactPersonEmail"
-                  type="text"
-                  value={formData.clientContactPersonEmail}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 focus:ring-2 focus:ring-green-500"
-                  required
-                  placeholder="Client Contact Person Email"
-                />
-              </div>
-              <div className="flex items-center mt-4">
-                <FontAwesomeIcon icon={faPhone} />
-                <input
-                  id="clientContactPersonContact"
-                  type="text"
-                  value={formData.clientContactPersonContact}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 focus:ring-2 focus:ring-green-500"
-                  required
-                  placeholder="Client Contact Person Contact"
-                />
-              </div>
-              {/* Organization */}
-              <div className="flex items-center mt-4">
-                <FontAwesomeIcon icon={faBuilding} />
-                <input
-                  id="organization"
-                  type="text"
-                  value={formData.organization}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 focus:ring-2 focus:ring-green-500"
-                  required
-                  placeholder="Organization"
-                />
-              </div>
-              {/* Lead Scope */}
-              <div className="flex items-center mt-4">
-                <FontAwesomeIcon icon={faMapMarkerAlt} />
-                <input
-                  id="leadScope"
-                  type="text"
-                  value={formData.leadScope}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 focus:ring-2 focus:ring-green-500"
-                  required
-                  placeholder="Lead Scope"
-                />
-              </div>
-              {/* Title */}
-              <div className="flex items-center mt-4">
-                <FontAwesomeIcon icon={faTag} />
-                <input
-                  id="title"
-                  type="text"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 focus:ring-2 focus:ring-green-500"
-                  required
-                  placeholder="Title"
-                />
-              </div>
+              {[
+                { id: "clientName", icon: faUser, placeholder: "Client Name", type: "text" },
+                { id: "clientEmail", icon: faEnvelope, placeholder: "Client Email", type: "email" },
+                { id: "clientAddress", icon: faAddressBook, placeholder: "Client Address", type: "text" },
+                { id: "clientContactPersonName", icon: faPhone, placeholder: "Client Contact Person Name", type: "text" },
+                { id: "clientContactPersonEmail", icon: faEnvelope, placeholder: "Client Contact Person Email", type: "email" },
+                { id: "clientContactPersonContact", icon: faPhone, placeholder: "Client Contact Person Contact", type: "text" },
+                { id: "organization", icon: faBuilding, placeholder: "Organization", type: "text" },
+                { id: "leadScope", icon: faMapMarkerAlt, placeholder: "Lead Scope", type: "text" },
+                { id: "title", icon: faTag, placeholder: "Lead Title", type: "text" },
+              ].map((field) => (
+                <div key={field.id} className="flex items-center border border-btnPrimaryClr p-3 rounded focus-within:ring-2 focus-within:ring-green-500">
+                  <FontAwesomeIcon icon={field.icon} className="text-gray-500 mr-3" />
+                  <input
+                    id={field.id}
+                    type={field.type}
+                    value={formData[field.id]}
+                    onChange={handleInputChange}
+                    className="w-full outline-none"
+                    required
+                    placeholder={field.placeholder}
+                  />
+                </div>
+              ))}
+
               {/* Source Selection */}
-              <div className="flex items-center mt-4">
-                <FontAwesomeIcon icon={faGlobe} />
+              <div className="flex items-center border border-btnPrimaryClr p-3 rounded focus-within:ring-2 focus-within:ring-green-500">
+                <FontAwesomeIcon icon={faGlobe} className="text-gray-500 mr-3" />
                 <select
                   id="source"
                   value={formData.source}
                   onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 focus:ring-2 focus:ring-green-500"
+                  className="w-full outline-none"
                   required
                 >
                   <option value="">Select Source</option>
@@ -551,17 +517,17 @@ const PanelLeads = () => {
               </div>
 
               {/* Form Actions */}
-              <div className="flex justify-end mt-4">
+              <div className="flex justify-end space-x-4 mt-4">
                 <button
                   type="button"
-                  className="px-4 py-2 bg-gray-300 text-gray-700 hover:bg-gray-400"
+                  className="px-4 py-2 bg-btnTerClr text-gray-700 hover:bg-btnTerHoverClr"
                   onClick={() => setShowForm(false)}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-pr text-white hover:bg-green-700"
+                  className="px-4 py-2 bg-btnSecClr text-white hover:bg-btnSecHoverClr"
                 >
                   Save
                 </button>
@@ -589,13 +555,13 @@ const PanelLeads = () => {
               ))}
             </select>
             <button
-              className="mt-4 px-4 py-2 bg-pr text-white"
+              className="mt-4 px-4 py-2 bg-btnSecClr text-white hover:bg-btnSecHoverClr"
               onClick={handleMassTransfer}
             >
               Transfer
             </button>
             <button
-              className="mt-4 mx-5 px-4 py-2 bg-red-500 text-white"
+              className="mt-4 mx-5 px-4 py-2 bg-btnTerClr text-black hover:bg-btnTerHoverClr"
               onClick={() => setShowMassLeadTransferPopup(false)}
             >
               Close

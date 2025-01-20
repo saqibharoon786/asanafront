@@ -1,7 +1,22 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { FaEye, FaDollarSign, FaTrashAlt } from "react-icons/fa";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faUser,
+  faEnvelope,
+  faAddressBook,
+  faPhone,
+  faBuilding,
+  faTag,
+  faGlobe,
+  faTimes,
+  faMapMarkerAlt,
+  faFire,
+  faSun,
+  faSnowflake,
+  faCaretSquareDown,
+} from "@fortawesome/free-solid-svg-icons";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -9,7 +24,7 @@ const Modal = ({ isOpen, title, message, onClose, onConfirm }) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white rounded-lg p-6 shadow-lg w-96">
+      <div className="bg-delta rounded-lg p-6 shadow-lg w-96">
         <h2 className="text-xl font-bold text-gray-800">{title}</h2>
         <p className="text-gray-600 mt-2">{message}</p>
         <div className="flex justify-end mt-4 space-x-4">
@@ -35,16 +50,19 @@ const Modal = ({ isOpen, title, message, onClose, onConfirm }) => {
 
 const PanelQuote = () => {
   const [quotes, setQuotes] = useState([]);
+  const [quoteId, setQuoteId] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [totalQuotes, setTotalQuotes] = useState(0);
   const [timeFilter, setTimeFilter] = useState("All");
-
+  const [selectAll, setSelectAll] = useState(false);
+  const [selectedQuotes, setSelectedQuotes] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
   const [modalAction, setModalAction] = useState(null);
+  const [showActionPopup, setShowActionPopup] = useState(false);
 
   const navigate = useNavigate();
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
@@ -57,51 +75,69 @@ const PanelQuote = () => {
     setTimeFilter(event.target.value);
   };
 
-  useEffect(() => {
-    const fetchQuotes = async () => {
-      try {
-        const response = await axios.get(`${API_URL}/quote/get-quotes`, {
-          headers: { Authorization: `Bearer ${jwtLoginToken}` },
-        });
+  const fetchQuotes = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/quote/get-quotes`, {
+        headers: { Authorization: `Bearer ${jwtLoginToken}` },
+      });
 
-        if (response.data.success) {
-          let filteredQuotes = response.data.information.Quotes;
+      if (response.data.success) {
+        let filteredQuotes = response.data.information.Quotes;
 
-          if (timeFilter !== "All") {
-            const now = new Date();
-            filteredQuotes = filteredQuotes.filter((quote) => {
-              const quoteDate = new Date(quote.createdAt);
-              const timeDifference = now - quoteDate;
-              switch (timeFilter) {
-                case "Day":
-                  return timeDifference <= 24 * 60 * 60 * 1000;
-                case "Week":
-                  return timeDifference <= 7 * 24 * 60 * 60 * 1000;
-                case "Month":
-                  return timeDifference <= 30 * 24 * 60 * 60 * 1000;
-                default:
-                  return true;
-              }
-            });
-          }
-
-          setQuotes(filteredQuotes);
-          setTotalQuotes(filteredQuotes.length);
-        } else {
-          setError("No Quotes Available.");
+        if (timeFilter !== "All") {
+          const now = new Date();
+          filteredQuotes = filteredQuotes.filter((quote) => {
+            const quoteDate = new Date(quote.createdAt);
+            const timeDifference = now - quoteDate;
+            switch (timeFilter) {
+              case "Day":
+                return timeDifference <= 24 * 60 * 60 * 1000;
+              case "Week":
+                return timeDifference <= 7 * 24 * 60 * 60 * 1000;
+              case "Month":
+                return timeDifference <= 30 * 24 * 60 * 60 * 1000;
+              default:
+                return true;
+            }
+          });
         }
-      } catch (err) {
-        setError("No Quotes Available.");
-      } finally {
-        setLoading(false);
-      }
-    };
 
+        setQuotes(filteredQuotes);
+        setTotalQuotes(filteredQuotes.length);
+      } else {
+        setError("No Quotes Available.");
+      }
+    } catch (err) {
+      setError("No Quotes Available.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchQuotes();
   }, [quotes]);
 
   const handleSearchChange = (event) => {
     setSearch(event.target.value);
+  };
+
+  /** Handle Checkbox Submission */
+  const handleCheckboxChange = (quoteId) => {
+    setSelectedQuotes((prev) =>
+      prev.includes(quoteId)
+        ? prev.filter((id) => id !== quoteId)
+        : [...prev, quoteId].map((id) => id.toString().replace(/'/g, '"'))
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedQuotes([]); // Deselect all
+    } else {
+      setSelectedQuotes(quotes.map((quote) => quote._id)); // Select all quotes
+    }
+    setSelectAll(!selectAll);
   };
 
   const handleDeleteQuote = (quoteId) => {
@@ -160,6 +196,30 @@ const PanelQuote = () => {
     setIsModalOpen(true);
   };
 
+  const handleMassDelete = async () => {
+    const userConfirmed = window.confirm(
+      "Are you sure you want to delete the selected leads?"
+    );
+    if (!userConfirmed) {
+      return;
+    }
+    try {
+      const response = await axios.post(
+        `${API_URL}/quote/mass-delete`, // POST request
+        { leadIds: selectedQuotes }, // Sending selected Quotes in the request body
+        {
+          headers: { Authorization: `Bearer ${jwtLoginToken}` },
+        }
+      );
+    } catch (error) {
+      console.error(
+        "Error during mass delete:",
+        error.response?.data || error.message
+      );
+      alert("An error occurred while deleting leads. Please try again.");
+    }
+  };
+
   const handleViewQuote = (quoteId) => {
     navigate(`/view-quote/${quoteId}`);
   };
@@ -171,43 +231,27 @@ const PanelQuote = () => {
       case "Unpaid":
         return "bg-red-100";
       default:
-        return "bg-white";
+        return "bg-delta";
     }
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-blue-800">Quotes Dashboard</h1>
+    <div className="p-5 bg-delta min-h-screen">
+      <input
+        type="text"
+        placeholder="Search for quotes..."
+        value={search}
+        onChange={handleSearchChange}
+        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+      <div className="flex p-4 justify-between items-center">
+        <h1 className="text-3xl font-bold text-textPrimaryClr">Quotes</h1>
         <button
           onClick={handleNewQuote}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
+          className="bg-btnPrimaryClr text-white px-4 py-2 rounded-lg hover:bg-btnHoverClr transition"
         >
-          + Add New Quote
+          + Quote
         </button>
-      </div>
-
-      <div className="mb-6">
-        <select
-          value={timeFilter}
-          onChange={handleTimeFilterChange}
-          className="bg-white border border-gray-300 rounded-lg p-2"
-        >
-          <option value="All">All</option>
-          <option value="Day">Last 24 Hours</option>
-          <option value="Week">Last Week</option>
-          <option value="Month">Last Month</option>
-        </select>
-      </div>
-
-      <div className="bg-white shadow rounded-lg p-4 mb-6">
-        <input
-          type="text"
-          placeholder="Search for quotes..."
-          value={search}
-          onChange={handleSearchChange}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
       </div>
 
       {loading ? (
@@ -219,65 +263,148 @@ const PanelQuote = () => {
           <p className="text-red-500 text-lg">{error}</p>
         </div>
       ) : totalQuotes === 0 ? (
-        <div className="bg-white p-6 rounded-lg shadow mb-6">
+        <div className="bg-delta p-6 rounded-lg shadow mb-6">
           <p className="text-red-500 text-center font-medium">No quotes available.</p>
         </div>
       ) : (
-        <div className="bg-white shadow rounded-lg p-4">
-          <table className="w-full text-left border-collapse">
-            <thead>
+        <div className="bg-delta shadow">
+          <table className="min-w-full border-collapse border border-gray-200">
+            <thead className="bg-gray-200">
               <tr>
-                <th className="py-2 px-4 border">Created At</th>
-                <th className="py-2 px-4 border">Quote Identifier</th>
-                <th className="py-2 px-4 border">Created By</th>
-                <th className="py-2 px-4 border">Client Name</th>
-                <th className="py-2 px-4 border">Total Price</th>
-                <th className="py-2 px-4 border">Status</th>
-                <th className="py-2 px-4 border">Actions</th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border">
+                  <input
+                    type="checkbox"
+                    className="form-checkbox h-4 w-4 text-blue-600"
+                    checked={selectAll}
+                    onChange={handleSelectAll}
+                  />
+                </th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border">
+                  Created At
+                </th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border">
+                  Quote Identifier
+                </th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border">
+                  Created By
+                </th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border">
+                  Client Name
+                </th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border">
+                  Total Price
+                </th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border">
+                  Status
+                </th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
-              {quotes.map((quote) => (
-                <tr
-                  key={quote._id}
-                  className={`border-t ${getStatusClass(quote.quote_Details?.status)}`}
-                >
-                  <td className="py-2 px-4">
+              {[...quotes].reverse().map((quote) => (
+                <tr key={quote._id} className="hover:bg-gray-100 border-b">
+                  <td className="px-4 py-2 border">
+                    <input
+                      type="checkbox"
+                      className="form-checkbox h-4 w-4 text-blue-600"
+                      checked={selectedQuotes.includes(quote._id)}
+                      onChange={() => handleCheckboxChange(quote._id)}
+                    />
+                  </td>
+                  <td
+                    className="px-4 py-2 border"
+                    onClick={() => navigate(`/view-quote/${quote._id}`)}
+                  >
                     {quote.createdAt
                       ? new Date(quote.createdAt).toLocaleDateString()
                       : "Unknown"}
                   </td>
-                  <td className="py-2 px-4">{quote.quote_Identifier || "Unknown"}</td>
-                  <td className="py-2 px-4">{quote.quote_Creater?.name || "N/A"}</td>
-                  <td className="py-2 px-4">{quote.quote_Client?.client_Name || "Unknown"}</td>
-                  <td className="py-2 px-4">{quote.quote_AfterDiscountPrice || "N/A"}</td>
-                  <td className="py-2 px-4">{quote.quote_Details?.status || "N/A"}</td>
-                  <td className="py-2 px-4 space-x-2">
-                    <div className="flex items-center space-x-4">
-                      <button
-                        className="text-blue-500 flex items-center gap-1"
-                        onClick={() => handlePaidQuote(quote._id)}
-                      >
-                        <FaDollarSign /> Paid
-                      </button>
-                      <button
-                        className="text-red-500 flex items-center gap-1"
-                        onClick={() => handleDeleteQuote(quote._id)}
-                      >
-                        <FaTrashAlt /> Delete
-                      </button>
-                      <button
-                        className="text-blue-500 flex items-center gap-1"
-                        onClick={() => handleViewQuote(quote._id)}
-                      >
-                        <FaEye /> View
-                      </button>
-                    </div>
+                  <td
+                    className="px-4 py-2 border"
+                    onClick={() => navigate(`/view-quote/${quote._id}`)}
+                  >
+                    {quote.quote_Identifier || "Unknown"}
+                  </td>
+                  <td
+                    className="px-4 py-2 border"
+                    onClick={() => navigate(`/view-quote/${quote._id}`)}
+                  >
+                    {quote.quote_Creater?.name || "N/A"}
+                  </td>
+                  <td
+                    className="px-4 py-2 border"
+                    onClick={() => navigate(`/view-quote/${quote._id}`)}
+                  >
+                    {quote.quote_Client?.client_Name || "Unknown"}
+                  </td>
+                  <td
+                    className="px-4 py-2 border"
+                    onClick={() => navigate(`/view-quote/${quote._id}`)}
+                  >
+                    {quote.quote_AfterDiscountPrice || "N/A"}
+                  </td>
+                  <td
+                    className="px-4 py-2 border"
+                    onClick={() => navigate(`/view-quote/${quote._id}`)}
+                  >
+                    {quote.quote_Details?.status || "N/A"}
+                  </td>
+                  <td className="px-4 py-2 border">
+                    <button
+                      className="relative px-2 py-1 bg-btnPrimaryClr text-white text-sm hover:bg-btnHoverClr"
+                      onClick={() => {
+                        setShowActionPopup(quote._id);
+                        setQuoteId(quote._id);
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faCaretSquareDown} />
+                    </button>
+                    {showActionPopup === quote._id && (
+                      <div className="absolute mt-1 right-0 bg-delta border border-btnPrimaryClr p-4 z-10">
+                        <h3 className="text-lg font-semibold mb-2">
+                          Choose an Action
+                        </h3>
+                        <div className="flex flex-col">
+                          <button
+                            className="px-4 my-2 py-2 bg-btnSecClr hover:bg-btnSecHoverClr"
+                            onClick={() => {
+                              handlePaidQuote(quote._id);
+                              setShowActionPopup(null);
+                            }}
+                          >
+                            Mark as Paid
+                          </button>
+                          <button
+                            className="px-4 py-2 bg-btnSecClr hover:bg-btnSecHoverClr"
+                            onClick={() => {
+                              handleViewQuote(quote._id);
+                            }}
+                          >
+                            View Quote
+                          </button>
+                          <button
+                            className="px-4 py-2 bg-btnTerClr text-gray-800 hover:bg-btnTerHoverClr"
+                            onClick={() => handleDeleteQuote(quote._id)}
+                          >
+                            Delete Quote
+                          </button>
+                          <button
+                            className="mt-2 px-4 py-2 bg-btnTerClr text-gray-800 hover:bg-btnTerHoverClr"
+                            onClick={() => setShowActionPopup(null)}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+
         </div>
       )}
 

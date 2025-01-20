@@ -2,12 +2,18 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  UserIcon,
-  MailIcon,
-  PhoneIcon,
-  LocationMarkerIcon,
-} from "@heroicons/react/outline";
+  faUser,
+  faEnvelope,
+  faPhone,
+  faMapMarkerAlt,
+  faPercent,
+  faDollarSign,
+  faBox,
+  faTag,
+  faTimes,
+} from "@fortawesome/free-solid-svg-icons";
 
 const API_URL = process.env.REACT_APP_API_URL;
 const TAX_RATE = 0.05; // Define tax rate here
@@ -303,72 +309,66 @@ const AddQuote = () => {
     setGrandTotal(afterDiscountTotal.toFixed(2));
   };
 
-  return (
-    <div className="max-w-4xl mx-auto p-8 bg-white rounded-lg shadow-lg">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">
-        Create New quote
-      </h1>
+ return (
+  <div className="max-w-4xl mx-auto pt-2 pb-5">
+    <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">Create New Quote</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <section className="p-6 border border-gray-300 rounded-md bg-gray-50">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">
-            Client Details
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <section className="p-6 border border-gray-300 rounded-md bg-gray-50">
+        <h2 className="text-lg font-semibold text-gray-700 mb-4">Client Details</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
-              "client_Name",
-              "client_Email",
-              "client_Contact",
-              "client_Address",
-            ].map((field) => (
-              <div key={field} className="flex flex-col gap-1">
-                <label
-                  htmlFor={field}
-                  className="text-sm font-medium text-gray-600"
-                >
-                  {field.replace("client_", "").replace("_", " ")}
+              { name: "client_Name", icon: faUser },
+              { name: "client_Email", icon: faEnvelope },
+              { name: "client_Contact", icon: faPhone },
+              { name: "client_Address", icon: faMapMarkerAlt },
+            ].map(({ name, icon }) => (
+              <div key={name} className="relative">
+                <label htmlFor={name} className="text-sm font-medium text-gray-600">
+                  {name.replace("client_", "").replace("_", " ")}
                 </label>
-                <input
-                  type="text"
-                  id={field}
-                  name={field}
-                  value={client[field]}
-                  onChange={handleClientChange}
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                />
-                {clientError[field] && (
-                  <p className="text-xs text-red-500">{clientError[field]}</p>
-                )}
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                    <FontAwesomeIcon icon={icon} />
+                  </span>
+                  <input
+                    type="text"
+                    id={name}
+                    name={name}
+                    value={client[name]}
+                    onChange={handleClientChange}
+                    className="w-full p-2 pl-10 border border-gray-300 rounded-md"
+                  />
+                </div>
               </div>
             ))}
           </div>
         </section>
 
-        <div className="mt-6">
-          <label
-            htmlFor="initialPayment"
-            className="text-sm font-medium text-gray-600"
-          >
+        <div className="mt-6 relative">
+          <label htmlFor="initialPayment" className="text-sm font-medium text-gray-600">
             Initial Payment %
           </label>
-          <input
-            type="number"
-            id="initialPayment"
-            name="initialPayment"
-            value={quoteInitialPayment}
-            onChange={(e) => setQuoteInitialPayment(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded-md mt-2"
-          />
+          <div className="relative">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+              <FontAwesomeIcon icon={faPercent} />
+            </span>
+            <input
+              type="number"
+              id="initialPayment"
+              name="initialPayment"
+              value={quoteInitialPayment}
+              onChange={(e) => setQuoteInitialPayment(e.target.value)}
+              className="w-full p-2 pl-10 border border-gray-300 rounded-md mt-2"
+            />
+          </div>
         </div>
 
         <section className="p-6 border border-gray-300 rounded-md bg-gray-50">
           <h2 className="text-lg font-semibold text-gray-700 mb-4">Products</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label
-                htmlFor="product"
-                className="text-sm font-medium text-gray-600"
-              >
+            <div className="relative">
+              <label htmlFor="product" className="text-sm font-medium text-gray-600">
                 Product
               </label>
               <select
@@ -390,21 +390,34 @@ const AddQuote = () => {
             </div>
             {["product_SellingPrice", "quantity", "product_Discount"].map(
               (field) => (
-                <div key={field}>
+                <div key={field} className="relative">
                   <label
                     htmlFor={field}
                     className="text-sm font-medium text-gray-600"
                   >
                     {field.replace("product_", "").replace("_", " ")}
                   </label>
-                  <input
-                    type="number"
-                    id={field}
-                    name={field}
-                    value={currentProduct[field]}
-                    onChange={handleCurrentProductChange}
-                    className="w-full p-2 border border-gray-300 rounded-md"
-                  />
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                      {field === "product_SellingPrice" && (
+                        <FontAwesomeIcon icon={faDollarSign} />
+                      )}
+                      {field === "quantity" && (
+                        <FontAwesomeIcon icon={faBox} />
+                      )}
+                      {field === "product_Discount" && (
+                        <FontAwesomeIcon icon={faTag} />
+                      )}
+                    </span>
+                    <input
+                      type="number"
+                      id={field}
+                      name={field}
+                      value={currentProduct[field]}
+                      onChange={handleCurrentProductChange}
+                      className="w-full p-2 pl-10 border border-gray-300 rounded-md"
+                    />
+                  </div>
                 </div>
               )
             )}
@@ -413,7 +426,7 @@ const AddQuote = () => {
           <button
             type="button"
             onClick={handleAddProduct}
-            className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-md"
+            className="mt-4 px-4 py-2 bg-btnPrimaryClr hover:bg-btnHoverClr text-white rounded-md"
           >
             Add Product
           </button>
@@ -436,21 +449,17 @@ const AddQuote = () => {
                 {products.map((prod, index) => (
                   <tr key={index}>
                     <td className="border px-4 py-2">{prod.product}</td>
-                    <td className="border px-4 py-2">
-                      {prod.product_SellingPrice}
-                    </td>
+                    <td className="border px-4 py-2">{prod.product_SellingPrice}</td>
                     <td className="border px-4 py-2">{prod.quantity}</td>
-                    <td className="border px-4 py-2">
-                      {prod.product_Discount}
-                    </td>
+                    <td className="border px-4 py-2">{prod.product_Discount}</td>
                     <td className="border px-4 py-2">{prod.totalPrice}</td>
                     <td className="border px-4 py-2 text-center">
                       <button
                         type="button"
                         onClick={() => handleRemoveProduct(index)}
-                        className="text-red-600 hover:underline"
+                        className="text-red-600 hover:underline flex items-center gap-1"
                       >
-                        Remove
+                        <FontAwesomeIcon icon={faTimes} /> Remove
                       </button>
                     </td>
                   </tr>
@@ -476,15 +485,13 @@ const AddQuote = () => {
           )}
         </section>
 
-        <button
-          type="submit"
-          className="w-full px-4 py-2 bg-green-600 text-white rounded-md"
-        >
-          Submit Quote
-        </button>
-      </form>
-    </div>
-  );
+      <button type="submit" className="w-full px-4 py-2 bg-btnPrimaryClr hover:bg-btnHoverClr text-white rounded-md">
+        Submit Quote
+      </button>
+    </form>
+  </div>
+);
+
 };
 
 export default AddQuote;
