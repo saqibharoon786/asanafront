@@ -20,17 +20,18 @@ const AdminLayout = ({ children }) => {
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         <div
-          className={`z-10 transform transition-transform duration-300 bg-gray-100 ${
+          className={`z-10 transform transition-transform duration-300 ${
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
           } lg:translate-x-0 lg:static w-64`}
         >
-          <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+          <Sidebar
+            isSidebarOpen={isSidebarOpen}
+            toggleSidebar={toggleSidebar}
+          />
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 overflow-y-auto bg-gray-50 p-4">
-          {children}
-        </div>
+        <div className="flex-1 overflow-y-auto bg-gray-50 border-l border-t border-gray-300">{children}</div>
       </div>
     </div>
   );

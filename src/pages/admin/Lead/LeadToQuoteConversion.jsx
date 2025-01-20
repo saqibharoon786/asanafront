@@ -29,6 +29,7 @@ const LeadToQuoteConversion = () => {
     client_Name: "",
     client_Email: "",
     client_Address: "",
+    client_Contact: "",
   });
 
   const [products, setProducts] = useState([]);
@@ -46,12 +47,11 @@ const LeadToQuoteConversion = () => {
     client_Name: "",
     client_Email: "",
     client_Address: "",
+    client_Contact: "",
   });
   const [productError, setProductError] = useState("");
 
   const fetchProducts = async () => {
-    if (!jwtLoginToken) return;
-
     try {
       const response = await axios.get(`${API_URL}/product/get-products`, {
         headers: { Authorization: `Bearer ${jwtLoginToken}` },
@@ -72,24 +72,38 @@ const LeadToQuoteConversion = () => {
 
   const fetchLeadDetails = async () => {
     try {
-      const response = await axios.get(`http://localhost:3000/lead/${leadId}`, {
+      const response = await axios.get(`${API_URL}/lead/${leadId}`, {
         headers: {
           Authorization: `Bearer ${jwtLoginToken}`,
         },
       });
-      setLeadDetails(response.data.information.lead);
+      if (response.data.success) {
+        const leadData = response.data.information.lead;
+        setLeadDetails(leadData);
+        setClient({
+          client_Name: leadData.lead_Client.client_Name,
+          client_Email: leadData.lead_Client.client_Email,
+          client_Address: leadData.lead_Client.client_Address,
+          client_Contact:
+            leadData.lead_ClientContactPerson.client_ClientContactPersonContact,
+        });
+      } else {
+        throw new Error("Failed to fetch lead details");
+      }
       setLoading(false);
-      console.log("leadDetails");
     } catch (err) {
       setError(err.response ? err.response.data.message : err.message);
       setLoading(false);
     }
   };
+  
 
   useEffect(() => {
-    fetchProducts();
-    fetchLeadDetails();
-  }, [jwtLoginToken]);
+    if (jwtLoginToken && leadId) {
+      fetchProducts();
+      fetchLeadDetails();
+    }
+  }, [jwtLoginToken, leadId]);
 
   const handleClientChange = (e) => {
     const { name, value } = e.target;
@@ -115,13 +129,6 @@ const LeadToQuoteConversion = () => {
       isValid = false;
     } else {
       errors.client_Email = "";
-    }
-
-    if (!client.client_Contact) {
-      errors.client_Contact = "Client contact is required!";
-      isValid = false;
-    } else {
-      errors.client_Contact = "";
     }
 
     if (!client.client_Address) {
@@ -291,7 +298,6 @@ const LeadToQuoteConversion = () => {
         setClient({
           client_Name: "",
           client_Email: "",
-          client_Contact: "",
           client_Address: "",
         });
       } else {
@@ -333,30 +339,51 @@ const LeadToQuoteConversion = () => {
           <h2 className="text-lg font-semibold text-gray-700 mb-4">
             Client Details
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {["client_Name", "client_Email", "client_Contact"].map((field) => (
-              <div key={field} className="flex flex-col gap-1">
-                <label
-                  htmlFor={field}
-                  className="text-sm font-medium text-gray-600"
-                >
-                  {leadDetails.lead_Client[field] ||
-                    field.replace("client_", "").replace("_", " ")}
-                </label>
-                <input
-                  type="text"
-                  id={field}
-                  name={field}
-                  value={client[field]}
-                  onChange={handleClientChange}
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                />
-                {clientError[field] && (
-                  <p className="text-xs text-red-500">{clientError[field]}</p>
-                )}
-              </div>
-            ))}
-          </div>
+          {leadDetails ? (
+            <>
+              <p>
+                <strong>Client Name:</strong>{" "}
+                {leadDetails.lead_Client.client_Name}
+              </p>
+              <p>
+                <strong>Client Email:</strong>{" "}
+                {leadDetails.lead_Client.client_Email}
+              </p>
+              <p>
+                <strong>Client Address:</strong>{" "}
+                {leadDetails.lead_Client.client_Address}
+              </p>
+              <p>
+                <strong>Contact Person Name:</strong>{" "}
+                {
+                  leadDetails.lead_ClientContactPerson
+                    .client_ClientContactPersonName
+                }
+              </p>
+              <p>
+                <strong>Contact Person Email:</strong>{" "}
+                {
+                  leadDetails.lead_ClientContactPerson
+                    .client_ClientContactPersonEmail
+                }
+              </p>
+              <p>
+                <strong>Contact Person Phone:</strong>{" "}
+                {
+                  leadDetails.lead_ClientContactPerson
+                    .client_ClientContactPersonContact
+                }
+              </p>
+              <p>
+                <strong>Lead Title:</strong> {leadDetails.lead_Title}
+              </p>
+              <p>
+                <strong>Lead Scope:</strong> {leadDetails.lead_Scope}
+              </p>
+            </>
+          ) : (
+            <p>Loading client details...</p>
+          )}
         </section>
 
         <div className="mt-6">
