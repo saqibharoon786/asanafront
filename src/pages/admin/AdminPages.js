@@ -6,6 +6,7 @@ import PanelProjects from "./Projects/PanelProjects";
 import PanelProducts from "./Products/PanelProducts";
 import PanelQuote from "./Quote/PanelQuote";
 import AddQuote from "./Quote/AddQuote";
+import AddQuote1 from "./Quote/AddQuote1";
 import ViewQuote from "./Quote/ViewQuote";
 import PanelLeads from "./Lead/PanelLeads";
 import LeadDetails from "./Lead/LeadDetails";
@@ -35,6 +36,7 @@ export {
   PanelProducts,
   PanelQuote,
   AddQuote,
+  AddQuote1,
   ViewQuote,
   PanelLeads,
   OptionalDataLead,

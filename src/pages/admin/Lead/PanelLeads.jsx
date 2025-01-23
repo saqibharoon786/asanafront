@@ -22,19 +22,7 @@ const API_URL = process.env.REACT_APP_API_URL;
 
 const PanelLeads = () => {
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({
-    clientName: "",
-    clientEmail: "",
-    clientAddress: "",
-    clientContactPersonName: "",
-    clientContactPersonEmail: "",
-    clientContactPersonContact: "",
-    organization: "",
-    leadScope: "",
-    contactPerson: "",
-    title: "",
-    source: "",
-  });
+  const [formData, setFormData] = useState({ clientName: "", clientEmail: "", clientAddress: "", clientContactPersonName: "", clientContactPersonEmail: "", clientContactPersonContact: "", organization: "", leadScope: "", contactPerson: "", source: "", title: "" });
   const [leads, setLeads] = useState([]);
   const [salesEmployees, setSalesEmployees] = useState([]);
   const [showMassLeadTransferPopup, setShowMassLeadTransferPopup] = useState(false);
@@ -47,6 +35,9 @@ const PanelLeads = () => {
   const [totalLeads, setTotalLeads] = useState(0);
   const [selectAll, setSelectAll] = useState(false);
   const [timeFilter, setTimeFilter] = useState("All");
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
+
 
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
   const navigate = useNavigate();
@@ -202,6 +193,7 @@ const PanelLeads = () => {
     }
   };
 
+
   /** Handle Mass Delete */
   const handleMassTransfer = async () => {
     const userConfirmed = window.confirm(
@@ -229,6 +221,41 @@ const PanelLeads = () => {
       alert("An error occurred while transferring leads. Please try again.");
     }
   };
+
+
+
+  /** Pagination Handlers */
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+
+  const filteredLeads = leads.filter((lead) => {
+    const searchLower = search.toLowerCase();
+    return (
+      lead.lead_CreaterName?.toLowerCase().includes(searchLower) ||
+      lead.lead_Title?.toLowerCase().includes(searchLower) ||
+      lead.lead_Organization?.toLowerCase().includes(searchLower) ||
+      lead.lead_AssignedToUserName?.toLowerCase().includes(searchLower) ||
+      lead.lead_PreviousOwnerName?.toLowerCase().includes(searchLower)
+    );
+  });
+
+  const currentRecords = filteredLeads.slice(indexOfFirstRecord, indexOfLastRecord);
+
+  const handleNextPage = () => {
+    if (currentPage < Math.ceil(filteredLeads.length / recordsPerPage)) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+
+
+
 
   return (
     <div className="p-5 bg-delta min-h-screen">
@@ -332,7 +359,7 @@ const PanelLeads = () => {
               </tr>
             </thead>
             <tbody>
-              {[...leads].reverse().map((lead) => (
+              {currentRecords.map((lead) => (
                 <tr key={lead._id} className="hover:bg-gray-100 border-b">
                   <td className="px-4 py-2 border">
                     <input
@@ -477,7 +504,7 @@ const PanelLeads = () => {
                 { id: "clientAddress", icon: faAddressBook, placeholder: "Client Address", type: "text" },
                 { id: "clientContactPersonName", icon: faPhone, placeholder: "Client Contact Person Name", type: "text" },
                 { id: "clientContactPersonEmail", icon: faEnvelope, placeholder: "Client Contact Person Email", type: "email" },
-                { id: "clientContactPersonContact", icon: faPhone, placeholder: "Client Contact Person Contact", type: "text" },
+                { id: "clientContactPersonContact", icon: faPhone, placeholder: "Client Contact Person landline ", type: "text" },
                 { id: "organization", icon: faBuilding, placeholder: "Organization", type: "text" },
                 { id: "leadScope", icon: faMapMarkerAlt, placeholder: "Lead Scope", type: "text" },
                 { id: "title", icon: faTag, placeholder: "Lead Title", type: "text" },
@@ -569,6 +596,32 @@ const PanelLeads = () => {
           </div>
         </div>
       )}
+
+      {/* Pagination Controls */}
+      <div className="flex  justify-end items-center space-x-4 m-4">
+        <button
+          onClick={handlePreviousPage}
+          disabled={currentPage === 1}
+          className="flex items-center px-4 py-2 bg-blue-500 rounded hover:bg-blue-600 disabled:bg-gray-100"
+        >
+          <i className="fas fa-arrow-left mr-2"></i> {/* FontAwesome left arrow icon */}
+          Previous
+        </button>
+
+        <span>
+          Page {currentPage} of {Math.ceil(filteredLeads.length / recordsPerPage)}
+        </span>
+
+        <button
+          onClick={handleNextPage}
+          disabled={currentPage === Math.ceil(filteredLeads.length / recordsPerPage)}
+          className="flex items-center px-4 py-2 bg-blue-500 rounded hover:bg-blue-600 disabled:bg-gray-100"
+        >
+          Next
+          <i className="fas fa-arrow-right ml-2"></i> {/* FontAwesome right arrow icon */}
+        </button>
+      </div>
+
     </div>
   );
 };

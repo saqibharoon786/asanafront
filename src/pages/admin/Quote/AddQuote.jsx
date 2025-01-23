@@ -53,28 +53,28 @@ const AddQuote = () => {
   });
   const [productError, setProductError] = useState("");
 
+  const fetchProducts = async () => {
+    if (!jwtLoginToken) return;
+
+    try {
+      const response = await axios.get(`${API_URL}/product/get-products`, {
+        headers: { Authorization: `Bearer ${jwtLoginToken}` },
+      });
+      const products = response.data?.information?.products || [];
+      const formattedProducts = products.map((prod) => ({
+        id: prod._id,
+        name: prod.product_Name,
+        price: prod.product_SellingPrice,
+      }));
+      setProductOptions(formattedProducts);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      setProductOptions([]);
+      alert("Failed to load products. Please check your network connection.");
+    }
+  };
+
   useEffect(() => {
-    const fetchProducts = async () => {
-      if (!jwtLoginToken) return;
-
-      try {
-        const response = await axios.get(`${API_URL}/product/get-products`, {
-          headers: { Authorization: `Bearer ${jwtLoginToken}` },
-        });
-        const products = response.data?.information?.products || [];
-        const formattedProducts = products.map((prod) => ({
-          id: prod._id,
-          name: prod.product_Name,
-          price: prod.product_SellingPrice,
-        }));
-        setProductOptions(formattedProducts);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-        setProductOptions([]);
-        alert("Failed to load products. Please check your network connection.");
-      }
-    };
-
     fetchProducts();
   }, [jwtLoginToken]);
 
@@ -364,126 +364,167 @@ const AddQuote = () => {
           </div>
         </div>
 
-        <section className="p-6 border border-gray-300 rounded-md bg-gray-50">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">Products</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="relative">
-              <label htmlFor="product" className="text-sm font-medium text-gray-600">
-                Product
-              </label>
-              <select
-                id="product"
-                name="product"
-                value={currentProduct.product}
-                onChange={handleCurrentProductChange}
-                className="w-full p-2 border border-gray-300 rounded-md"
-              >
-                <option value="" disabled>
-                  Select a product
-                </option>
-                {productOptions.map(({ id, name }) => (
-                  <option key={id} value={name}>
-                    {name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {["product_SellingPrice", "quantity", "product_Discount"].map(
-              (field) => (
-                <div key={field} className="relative">
-                  <label
-                    htmlFor={field}
-                    className="text-sm font-medium text-gray-600"
-                  >
-                    {field.replace("product_", "").replace("_", " ")}
-                  </label>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
-                      {field === "product_SellingPrice" && (
-                        <FontAwesomeIcon icon={faDollarSign} />
-                      )}
-                      {field === "quantity" && (
-                        <FontAwesomeIcon icon={faBox} />
-                      )}
-                      {field === "product_Discount" && (
-                        <FontAwesomeIcon icon={faTag} />
-                      )}
-                    </span>
-                    <input
-                      type="number"
-                      id={field}
-                      name={field}
-                      value={currentProduct[field]}
-                      onChange={handleCurrentProductChange}
-                      className="w-full p-2 pl-10 border border-gray-300 rounded-md"
-                    />
-                  </div>
-                </div>
-              )
-            )}
-          </div>
+<section className="p-6 border border-gray-300 rounded-md bg-gray-50">
+  <h2 className="text-lg font-semibold text-gray-700 mb-4">Products</h2>
 
-          <button
-            type="button"
-            onClick={handleAddProduct}
-            className="mt-4 px-4 py-2 bg-btnPrimaryClr hover:bg-btnHoverClr text-white rounded-md"
-          >
-            Add Product
-          </button>
+  {/* Product Input Row */}
+  <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+    {/* Product Dropdown */}
+    <div className="relative">
+      <label htmlFor="product" className="text-sm font-medium text-gray-600">
+        Product
+      </label>
+      <select
+        id="product"
+        name="product"
+        value={currentProduct.product}
+        onChange={handleCurrentProductChange}
+        className="w-full p-2 border border-gray-300 rounded-md"
+      >
+        <option value="" disabled>
+          Select a product
+        </option>
+        {productOptions.map(({ id, name }) => (
+          <option key={id} value={name}>
+            {name}
+          </option>
+        ))}
+      </select>
+    </div>
 
-          {productError && <p className="text-red-500 mt-2">{productError}</p>}
+    {/* Selling Price */}
+    <div className="relative">
+      <label
+        htmlFor="product_SellingPrice"
+        className="text-sm font-medium text-gray-600"
+      >
+        Selling Price
+      </label>
+      <div className="relative">
+        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+          <FontAwesomeIcon icon={faDollarSign} />
+        </span>
+        <input
+          type="number"
+          id="product_SellingPrice"
+          name="product_SellingPrice"
+          value={currentProduct.product_SellingPrice}
+          onChange={handleCurrentProductChange}
+          className="w-full p-2 pl-10 border border-gray-300 rounded-md"
+        />
+      </div>
+    </div>
 
-          {products.length > 0 && (
-            <table className="w-full mt-4 border border-gray-300 text-sm">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="border px-4 py-2">Product</th>
-                  <th className="border px-4 py-2">Price</th>
-                  <th className="border px-4 py-2">Quantity</th>
-                  <th className="border px-4 py-2">Discount Amount</th>
-                  <th className="border px-4 py-2">Total (AED)</th>
-                  <th className="border px-4 py-2">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.map((prod, index) => (
-                  <tr key={index}>
-                    <td className="border px-4 py-2">{prod.product}</td>
-                    <td className="border px-4 py-2">{prod.product_SellingPrice}</td>
-                    <td className="border px-4 py-2">{prod.quantity}</td>
-                    <td className="border px-4 py-2">{prod.product_Discount}</td>
-                    <td className="border px-4 py-2">{prod.totalPrice}</td>
-                    <td className="border px-4 py-2 text-center">
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveProduct(index)}
-                        className="text-red-600 hover:underline flex items-center gap-1"
-                      >
-                        <FontAwesomeIcon icon={faTimes} /> Remove
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-          {products.length > 0 && (
-            <div className="mt-4 text-right">
-              <p className="text-lg font-semibold">
-                Before Tax Total:{" "}
-                <span className="text-indigo-600">{beforeTaxTotal} AED</span>
-              </p>
-              <p className="text-lg font-semibold">
-                After Tax Total:{" "}
-                <span className="text-indigo-600">{afterTaxTotal} AED</span>
-              </p>
-              <p className="text-lg font-semibold">
-                Grand Total (After Discount):{" "}
-                <span className="text-indigo-600">{grandTotal} AED</span>
-              </p>
-            </div>
-          )}
-        </section>
+    {/* Discount */}
+    <div className="relative">
+      <label
+        htmlFor="product_Discount"
+        className="text-sm font-medium text-gray-600"
+      >
+        Discount (%)
+      </label>
+      <div className="relative">
+        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+          <FontAwesomeIcon icon={faTag} />
+        </span>
+        <input
+          type="number"
+          id="product_Discount"
+          name="product_Discount"
+          value={currentProduct.product_Discount}
+          onChange={handleCurrentProductChange}
+          className="w-full p-2 pl-10 border border-gray-300 rounded-md"
+        />
+      </div>
+    </div>
+
+    {/* Total */}
+    <div className="relative">
+      <label htmlFor="totalPrice" className="text-sm font-medium text-gray-600">
+        Total
+      </label>
+      <div className="relative">
+        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+          <FontAwesomeIcon icon={faDollarSign} />
+        </span>
+        <input
+          type="number"
+          id="totalPrice"
+          name="totalPrice"
+          value={currentProduct.totalPrice}
+          readOnly
+          className="w-full p-2 pl-10 border border-gray-300 rounded-md bg-gray-100"
+        />
+      </div>
+    </div>
+
+    {/* Add Product Button */}
+    <div className="flex items-end">
+      <button
+        type="button"
+        onClick={handleAddProduct}
+        className="w-full px-4 py-2 bg-btnPrimaryClr hover:bg-btnHoverClr text-white rounded-md"
+      >
+        Add Product
+      </button>
+    </div>
+  </div>
+
+  {/* Product Error */}
+  {productError && <p className="text-red-500 mt-2">{productError}</p>}
+
+  {/* Products Table */}
+  {products.length > 0 && (
+    <div className="mt-4">
+      <table className="w-full border border-gray-300 text-sm">
+        <thead className="bg-gray-100">
+          <tr>
+            <th className="border px-4 py-2">Product</th>
+            <th className="border px-4 py-2">Selling Price</th>
+            <th className="border px-4 py-2">Discount (%)</th>
+            <th className="border px-4 py-2">Total (AED)</th>
+            <th className="border px-4 py-2">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {products.map((prod, index) => (
+            <tr key={index}>
+              <td className="border px-4 py-2">{prod.product}</td>
+              <td className="border px-4 py-2">{prod.product_SellingPrice}</td>
+              <td className="border px-4 py-2">{prod.product_Discount}</td>
+              <td className="border px-4 py-2">{prod.totalPrice}</td>
+              <td className="border px-4 py-2 text-center">
+                <button
+                  type="button"
+                  onClick={() => handleRemoveProduct(index)}
+                  className="text-red-600 hover:underline flex items-center gap-1"
+                >
+                  <FontAwesomeIcon icon={faTimes} /> Remove
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* Totals Section */}
+      <div className="mt-4 text-right">
+        <p className="text-lg font-semibold">
+          Before Tax Total:{" "}
+          <span className="text-indigo-600">{beforeTaxTotal} AED</span>
+        </p>
+        <p className="text-lg font-semibold">
+          After Tax Total:{" "}
+          <span className="text-indigo-600">{afterTaxTotal} AED</span>
+        </p>
+        <p className="text-lg font-semibold">
+          Grand Total (After Discount):{" "}
+          <span className="text-indigo-600">{grandTotal} AED</span>
+        </p>
+      </div>
+    </div>
+  )}
+</section>
 
       <button type="submit" className="w-full px-4 py-2 bg-btnPrimaryClr hover:bg-btnHoverClr text-white rounded-md">
         Submit Quote
