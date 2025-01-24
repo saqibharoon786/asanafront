@@ -10,7 +10,7 @@ import {
   PanelProducts,
   PanelQuote,
   AddQuote,
-  AddQuote1,
+  EditQuote,
   ViewQuote,
   PanelLeads,
   OptionalDataLead,
@@ -50,7 +50,7 @@ const AdminRoutes = () => (
 
         <Route path="/quotes" element={<AdminProtectedRoute><AdminLayout><PanelQuote /></AdminLayout></AdminProtectedRoute>} />
         <Route path="/add-quote" element={<AdminProtectedRoute><AdminLayout><AddQuote /></AdminLayout></AdminProtectedRoute>} />
-        <Route path="/add-quote1" element={<AdminProtectedRoute><AdminLayout><AddQuote1 /></AdminLayout></AdminProtectedRoute>} />
+        <Route path="/edit-quote/:quoteId" element={<AdminProtectedRoute><AdminLayout><EditQuote /></AdminLayout></AdminProtectedRoute>} />
         <Route path="/view-quote/:quoteId" element={<AdminProtectedRoute><AdminLayout><ViewQuote /></AdminLayout></AdminProtectedRoute>} />
 
         <Route path="/invoices" element={<AdminProtectedRoute><AdminLayout><PanelInvoices /></AdminLayout></AdminProtectedRoute>} />

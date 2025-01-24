@@ -23,14 +23,11 @@ const PanelProduct = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get(
-          `${API_URL}/product/get-products`,
-          {
-            headers: {
-              Authorization: `Bearer ${jwtLoginToken}`, // Corrected template literal syntax
-            },
-          }
-        );
+        const response = await axios.get(`${API_URL}/product/get-products`, {
+          headers: {
+            Authorization: `Bearer ${jwtLoginToken}`, // Corrected template literal syntax
+          },
+        });
         if (response.data.success) {
           const productsData = Array.isArray(response.data.information.products)
             ? response.data.information.products
@@ -50,8 +47,6 @@ const PanelProduct = () => {
     fetchProducts();
   }, [products]);
 
-
-
   // Handle search input
   const handleSearchChange = (e) => {
     const query = e.target.value.toLowerCase();
@@ -69,7 +64,6 @@ const PanelProduct = () => {
     navigate("/add-product");
   };
 
- 
   // Handle image click to show large version
   const handleImageClick = (imagePath, product) => {
     setSelectedImage(imagePath);
@@ -105,9 +99,7 @@ const PanelProduct = () => {
         if (response.status === 200) {
           // Update the state to remove the deleted product from the list
           setProducts((prevProducts) =>
-            prevProducts.filter(
-              (product) => product._id !== productId
-            )
+            prevProducts.filter((product) => product._id !== productId)
           );
           alert("Product deleted successfully.");
         } else {
@@ -129,11 +121,9 @@ const PanelProduct = () => {
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-     
       {/* Filter Section */}
       <div className="bg-white shadow rounded-lg p-4">
-        <div className="flex gap-4 mb-4 flex-wrap">
-        </div>
+        <div className="flex gap-4 mb-4 flex-wrap"></div>
 
         <div className="flex justify-between mb-4">
           <button
@@ -149,14 +139,13 @@ const PanelProduct = () => {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr>
-            <th className="py-2 px-4 border">Image</th>
+              <th className="py-2 px-4 border">Image</th>
               <th className="py-2 px-4 border">Product Name</th>
               <th className="py-2 px-4 border">Category</th>
               <th className="py-2 px-4 border">Stock</th>
               <th className="py-2 px-4 border">Selling Price</th>
               <th className="py-2 px-4 border">Status</th>
               <th className="py-2 px-4 border">Actions</th>
-              
             </tr>
           </thead>
           <tbody>
@@ -181,15 +170,15 @@ const PanelProduct = () => {
             ) : (
               filteredProducts.map((product, index) => (
                 <tr key={index} className="border-t">
-                        <td className="py-2 px-4">
+                  <td className="py-2 px-4">
                     {product.product_Image && product.product_Image.filePath ? (
                       <img
-                        src={`${API_URL}/${product.product_Image.filePath}`}
+                        src={`${API_URL}${product.product_Image.filePath}`}
                         alt={product.product_Name}
                         className="w-16 h-16 object-cover rounded cursor-pointer"
                         onClick={() =>
                           handleImageClick(
-                            `${API_URL}/${product.product_Image.filePath}`,
+                            `${API_URL}${product.product_Image.filePath}`,
                             product
                           )
                         }
@@ -229,7 +218,6 @@ const PanelProduct = () => {
                       <FaTrashAlt />
                     </button>
                   </td>
-            
                 </tr>
               ))
             )}

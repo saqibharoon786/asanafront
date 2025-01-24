@@ -1,16 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { FaUser, FaHashtag, FaUserTie, FaCalendarAlt, FaPercentage, FaFileAlt } from 'react-icons/fa';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import {
+  FaUser,
+  FaHashtag,
+  FaUserTie,
+  FaCalendarAlt,
+  FaPercentage,
+  FaFileAlt,
+} from "react-icons/fa";
 
 const API_URL = process.env.REACT_APP_API_URL;
-const jwtLoginToken = localStorage.getItem('jwtLoginToken');
+const jwtLoginToken = localStorage.getItem("jwtLoginToken");
 const TAX = 0.05;
 
 const AddQuote = () => {
   const [fetchedProducts, setFetchedProducts] = useState([]);
   const [productRows, setProductRows] = useState([
     {
-      product: '',
+      product: "",
       quantity: 0,
       product_SellingPrice: 0,
       product_BeforeTaxPrice: 0,
@@ -32,12 +39,12 @@ const AddQuote = () => {
     quote_AfterDiscountPrice: 0,
     quote_Subject: "",
     quote_Image: null,
-    previewUrl: null,    
+    previewUrl: null,
     quote_Project: "",
     quote_Date: "",
     quote_ExpiryDate: "",
     quote_ReferenceNumber: "",
-  })
+  });
 
   const fetchProducts = async () => {
     try {
@@ -49,7 +56,7 @@ const AddQuote = () => {
         setFetchedProducts(response.data.information.products);
       }
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error("Error fetching products:", error);
     }
   };
 
@@ -69,9 +76,10 @@ const AddQuote = () => {
     }
   };
 
+  fetchProducts();
+  fetchSalesEmployees();
+
   useEffect(() => {
-    fetchProducts();
-    fetchSalesEmployees();
     updateQuoteSummary();
   }, [productRows]);
 
@@ -79,7 +87,8 @@ const AddQuote = () => {
     const product_BeforeTaxPrice = row.quantity * row.product_SellingPrice;
     const product_Tax = product_BeforeTaxPrice * TAX; // 5% Tax
     const product_AfterTaxPrice = product_BeforeTaxPrice + product_Tax;
-    const product_Discount = (product_AfterTaxPrice * row.product_DiscountPercentage) / 100;
+    const product_Discount =
+      (product_AfterTaxPrice * row.product_DiscountPercentage) / 100;
     const product_AfterDiscountPrice = product_AfterTaxPrice - product_Discount;
 
     return {
@@ -93,21 +102,17 @@ const AddQuote = () => {
   };
 
   const handleFileChange = (e) => {
-    const { name, files } = e.target;
-    const file = files[0];
-
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setQuotePayload({
-        ...quotePayload,
-        [name]: file,
-        previewUrl: imageUrl,  // Generate URL for preview
-      });
-    }
+    const file = e.target.files[0];
+    setQuotePayload((prevPayload) => ({
+      ...prevPayload,
+      quote_Image: file,
+    }));
   };
 
   const handleProductChange = (index, productName) => {
-    const product = fetchedProducts.find((prod) => prod.product_Name === productName);
+    const product = fetchedProducts.find(
+      (prod) => prod.product_Name === productName
+    );
     const newRows = [...productRows];
     newRows[index] = calculateRowValues({
       ...newRows[index],
@@ -119,7 +124,8 @@ const AddQuote = () => {
 
   const handleRateChange = (index, rate) => {
     const newRows = [...productRows];
-    newRows[index].product_SellingPrice = isNaN(rate) || rate === "" ? 0 : Number(rate); // Allow empty input temporarily
+    newRows[index].product_SellingPrice =
+      isNaN(rate) || rate === "" ? 0 : Number(rate); // Allow empty input temporarily
     newRows[index] = calculateRowValues({
       ...newRows[index],
       product_SellingPrice: newRows[index].product_SellingPrice,
@@ -129,7 +135,8 @@ const AddQuote = () => {
 
   const handleQuantityChange = (index, quantity) => {
     const newRows = [...productRows];
-    newRows[index].quantity = isNaN(quantity) || quantity === "" ? 0 : Number(quantity); // Allow empty input temporarily
+    newRows[index].quantity =
+      isNaN(quantity) || quantity === "" ? 0 : Number(quantity); // Allow empty input temporarily
     newRows[index] = calculateRowValues({
       ...newRows[index],
       quantity: newRows[index].quantity,
@@ -139,7 +146,10 @@ const AddQuote = () => {
 
   const handleDiscountChange = (index, discountPercentage) => {
     const newRows = [...productRows];
-    newRows[index].product_DiscountPercentage = isNaN(discountPercentage) || discountPercentage === "" ? 0 : Number(discountPercentage); // Allow empty input temporarily
+    newRows[index].product_DiscountPercentage =
+      isNaN(discountPercentage) || discountPercentage === ""
+        ? 0
+        : Number(discountPercentage); // Allow empty input temporarily
     newRows[index] = calculateRowValues({
       ...newRows[index],
       product_DiscountPercentage: newRows[index].product_DiscountPercentage,
@@ -151,7 +161,7 @@ const AddQuote = () => {
     setProductRows([
       ...productRows,
       {
-        product: '',
+        product: "",
         quantity: 0,
         product_SellingPrice: 0,
         product_BeforeTaxPrice: 0,
@@ -170,9 +180,15 @@ const AddQuote = () => {
   };
 
   const updateQuoteSummary = () => {
-    const totalBeforeTax = productRows.reduce((sum, row) => sum + row.product_BeforeTaxPrice, 0);
+    const totalBeforeTax = productRows.reduce(
+      (sum, row) => sum + row.product_BeforeTaxPrice,
+      0
+    );
     const totalTax = productRows.reduce((sum, row) => sum + row.product_Tax, 0);
-    const totalAfterDiscount = productRows.reduce((sum, row) => sum + row.product_AfterDiscountPrice, 0);
+    const totalAfterDiscount = productRows.reduce(
+      (sum, row) => sum + row.product_AfterDiscountPrice,
+      0
+    );
 
     setQuotePayload((prevPayload) => ({
       ...prevPayload,
@@ -185,18 +201,49 @@ const AddQuote = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    
-    try {
-      const updatedQuotePayload = {
-        ...quotePayload,
-        quote_Products: productRows,
-      };
+    const products = productRows.map((row) => ({
+      product: row.product,
+      quantity: row.quantity,
+      product_SellingPrice: row.product_SellingPrice,
+      product_BeforeTaxPrice: row.product_BeforeTaxPrice,
+      product_Tax: row.product_Tax,
+      product_AfterTaxPrice: row.product_AfterTaxPrice,
+      product_DiscountPercentage: row.product_DiscountPercentage,
+      product_Discount: row.product_Discount,
+      product_AfterDiscountPrice: row.product_AfterDiscountPrice,
+    }));
 
+    const formData = new FormData();
+    formData.append("quote_Client", quotePayload.quote_Client);
+    formData.append("quote_Products", JSON.stringify(products));
+    formData.append("quote_SalesPerson", quotePayload.quote_SalesPerson);
+    formData.append("quote_InitialPayment", quotePayload.quote_InitialPayment);
+    formData.append("quote_BeforeTaxPrice", quotePayload.quote_BeforeTaxPrice);
+    formData.append("quote_TotalTax", quotePayload.quote_TotalTax);
+    formData.append(
+      "quote_AfterDiscountPrice",
+      quotePayload.quote_AfterDiscountPrice
+    );
+    formData.append("quote_Subject", quotePayload.quote_Subject);
+    formData.append("quote_Image", quotePayload.quote_Image);
+    formData.append("previewUrl", quotePayload.previewUrl); // Image file
+    formData.append("quote_Project", quotePayload.quote_Project);
+    formData.append("quote_Date", quotePayload.quote_Date);
+    formData.append("quote_ExpiryDate", quotePayload.quote_ExpiryDate);
+    formData.append(
+      "quote_ReferenceNumber",
+      quotePayload.quote_ReferenceNumber
+    );
+
+    try {
       const response = await axios.post(
         `${API_URL}/quote/create-quote`,
-        updatedQuotePayload, // Send the updated payload
+        formData,
         {
-          headers: { Authorization: `Bearer ${jwtLoginToken}` },
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${jwtLoginToken}`,
+          },
         }
       );
 
@@ -212,6 +259,8 @@ const AddQuote = () => {
           quote_AfterDiscountPrice: 0,
           quote_Subject: "",
           quote_Project: "",
+          quote_Image: null,
+          previewUrl: null,
           quote_Date: "",
           quote_ExpiryDate: "",
           quote_ReferenceNumber: "",
@@ -219,7 +268,7 @@ const AddQuote = () => {
 
         setProductRows([
           {
-            product: '',
+            product: "",
             quantity: 0,
             product_SellingPrice: 0,
             product_BeforeTaxPrice: 0,
@@ -238,12 +287,13 @@ const AddQuote = () => {
     }
   };
 
-
   return (
     <form onSubmit={handleSubmit} className="p-4">
-
       <div className="mb-6 w-1/4">
-        <label className="block text-sm font-medium text-gray-700   mb-1" htmlFor="customerName">
+        <label
+          className="block text-sm font-medium text-gray-700   mb-1"
+          htmlFor="customerName"
+        >
           <FaUser className="inline-block mr-2" /> Customer Name
         </label>
         <input
@@ -263,7 +313,10 @@ const AddQuote = () => {
 
       {/* Reference */}
       <div className="mb-6 w-1/4">
-        <label className="block text-sm font-medium text-gray-700   mb-1" htmlFor="reference">
+        <label
+          className="block text-sm font-medium text-gray-700   mb-1"
+          htmlFor="reference"
+        >
           <FaHashtag className="inline-block mr-2" /> Reference
         </label>
         <input
@@ -283,7 +336,10 @@ const AddQuote = () => {
 
       {/* Sales Person */}
       <div className="mb-6 w-1/4">
-        <label className="block text-sm font-medium text-gray-700   mb-1" htmlFor="salesPerson">
+        <label
+          className="block text-sm font-medium text-gray-700   mb-1"
+          htmlFor="salesPerson"
+        >
           <FaUserTie className="inline-block mr-2" /> Salesperson
         </label>
         <select
@@ -310,7 +366,10 @@ const AddQuote = () => {
       {/* Quote Dates */}
       <div className="flex space-x-4 mb-6 w-1/4">
         <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700   mb-1" htmlFor="quoteDate">
+          <label
+            className="block text-sm font-medium text-gray-700   mb-1"
+            htmlFor="quoteDate"
+          >
             <FaCalendarAlt className="inline-block mr-2" /> Quote Date
           </label>
           <input
@@ -327,7 +386,10 @@ const AddQuote = () => {
           />
         </div>
         <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700   mb-1" htmlFor="expiryDate">
+          <label
+            className="block text-sm font-medium text-gray-700   mb-1"
+            htmlFor="expiryDate"
+          >
             <FaCalendarAlt className="inline-block mr-2" /> Expiry Date
           </label>
           <input
@@ -347,7 +409,10 @@ const AddQuote = () => {
 
       {/* Quote Initial Payment */}
       <div className="mb-6 w-1/4">
-        <label className="block text-sm font-medium text-gray-700   mb-1" htmlFor="initialPayment">
+        <label
+          className="block text-sm font-medium text-gray-700   mb-1"
+          htmlFor="initialPayment"
+        >
           <FaPercentage className="inline-block mr-2" /> Initial Payment (%)
         </label>
         <input
@@ -367,7 +432,10 @@ const AddQuote = () => {
 
       {/* Subject */}
       <div className="mb-6 w-1/4">
-        <label className="block text-sm font-medium text-gray-700   mb-1" htmlFor="subject">
+        <label
+          className="block text-sm font-medium text-gray-700   mb-1"
+          htmlFor="subject"
+        >
           <FaFileAlt className="inline-block mr-2" /> Subject
         </label>
         <input
@@ -385,13 +453,14 @@ const AddQuote = () => {
         />
       </div>
 
-
       {/* Products Table */}
       <h1 className="text-xl font-bold mb-4">Item Table</h1>
       <table className="w-full table-auto border border-gray-300 rounded-md">
         <thead>
           <tr className="bg-gray-100 text-left">
-            <th className="border border-gray-300 px-4 py-2">Item Description</th>
+            <th className="border border-gray-300 px-4 py-2">
+              Item Description
+            </th>
             <th className="border border-gray-300 px-4 py-2">Qty</th>
             <th className="border border-gray-300 px-4 py-2">Rate</th>
             <th className="border border-gray-300 px-4 py-2">Discount (%)</th>
@@ -435,21 +504,37 @@ const AddQuote = () => {
               <td className="border border-gray-300 px-4 py-2">
                 <input
                   type="number"
-                  value={row.product_SellingPrice === 0 ? "" : row.product_SellingPrice} // Hide 0 value temporarily
-                  onChange={(e) => handleRateChange(index, Number(e.target.value))}
+                  value={
+                    row.product_SellingPrice === 0
+                      ? ""
+                      : row.product_SellingPrice
+                  } // Hide 0 value temporarily
+                  onChange={(e) =>
+                    handleRateChange(index, Number(e.target.value))
+                  }
                   className="w-full border border-gray-300 rounded-md px-2 py-1"
                 />
               </td>
               <td className="border border-gray-300 px-4 py-2">
                 <input
                   type="number"
-                  value={row.product_DiscountPercentage === 0 ? "" : row.product_DiscountPercentage} // Hide 0 value temporarily
-                  onChange={(e) => handleDiscountChange(index, Number(e.target.value))}
+                  value={
+                    row.product_DiscountPercentage === 0
+                      ? ""
+                      : row.product_DiscountPercentage
+                  } // Hide 0 value temporarily
+                  onChange={(e) =>
+                    handleDiscountChange(index, Number(e.target.value))
+                  }
                   className="w-full border border-gray-300 rounded-md px-2 py-1"
                 />
               </td>
-              <td className="border border-gray-300 px-4 py-2 text-center">5%</td>
-              <td className="border border-gray-300 px-4 py-2 text-center">{(row.product_AfterDiscountPrice).toFixed(2)}</td>
+              <td className="border border-gray-300 px-4 py-2 text-center">
+                5%
+              </td>
+              <td className="border border-gray-300 px-4 py-2 text-center">
+                {row.product_AfterDiscountPrice.toFixed(2)}
+              </td>
               <td className="border border-gray-300 px-4 py-2 text-center">
                 <button
                   onClick={() => deleteRow(index)}
@@ -467,8 +552,8 @@ const AddQuote = () => {
         type="button"
         onClick={addRow}
         className="mt-4 bg-blue-500 text-white px-5 py-2 rounded-md hover:bg-blue-600"
-      >AED
-        + Add Row
+      >
+        Add Row
       </button>
 
       <div className="bg-white p-6 rounded-lg shadow-md space-y-4 text-lg font-semibold text-right">
@@ -491,11 +576,9 @@ const AddQuote = () => {
           </span>
         </h2>
       </div>
-      <div className='flex justify-end'>
+      <div className="flex justify-end">
         <input
           type="file"
-          name="quote_Image"
-          accept="image/*"
           onChange={handleFileChange}
           className="mt-4 w-full p-2 border rounded-lg bg-gray-50"
         />

@@ -59,16 +59,33 @@ const AddProduct = () => {
     formData.append("product_StockQuantity", productData.product_StockQuantity);
     formData.append("product_Category", productData.product_Category);
     formData.append("product_Description", productData.product_Description);
-    formData.append("product_DateOfPurchase", productData.product_DateOfPurchase);
+    formData.append(
+      "product_DateOfPurchase",
+      productData.product_DateOfPurchase
+    );
     formData.append("product_DamagedPieces", productData.product_DamagedPieces);
     formData.append("product_StockLocation", productData.product_StockLocation);
     formData.append("product_Image", productData.product_Image); // Image file
 
     // Append vendor details as separate fields (not stringified)
-    formData.append("product_Vendor[vendor_Name]", productData.product_Vendor.vendor_Name);
-    formData.append("product_Vendor[vendor_Email]", productData.product_Vendor.vendor_Email);
-    formData.append("product_Vendor[vendor_Address]", productData.product_Vendor.vendor_Address);
-    formData.append("product_Vendor[vendor_Contact]", productData.product_Vendor.vendor_Contact);
+    formData.append(
+      "product_Vendor[vendor_Name]",
+      productData.product_Vendor.vendor_Name
+    );
+    formData.append(
+      "product_Vendor[vendor_Email]",
+      productData.product_Vendor.vendor_Email
+    );
+    formData.append(
+      "product_Vendor[vendor_Address]",
+      productData.product_Vendor.vendor_Address
+    );
+    formData.append(
+      "product_Vendor[vendor_Contact]",
+      productData.product_Vendor.vendor_Contact
+    );
+
+    console.log(formData);
 
     try {
       const response = await axios.post(
@@ -101,7 +118,7 @@ const AddProduct = () => {
             vendor_Contact: "",
           },
         });
-        navigate("/products"); 
+        navigate("/products");
       } else {
         alert("Failed to create product: " + response.data.message);
       }
@@ -133,7 +150,9 @@ const AddProduct = () => {
             {/* Product Details */}
             <div className="space-y-6">
               <div className="form-group">
-                <label className="block text-lg text-gray-700">Product Name</label>
+                <label className="block text-lg text-gray-700">
+                  Product Name
+                </label>
                 <input
                   type="text"
                   name="product_Name"
@@ -145,7 +164,9 @@ const AddProduct = () => {
               </div>
 
               <div className="form-group">
-                <label className="block text-lg text-gray-700">Cost Price</label>
+                <label className="block text-lg text-gray-700">
+                  Cost Price
+                </label>
                 <input
                   type="number"
                   name="product_CostPrice"
@@ -157,7 +178,9 @@ const AddProduct = () => {
               </div>
 
               <div className="form-group">
-                <label className="block text-lg text-gray-700">Selling Price</label>
+                <label className="block text-lg text-gray-700">
+                  Selling Price
+                </label>
                 <input
                   type="number"
                   name="product_SellingPrice"
@@ -169,7 +192,9 @@ const AddProduct = () => {
               </div>
 
               <div className="form-group">
-                <label className="block text-lg text-gray-700">Stock Quantity</label>
+                <label className="block text-lg text-gray-700">
+                  Stock Quantity
+                </label>
                 <input
                   type="number"
                   name="product_StockQuantity"
@@ -193,7 +218,9 @@ const AddProduct = () => {
               </div>
 
               <div className="form-group">
-                <label className="block text-lg text-gray-700">Description</label>
+                <label className="block text-lg text-gray-700">
+                  Description
+                </label>
                 <textarea
                   name="product_Description"
                   value={productData.product_Description}
@@ -204,7 +231,9 @@ const AddProduct = () => {
               </div>
 
               <div className="form-group">
-                <label className="block text-lg text-gray-700">Date of Purchase</label>
+                <label className="block text-lg text-gray-700">
+                  Date of Purchase
+                </label>
                 <input
                   type="date"
                   name="product_DateOfPurchase"
@@ -215,7 +244,9 @@ const AddProduct = () => {
               </div>
 
               <div className="form-group">
-                <label className="block text-lg text-gray-700">Damaged Pieces</label>
+                <label className="block text-lg text-gray-700">
+                  Damaged Pieces
+                </label>
                 <input
                   type="number"
                   name="product_DamagedPieces"
@@ -226,7 +257,9 @@ const AddProduct = () => {
               </div>
 
               <div className="form-group">
-                <label className="block text-lg text-gray-700">Stock Location</label>
+                <label className="block text-lg text-gray-700">
+                  Stock Location
+                </label>
                 <input
                   type="text"
                   name="product_StockLocation"
@@ -240,7 +273,9 @@ const AddProduct = () => {
             {/* Vendor Details */}
             <div className="space-y-6">
               <div className="form-group">
-                <label className="block text-lg text-gray-700">Vendor Name</label>
+                <label className="block text-lg text-gray-700">
+                  Vendor Name
+                </label>
                 <input
                   type="text"
                   name="vendor_Name"
@@ -252,7 +287,9 @@ const AddProduct = () => {
               </div>
 
               <div className="form-group">
-                <label className="block text-lg text-gray-700">Vendor Email</label>
+                <label className="block text-lg text-gray-700">
+                  Vendor Email
+                </label>
                 <input
                   type="email"
                   name="vendor_Email"
@@ -264,7 +301,9 @@ const AddProduct = () => {
               </div>
 
               <div className="form-group">
-                <label className="block text-lg text-gray-700">Vendor Address</label>
+                <label className="block text-lg text-gray-700">
+                  Vendor Address
+                </label>
                 <textarea
                   name="vendor_Address"
                   value={productData.product_Vendor.vendor_Address}
@@ -275,7 +314,9 @@ const AddProduct = () => {
               </div>
 
               <div className="form-group">
-                <label className="block text-lg text-gray-700">Vendor Contact</label>
+                <label className="block text-lg text-gray-700">
+                  Vendor Contact
+                </label>
                 <input
                   type="text"
                   name="vendor_Contact"
