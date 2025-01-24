@@ -1,538 +1,513 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faUser,
-  faEnvelope,
-  faPhone,
-  faMapMarkerAlt,
-  faPercent,
-  faDollarSign,
-  faBox,
-  faTag,
-  faTimes,
-} from "@fortawesome/free-solid-svg-icons";
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { FaUser, FaHashtag, FaUserTie, FaCalendarAlt, FaPercentage, FaFileAlt } from 'react-icons/fa';
 
 const API_URL = process.env.REACT_APP_API_URL;
-const TAX_RATE = 0.05; // Define tax rate here
+const jwtLoginToken = localStorage.getItem('jwtLoginToken');
+const TAX = 0.05;
 
 const AddQuote = () => {
-  const jwtLoginToken = localStorage.getItem("jwtLoginToken");
-  const [grandTotal, setGrandTotal] = useState(0);
-  const [beforeTaxTotal, setBeforeTaxTotal] = useState(0);
-  const [afterTaxTotal, setAfterTaxTotal] = useState(0);
-  const [quoteInitialPayment, setQuoteInitialPayment] = useState(0);
-
-  const navigate = useNavigate();
-
-  const [client, setClient] = useState({
-    client_Name: "",
-    client_Email: "",
-    client_Contact: "",
-    client_Address: "",
-  });
-
-  const [products, setProducts] = useState([]);
-  const [currentProduct, setCurrentProduct] = useState({
-    product: "",
-    product_SellingPrice: 0,
-    quantity: 1,
-    product_Discount: 0,
-    product_Tax: TAX_RATE * 100, // Default tax rate
-    totalPrice: 0,
-  });
-
-  const [productOptions, setProductOptions] = useState([]);
-  const [clientError, setClientError] = useState({
-    client_Name: "",
-    client_Email: "",
-    client_Contact: "",
-    client_Address: "",
-  });
-  const [productError, setProductError] = useState("");
+  const [fetchedProducts, setFetchedProducts] = useState([]);
+  const [productRows, setProductRows] = useState([
+    {
+      product: '',
+      quantity: 0,
+      product_SellingPrice: 0,
+      product_BeforeTaxPrice: 0,
+      product_Tax: 0,
+      product_AfterTaxPrice: 0,
+      product_DiscountPercentage: 0,
+      product_Discount: 0,
+      product_AfterDiscountPrice: 0,
+    },
+  ]);
+  const [salesEmployees, setSalesEmployees] = useState([]);
+  const [quotePayload, setQuotePayload] = useState({
+    quote_Client: "",
+    quote_Products: [],
+    quote_SalesPerson: "",
+    quote_InitialPayment: "",
+    quote_BeforeTaxPrice: 0,
+    quote_TotalTax: 0,
+    quote_AfterDiscountPrice: 0,
+    quote_Subject: "",
+    quote_Image: null,
+    previewUrl: null,    
+    quote_Project: "",
+    quote_Date: "",
+    quote_ExpiryDate: "",
+    quote_ReferenceNumber: "",
+  })
 
   const fetchProducts = async () => {
-    if (!jwtLoginToken) return;
-
     try {
       const response = await axios.get(`${API_URL}/product/get-products`, {
         headers: { Authorization: `Bearer ${jwtLoginToken}` },
       });
-      const products = response.data?.information?.products || [];
-      const formattedProducts = products.map((prod) => ({
-        id: prod._id,
-        name: prod.product_Name,
-        price: prod.product_SellingPrice,
-      }));
-      setProductOptions(formattedProducts);
+
+      if (response.data.success) {
+        setFetchedProducts(response.data.information.products);
+      }
     } catch (error) {
-      console.error("Error fetching products:", error);
-      setProductOptions([]);
-      alert("Failed to load products. Please check your network connection.");
+      console.error('Error fetching products:', error);
+    }
+  };
+
+  const fetchSalesEmployees = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/department/get-sales-employees`,
+        {
+          headers: { Authorization: `Bearer ${jwtLoginToken}` },
+        }
+      );
+      if (response.data.success && response.data.information?.users) {
+        setSalesEmployees(response.data.information.users);
+      }
+    } catch (err) {
+      console.error("Error fetching sales employees:", err);
     }
   };
 
   useEffect(() => {
     fetchProducts();
-  }, [jwtLoginToken]);
+    fetchSalesEmployees();
+    updateQuoteSummary();
+  }, [productRows]);
 
-  const handleClientChange = (e) => {
-    const { name, value } = e.target;
-    setClient((prevClient) => ({
-      ...prevClient,
-      [name]: value,
-    }));
-  };
-
-  const validateClient = () => {
-    let isValid = true;
-    let errors = { ...clientError };
-
-    if (!client.client_Name) {
-      errors.client_Name = "Client name is required!";
-      isValid = false;
-    } else {
-      errors.client_Name = "";
-    }
-
-    if (!client.client_Email) {
-      errors.client_Email = "Client email is required!";
-      isValid = false;
-    } else {
-      errors.client_Email = "";
-    }
-
-    if (!client.client_Contact) {
-      errors.client_Contact = "Client contact is required!";
-      isValid = false;
-    } else {
-      errors.client_Contact = "";
-    }
-
-    if (!client.client_Address) {
-      errors.client_Address = "Client address is required!";
-      isValid = false;
-    } else {
-      errors.client_Address = "";
-    }
-
-    setClientError(errors);
-    return isValid;
-  };
-
-  const handleCurrentProductChange = (e) => {
-    const { name, value } = e.target;
-
-    if (name === "product") {
-      const selectedProduct = productOptions.find(
-        (prod) => prod.name === value
-      );
-      if (selectedProduct) {
-        setCurrentProduct((prev) => ({
-          ...prev,
-          product: selectedProduct.name,
-          product_SellingPrice: selectedProduct.price,
-        }));
-        return;
-      }
-    }
-
-    setCurrentProduct((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const calculateProductTotal = () => {
-    const price = Number(currentProduct.product_SellingPrice); // Price per unit
-    const quantity = Number(currentProduct.quantity); // Quantity of products
-    const discountPercentage = Number(currentProduct.product_Discount); // Discount percentage entered (e.g., 10)
-
-    // Calculations
-    const product_BeforeTax = price * quantity;
-    const product_Tax = product_BeforeTax * TAX_RATE; // 5% tax
-    const product_AfterTax = product_BeforeTax + product_Tax;
-    const product_Discount = (product_AfterTax * discountPercentage) / 100; // Discount in currency
-    const product_AfterDiscount = product_AfterTax - product_Discount;
+  const calculateRowValues = (row) => {
+    const product_BeforeTaxPrice = row.quantity * row.product_SellingPrice;
+    const product_Tax = product_BeforeTaxPrice * TAX; // 5% Tax
+    const product_AfterTaxPrice = product_BeforeTaxPrice + product_Tax;
+    const product_Discount = (product_AfterTaxPrice * row.product_DiscountPercentage) / 100;
+    const product_AfterDiscountPrice = product_AfterTaxPrice - product_Discount;
 
     return {
-      product_BeforeTax,
+      ...row,
+      product_BeforeTaxPrice,
       product_Tax,
-      product_AfterTax,
-      product_Discount, // Actual discount value (currency)
-      product_DiscountPercentage: discountPercentage, // Discount percentage
-      product_AfterDiscount,
-    };
-  };
-
-  const validateProduct = () => {
-    if (
-      !currentProduct.product ||
-      currentProduct.product_SellingPrice <= 0 ||
-      currentProduct.quantity <= 0
-    ) {
-      setProductError("Please provide valid product details.");
-      return false;
-    }
-    setProductError("");
-    return true;
-  };
-
-  const handleAddProduct = () => {
-    if (!validateProduct()) return;
-
-    const {
-      product_BeforeTax,
-      product_Tax,
-      product_AfterTax,
+      product_AfterTaxPrice,
       product_Discount,
-      product_DiscountPercentage,
-      product_AfterDiscount,
-    } = calculateProductTotal();
-
-    const newProduct = {
-      ...currentProduct,
-      product_BeforeTaxPrice: product_BeforeTax.toFixed(2),
-      product_Tax: product_Tax.toFixed(2),
-      product_AfterTaxPrice: product_AfterTax.toFixed(2),
-      product_Discount: product_Discount.toFixed(2), // Calculated discount value
-      product_DiscountPercentage: product_DiscountPercentage.toFixed(2), // Entered percentage
-      product_AfterDiscountPrice: product_AfterDiscount.toFixed(2),
-      totalPrice: product_AfterDiscount.toFixed(2),
+      product_AfterDiscountPrice,
     };
-
-    const updatedProducts = [...products, newProduct];
-    setProducts(updatedProducts);
-    updateGrandTotal(updatedProducts);
-
-    setCurrentProduct({
-      product: "",
-      product_SellingPrice: 0,
-      quantity: 1,
-      product_Discount: 0,
-      totalPrice: 0,
-    });
   };
 
-  const handleRemoveProduct = (index) => {
-    const updatedProducts = products.filter((_, i) => i !== index);
-    setProducts(updatedProducts);
-    updateGrandTotal(updatedProducts);
+  const handleFileChange = (e) => {
+    const { name, files } = e.target;
+    const file = files[0];
+
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setQuotePayload({
+        ...quotePayload,
+        [name]: file,
+        previewUrl: imageUrl,  // Generate URL for preview
+      });
+    }
+  };
+
+  const handleProductChange = (index, productName) => {
+    const product = fetchedProducts.find((prod) => prod.product_Name === productName);
+    const newRows = [...productRows];
+    newRows[index] = calculateRowValues({
+      ...newRows[index],
+      product: productName,
+      product_SellingPrice: product ? product.product_SellingPrice : 0,
+    });
+    setProductRows(newRows);
+  };
+
+  const handleRateChange = (index, rate) => {
+    const newRows = [...productRows];
+    newRows[index].product_SellingPrice = isNaN(rate) || rate === "" ? 0 : Number(rate); // Allow empty input temporarily
+    newRows[index] = calculateRowValues({
+      ...newRows[index],
+      product_SellingPrice: newRows[index].product_SellingPrice,
+    });
+    setProductRows(newRows);
+  };
+
+  const handleQuantityChange = (index, quantity) => {
+    const newRows = [...productRows];
+    newRows[index].quantity = isNaN(quantity) || quantity === "" ? 0 : Number(quantity); // Allow empty input temporarily
+    newRows[index] = calculateRowValues({
+      ...newRows[index],
+      quantity: newRows[index].quantity,
+    });
+    setProductRows(newRows);
+  };
+
+  const handleDiscountChange = (index, discountPercentage) => {
+    const newRows = [...productRows];
+    newRows[index].product_DiscountPercentage = isNaN(discountPercentage) || discountPercentage === "" ? 0 : Number(discountPercentage); // Allow empty input temporarily
+    newRows[index] = calculateRowValues({
+      ...newRows[index],
+      product_DiscountPercentage: newRows[index].product_DiscountPercentage,
+    });
+    setProductRows(newRows);
+  };
+
+  const addRow = () => {
+    setProductRows([
+      ...productRows,
+      {
+        product: '',
+        quantity: 0,
+        product_SellingPrice: 0,
+        product_BeforeTaxPrice: 0,
+        product_Tax: 0,
+        product_AfterTaxPrice: 0,
+        product_DiscountPercentage: 0,
+        product_Discount: 0,
+        product_AfterDiscountPrice: 0,
+      },
+    ]);
+  };
+
+  const deleteRow = (index) => {
+    const newRows = productRows.filter((_, i) => i !== index);
+    setProductRows(newRows);
+  };
+
+  const updateQuoteSummary = () => {
+    const totalBeforeTax = productRows.reduce((sum, row) => sum + row.product_BeforeTaxPrice, 0);
+    const totalTax = productRows.reduce((sum, row) => sum + row.product_Tax, 0);
+    const totalAfterDiscount = productRows.reduce((sum, row) => sum + row.product_AfterDiscountPrice, 0);
+
+    setQuotePayload((prevPayload) => ({
+      ...prevPayload,
+      quote_BeforeTaxPrice: totalBeforeTax,
+      quote_TotalTax: totalTax,
+      quote_AfterDiscountPrice: totalAfterDiscount,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateClient()) return;
-    if (products.length === 0) {
-      alert("Please add at least one product!");
-      return;
-    }
-
-    // Calculate the total price values
-    const quote_BeforeTaxPrice = products.reduce((total, product) => {
-      return total + parseFloat(product.product_BeforeTaxPrice);
-    }, 0);
-
-    const quote_AfterTaxPrice = products.reduce((total, product) => {
-      return total + parseFloat(product.product_AfterTaxPrice);
-    }, 0);
-
-    const quote_AfterDiscountPrice = products.reduce((total, product) => {
-      return total + parseFloat(product.product_AfterDiscountPrice);
-    }, 0);
-
-    const payload = {
-      quote_Client: client,
-      quote_Products: products.map((prod) => ({
-        product: prod.product,
-        quantity: prod.quantity,
-        product_SellingPrice: prod.product_SellingPrice,
-        product_Tax: prod.product_Tax,
-        product_DiscountPercentage: prod.product_DiscountPercentage,
-        product_Discount: prod.product_Discount,
-        product_BeforeTaxPrice: prod.product_BeforeTaxPrice,
-        product_AfterTaxPrice: prod.product_AfterTaxPrice,
-        product_AfterDiscountPrice: prod.product_AfterDiscountPrice,
-      })),
-      quote_BeforeTaxPrice: quote_BeforeTaxPrice.toFixed(2),
-      quote_AfterTaxPrice: quote_AfterTaxPrice.toFixed(2),
-      quote_AfterDiscountPrice: quote_AfterDiscountPrice.toFixed(2),
-      quote_InitialPayment: quoteInitialPayment, // Include initial payment
-      quote_Details: { status: "Pending" },
-    };
-
+    
     try {
+      const updatedQuotePayload = {
+        ...quotePayload,
+        quote_Products: productRows,
+      };
+
       const response = await axios.post(
         `${API_URL}/quote/create-quote`,
-        payload,
-        { headers: { Authorization: `Bearer ${jwtLoginToken}` } }
+        updatedQuotePayload, // Send the updated payload
+        {
+          headers: { Authorization: `Bearer ${jwtLoginToken}` },
+        }
       );
-      console.log(response.data);
+
       if (response.data.success) {
-        alert("Quote Created");
-        navigate("/quotes");
-        setProducts([]);
-        setClient({
-          client_Name: "",
-          client_Email: "",
-          client_Contact: "",
-          client_Address: "",
+        // Reset quotePayload and productRows to their default states
+        setQuotePayload({
+          quote_Client: "",
+          quote_Products: [], // This will be reset in the form
+          quote_SalesPerson: "",
+          quote_InitialPayment: "",
+          quote_BeforeTaxPrice: 0,
+          quote_TotalTax: 0,
+          quote_AfterDiscountPrice: 0,
+          quote_Subject: "",
+          quote_Project: "",
+          quote_Date: "",
+          quote_ExpiryDate: "",
+          quote_ReferenceNumber: "",
         });
-      } else {
-        alert("Failed to create quote. Please try again.");
+
+        setProductRows([
+          {
+            product: '',
+            quantity: 0,
+            product_SellingPrice: 0,
+            product_BeforeTaxPrice: 0,
+            product_Tax: 0,
+            product_AfterTaxPrice: 0,
+            product_DiscountPercentage: 0,
+            product_Discount: 0,
+            product_AfterDiscountPrice: 0,
+          },
+        ]);
+
+        alert("Quote Created");
       }
     } catch (error) {
       console.error("Error creating quote:", error);
-      alert("Failed to create quote. Please try again.");
     }
   };
 
-  const updateGrandTotal = (updatedProducts) => {
-    const beforeTaxTotal = updatedProducts.reduce(
-      (sum, product) => sum + parseFloat(product.product_BeforeTaxPrice),
-      0
-    );
-    const afterTaxTotal = updatedProducts.reduce(
-      (sum, product) => sum + parseFloat(product.product_AfterTaxPrice),
-      0
-    );
-    const afterDiscountTotal = updatedProducts.reduce(
-      (sum, product) => sum + parseFloat(product.product_AfterDiscountPrice),
-      0
-    );
 
-    setBeforeTaxTotal(beforeTaxTotal.toFixed(2));
-    setAfterTaxTotal(afterTaxTotal.toFixed(2));
-    setGrandTotal(afterDiscountTotal.toFixed(2));
-  };
+  return (
+    <form onSubmit={handleSubmit} className="p-4">
 
- return (
-  <div className="max-w-4xl mx-auto pt-2 pb-5">
-    <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">Create New Quote</h1>
+      <div className="mb-6 w-1/4">
+        <label className="block text-sm font-medium text-gray-700   mb-1" htmlFor="customerName">
+          <FaUser className="inline-block mr-2" /> Customer Name
+        </label>
+        <input
+          type="text"
+          id="customerName"
+          value={quotePayload.quote_Client}
+          onChange={(e) =>
+            setQuotePayload((prevPayload) => ({
+              ...prevPayload,
+              quote_Client: e.target.value,
+            }))
+          }
+          placeholder="Select or add a customer"
+          className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        />
+      </div>
 
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <section className="p-6 border border-gray-300 rounded-md bg-gray-50">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">Client Details</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {[
-              { name: "client_Name", icon: faUser },
-              { name: "client_Email", icon: faEnvelope },
-              { name: "client_Contact", icon: faPhone },
-              { name: "client_Address", icon: faMapMarkerAlt },
-            ].map(({ name, icon }) => (
-              <div key={name} className="relative">
-                <label htmlFor={name} className="text-sm font-medium text-gray-600">
-                  {name.replace("client_", "").replace("_", " ")}
-                </label>
-                <div className="relative">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
-                    <FontAwesomeIcon icon={icon} />
-                  </span>
-                  <input
-                    type="text"
-                    id={name}
-                    name={name}
-                    value={client[name]}
-                    onChange={handleClientChange}
-                    className="w-full p-2 pl-10 border border-gray-300 rounded-md"
-                  />
-                </div>
-              </div>
+      {/* Reference */}
+      <div className="mb-6 w-1/4">
+        <label className="block text-sm font-medium text-gray-700   mb-1" htmlFor="reference">
+          <FaHashtag className="inline-block mr-2" /> Reference
+        </label>
+        <input
+          type="text"
+          id="reference"
+          value={quotePayload.quote_ReferenceNumber}
+          onChange={(e) =>
+            setQuotePayload((prevPayload) => ({
+              ...prevPayload,
+              quote_ReferenceNumber: e.target.value,
+            }))
+          }
+          placeholder="Enter reference"
+          className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        />
+      </div>
+
+      {/* Sales Person */}
+      <div className="mb-6 w-1/4">
+        <label className="block text-sm font-medium text-gray-700   mb-1" htmlFor="salesPerson">
+          <FaUserTie className="inline-block mr-2" /> Salesperson
+        </label>
+        <select
+          id="salesPerson"
+          value={quotePayload.quote_SalesPerson}
+          onChange={(e) =>
+            setQuotePayload((prevPayload) => ({
+              ...prevPayload,
+              quote_SalesPerson: e.target.value,
+            }))
+          }
+          className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        >
+          <option value="">Select Salesperson</option>
+          {Array.isArray(salesEmployees) &&
+            salesEmployees.map((employee) => (
+              <option key={employee.userId} value={employee.userId}>
+                {employee.name}
+              </option>
             ))}
-          </div>
-        </section>
+        </select>
+      </div>
 
-        <div className="mt-6 relative">
-          <label htmlFor="initialPayment" className="text-sm font-medium text-gray-600">
-            Initial Payment %
+      {/* Quote Dates */}
+      <div className="flex space-x-4 mb-6 w-1/4">
+        <div className="flex-1">
+          <label className="block text-sm font-medium text-gray-700   mb-1" htmlFor="quoteDate">
+            <FaCalendarAlt className="inline-block mr-2" /> Quote Date
           </label>
-          <div className="relative">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
-              <FontAwesomeIcon icon={faPercent} />
-            </span>
-            <input
-              type="number"
-              id="initialPayment"
-              name="initialPayment"
-              value={quoteInitialPayment}
-              onChange={(e) => setQuoteInitialPayment(e.target.value)}
-              className="w-full p-2 pl-10 border border-gray-300 rounded-md mt-2"
-            />
-          </div>
+          <input
+            type="date"
+            id="quoteDate"
+            value={quotePayload.quote_Date}
+            onChange={(e) =>
+              setQuotePayload((prevPayload) => ({
+                ...prevPayload,
+                quote_Date: e.target.value,
+              }))
+            }
+            className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          />
         </div>
+        <div className="flex-1">
+          <label className="block text-sm font-medium text-gray-700   mb-1" htmlFor="expiryDate">
+            <FaCalendarAlt className="inline-block mr-2" /> Expiry Date
+          </label>
+          <input
+            type="date"
+            id="expiryDate"
+            value={quotePayload.quote_ExpiryDate}
+            onChange={(e) =>
+              setQuotePayload((prevPayload) => ({
+                ...prevPayload,
+                quote_ExpiryDate: e.target.value,
+              }))
+            }
+            className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          />
+        </div>
+      </div>
 
-<section className="p-6 border border-gray-300 rounded-md bg-gray-50">
-  <h2 className="text-lg font-semibold text-gray-700 mb-4">Products</h2>
-
-  {/* Product Input Row */}
-  <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
-    {/* Product Dropdown */}
-    <div className="relative">
-      <label htmlFor="product" className="text-sm font-medium text-gray-600">
-        Product
-      </label>
-      <select
-        id="product"
-        name="product"
-        value={currentProduct.product}
-        onChange={handleCurrentProductChange}
-        className="w-full p-2 border border-gray-300 rounded-md"
-      >
-        <option value="" disabled>
-          Select a product
-        </option>
-        {productOptions.map(({ id, name }) => (
-          <option key={id} value={name}>
-            {name}
-          </option>
-        ))}
-      </select>
-    </div>
-
-    {/* Selling Price */}
-    <div className="relative">
-      <label
-        htmlFor="product_SellingPrice"
-        className="text-sm font-medium text-gray-600"
-      >
-        Selling Price
-      </label>
-      <div className="relative">
-        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
-          <FontAwesomeIcon icon={faDollarSign} />
-        </span>
+      {/* Quote Initial Payment */}
+      <div className="mb-6 w-1/4">
+        <label className="block text-sm font-medium text-gray-700   mb-1" htmlFor="initialPayment">
+          <FaPercentage className="inline-block mr-2" /> Initial Payment (%)
+        </label>
         <input
-          type="number"
-          id="product_SellingPrice"
-          name="product_SellingPrice"
-          value={currentProduct.product_SellingPrice}
-          onChange={handleCurrentProductChange}
-          className="w-full p-2 pl-10 border border-gray-300 rounded-md"
+          type="text"
+          id="initialPayment"
+          value={quotePayload.quote_InitialPayment}
+          onChange={(e) =>
+            setQuotePayload((prevPayload) => ({
+              ...prevPayload,
+              quote_InitialPayment: e.target.value,
+            }))
+          }
+          placeholder="Enter Initial Payment"
+          className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
         />
       </div>
-    </div>
 
-    {/* Discount */}
-    <div className="relative">
-      <label
-        htmlFor="product_Discount"
-        className="text-sm font-medium text-gray-600"
-      >
-        Discount (%)
-      </label>
-      <div className="relative">
-        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
-          <FontAwesomeIcon icon={faTag} />
-        </span>
+      {/* Subject */}
+      <div className="mb-6 w-1/4">
+        <label className="block text-sm font-medium text-gray-700   mb-1" htmlFor="subject">
+          <FaFileAlt className="inline-block mr-2" /> Subject
+        </label>
         <input
-          type="number"
-          id="product_Discount"
-          name="product_Discount"
-          value={currentProduct.product_Discount}
-          onChange={handleCurrentProductChange}
-          className="w-full p-2 pl-10 border border-gray-300 rounded-md"
+          type="text"
+          id="subject"
+          value={quotePayload.quote_Subject}
+          onChange={(e) =>
+            setQuotePayload((prevPayload) => ({
+              ...prevPayload,
+              quote_Subject: e.target.value,
+            }))
+          }
+          placeholder="Enter subject"
+          className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
         />
       </div>
-    </div>
 
-    {/* Total */}
-    <div className="relative">
-      <label htmlFor="totalPrice" className="text-sm font-medium text-gray-600">
-        Total
-      </label>
-      <div className="relative">
-        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
-          <FontAwesomeIcon icon={faDollarSign} />
-        </span>
-        <input
-          type="number"
-          id="totalPrice"
-          name="totalPrice"
-          value={currentProduct.totalPrice}
-          readOnly
-          className="w-full p-2 pl-10 border border-gray-300 rounded-md bg-gray-100"
-        />
-      </div>
-    </div>
 
-    {/* Add Product Button */}
-    <div className="flex items-end">
-      <button
-        type="button"
-        onClick={handleAddProduct}
-        className="w-full px-4 py-2 bg-btnPrimaryClr hover:bg-btnHoverClr text-white rounded-md"
-      >
-        Add Product
-      </button>
-    </div>
-  </div>
-
-  {/* Product Error */}
-  {productError && <p className="text-red-500 mt-2">{productError}</p>}
-
-  {/* Products Table */}
-  {products.length > 0 && (
-    <div className="mt-4">
-      <table className="w-full border border-gray-300 text-sm">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="border px-4 py-2">Product</th>
-            <th className="border px-4 py-2">Selling Price</th>
-            <th className="border px-4 py-2">Discount (%)</th>
-            <th className="border px-4 py-2">Total (AED)</th>
-            <th className="border px-4 py-2">Actions</th>
+      {/* Products Table */}
+      <h1 className="text-xl font-bold mb-4">Item Table</h1>
+      <table className="w-full table-auto border border-gray-300 rounded-md">
+        <thead>
+          <tr className="bg-gray-100 text-left">
+            <th className="border border-gray-300 px-4 py-2">Item Description</th>
+            <th className="border border-gray-300 px-4 py-2">Qty</th>
+            <th className="border border-gray-300 px-4 py-2">Rate</th>
+            <th className="border border-gray-300 px-4 py-2">Discount (%)</th>
+            <th className="border border-gray-300 px-4 py-2">Tax</th>
+            <th className="border border-gray-300 px-4 py-2">Amount</th>
+            <th className="border border-gray-300 px-4 py-2">Actions</th>
           </tr>
         </thead>
         <tbody>
-          {products.map((prod, index) => (
-            <tr key={index}>
-              <td className="border px-4 py-2">{prod.product}</td>
-              <td className="border px-4 py-2">{prod.product_SellingPrice}</td>
-              <td className="border px-4 py-2">{prod.product_Discount}</td>
-              <td className="border px-4 py-2">{prod.totalPrice}</td>
-              <td className="border px-4 py-2 text-center">
-                <button
-                  type="button"
-                  onClick={() => handleRemoveProduct(index)}
-                  className="text-red-600 hover:underline flex items-center gap-1"
+          {productRows.map((row, index) => (
+            <tr key={index} className="hover:bg-gray-50">
+              <td className="border border-gray-300 px-4 py-2 flex items-center">
+                <input
+                  type="text"
+                  value={row.product}
+                  onChange={(e) => handleProductChange(index, e.target.value)}
+                  placeholder="Type or select a product"
+                  className="w-full border border-gray-300 rounded-md px-2 py-1 mr-2"
+                />
+                <select
+                  value={row.product}
+                  onChange={(e) => handleProductChange(index, e.target.value)}
+                  className="border border-gray-300 rounded-md px-2 py-1"
                 >
-                  <FontAwesomeIcon icon={faTimes} /> Remove
+                  <option value="">Select Item</option>
+                  {fetchedProducts.map((product) => (
+                    <option key={product.id} value={product.product_Name}>
+                      {product.product_Name}
+                    </option>
+                  ))}
+                </select>
+              </td>
+              <td className="border border-gray-300 px-4 py-2">
+                <input
+                  type="number"
+                  value={row.quantity === 0 ? "" : row.quantity} // Display empty if 0
+                  onChange={(e) => handleQuantityChange(index, e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-2 py-1"
+                />
+              </td>
+              <td className="border border-gray-300 px-4 py-2">
+                <input
+                  type="number"
+                  value={row.product_SellingPrice === 0 ? "" : row.product_SellingPrice} // Hide 0 value temporarily
+                  onChange={(e) => handleRateChange(index, Number(e.target.value))}
+                  className="w-full border border-gray-300 rounded-md px-2 py-1"
+                />
+              </td>
+              <td className="border border-gray-300 px-4 py-2">
+                <input
+                  type="number"
+                  value={row.product_DiscountPercentage === 0 ? "" : row.product_DiscountPercentage} // Hide 0 value temporarily
+                  onChange={(e) => handleDiscountChange(index, Number(e.target.value))}
+                  className="w-full border border-gray-300 rounded-md px-2 py-1"
+                />
+              </td>
+              <td className="border border-gray-300 px-4 py-2 text-center">5%</td>
+              <td className="border border-gray-300 px-4 py-2 text-center">{(row.product_AfterDiscountPrice).toFixed(2)}</td>
+              <td className="border border-gray-300 px-4 py-2 text-center">
+                <button
+                  onClick={() => deleteRow(index)}
+                  type="button"
+                  className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600"
+                >
+                  Delete
                 </button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-
-      {/* Totals Section */}
-      <div className="mt-4 text-right">
-        <p className="text-lg font-semibold">
-          Before Tax Total:{" "}
-          <span className="text-indigo-600">{beforeTaxTotal} AED</span>
-        </p>
-        <p className="text-lg font-semibold">
-          After Tax Total:{" "}
-          <span className="text-indigo-600">{afterTaxTotal} AED</span>
-        </p>
-        <p className="text-lg font-semibold">
-          Grand Total (After Discount):{" "}
-          <span className="text-indigo-600">{grandTotal} AED</span>
-        </p>
-      </div>
-    </div>
-  )}
-</section>
-
-      <button type="submit" className="w-full px-4 py-2 bg-btnPrimaryClr hover:bg-btnHoverClr text-white rounded-md">
-        Submit Quote
+      <button
+        type="button"
+        onClick={addRow}
+        className="mt-4 bg-blue-500 text-white px-5 py-2 rounded-md hover:bg-blue-600"
+      >AED
+        + Add Row
       </button>
-    </form>
-  </div>
-);
 
+      <div className="bg-white p-6 rounded-lg shadow-md space-y-4 text-lg font-semibold text-right">
+        <h2 className="text-gray-700 flex justify-between">
+          Subtotal:
+          <span className="text-gray-900 font-medium">
+            AED {quotePayload.quote_BeforeTaxPrice.toFixed(2)}
+          </span>
+        </h2>
+        <h2 className="text-gray-700 flex justify-between">
+          Total Tax:
+          <span className="text-gray-900 font-medium">
+            AED {quotePayload.quote_TotalTax.toFixed(2)}
+          </span>
+        </h2>
+        <h2 className="text-gray-700 flex justify-between border-t pt-4">
+          Grand Total:
+          <span className="text-gray-900 font-bold text-xl">
+            AED {quotePayload.quote_AfterDiscountPrice.toFixed(2)}
+          </span>
+        </h2>
+      </div>
+      <div className='flex justify-end'>
+        <input
+          type="file"
+          name="quote_Image"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="mt-4 w-full p-2 border rounded-lg bg-gray-50"
+        />
+        <button
+          type="submit"
+          className="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 text-"
+        >
+          Submit Quote
+        </button>
+      </div>
+    </form>
+  );
 };
 
 export default AddQuote;
