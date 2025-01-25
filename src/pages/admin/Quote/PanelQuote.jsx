@@ -331,13 +331,13 @@ const PanelQuote = () => {
                     className="px-4 py-2 border"
                     onClick={() => navigate(`/view-quote/${quote._id}`)}
                   >
-                    {quote.quote_Creater?.name || "N/A"}
+                    {quote.quote_Creater|| "N/A"}
                   </td>
                   <td
                     className="px-4 py-2 border"
                     onClick={() => navigate(`/view-quote/${quote._id}`)}
                   >
-                    {quote.quote_Client?.client_Name || "Unknown"}
+                    {quote.quote_Client || "Unknown"}
                   </td>
                   <td
                     className="px-4 py-2 border"

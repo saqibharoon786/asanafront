@@ -24,6 +24,7 @@ import PanelCalender from "./Calender/PanelCalender";
 import PanelCustomers from "./Customers/PanelCustomer";
 import AddCustomer from "./Customers/AddCustomer";
 import EditCustomer from "./Customers/EditCustomer";
+import CustomerForm from "./Customer/CustomerForm";
 
 export {
   AdminDashboard,
@@ -52,4 +53,5 @@ export {
   PanelCustomers,
   AddCustomer,
   EditCustomer,
+  CustomerForm
 };

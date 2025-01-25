@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { persistReducer, persistStore } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import authReducer from "../features/auth/authSlice";
+import customerReducer from "../features/customerSlice";
 import {
   FLUSH,
   REHYDRATE,
@@ -24,6 +25,7 @@ const persistedAuthReducer = persistReducer(persistConfig, authReducer);
 const store = configureStore({
   reducer: {
     auth: persistedAuthReducer,
+    customer: customerReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
