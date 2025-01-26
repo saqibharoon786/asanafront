@@ -1,14 +1,18 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { updateSingularFields } from "../../../features/customerSlice";
+import { createAddress } from "../../../features/customerSlice";
 
 const Address = () => {
-  const billing = useSelector((state) => state.customer.customer_Address.billing_Address);
-  const shipping = useSelector((state) => state.customer.customer_Address.shipping_Address);
   const dispatch = useDispatch();
 
-  const handleAddressChange = (type, field) => (event) => {
-    dispatch(updateSingularFields({ field: `customer_Address.${type}.${field}`, value: event.target.value }));
+  const handleAddress = (addressType, field) => (e) => {
+    dispatch(
+      createAddress({
+        addressType,
+        field,
+        value: e.target.value, // Use the actual input value
+      })
+    );
   };
 
   return (
@@ -20,30 +24,32 @@ const Address = () => {
           <h3 className="font-semibold mb-2">Billing Address</h3>
           <input
             type="text"
-            value={billing.street}
-            onChange={handleAddressChange("billing_Address", "street")}
+            onChange={handleAddress("billingAddress", "street")}
             placeholder="Street"
             className="w-full border px-2 py-1 rounded mb-2"
           />
           <input
             type="text"
-            value={billing.city}
-            onChange={handleAddressChange("billing_Address", "city")}
+            onChange={handleAddress("billingAddress", "city")}
             placeholder="City"
             className="w-full border px-2 py-1 rounded mb-2"
           />
           <input
             type="text"
-            value={billing.state}
-            onChange={handleAddressChange("billing_Address", "state")}
+            onChange={handleAddress("billingAddress", "state")}
             placeholder="State"
             className="w-full border px-2 py-1 rounded mb-2"
           />
           <input
             type="text"
-            value={billing.postalCode}
-            onChange={handleAddressChange("billing_Address", "postalCode")}
+            onChange={handleAddress("billingAddress", "postalCode")}
             placeholder="Postal Code"
+            className="w-full border px-2 py-1 rounded mb-2"
+          />
+          <input
+            type="text"
+            onChange={handleAddress("billingAddress", "country")}
+            placeholder="Country"
             className="w-full border px-2 py-1 rounded mb-2"
           />
         </div>
@@ -53,30 +59,32 @@ const Address = () => {
           <h3 className="font-semibold mb-2">Shipping Address</h3>
           <input
             type="text"
-            value={shipping.street}
-            onChange={handleAddressChange("shipping_Address", "street")}
+            onChange={handleAddress("shippingAddress", "street")}
             placeholder="Street"
             className="w-full border px-2 py-1 rounded mb-2"
           />
           <input
             type="text"
-            value={shipping.city}
-            onChange={handleAddressChange("shipping_Address", "city")}
+            onChange={handleAddress("shippingAddress", "city")}
             placeholder="City"
             className="w-full border px-2 py-1 rounded mb-2"
           />
           <input
             type="text"
-            value={shipping.state}
-            onChange={handleAddressChange("shipping_Address", "state")}
+            onChange={handleAddress("shippingAddress", "state")}
             placeholder="State"
             className="w-full border px-2 py-1 rounded mb-2"
           />
           <input
             type="text"
-            value={shipping.postalCode}
-            onChange={handleAddressChange("shipping_Address", "postalCode")}
+            onChange={handleAddress("shippingAddress", "postalCode")}
             placeholder="Postal Code"
+            className="w-full border px-2 py-1 rounded mb-2"
+          />
+          <input
+            type="text"
+            onChange={handleAddress("shippingAddress", "country")}
+            placeholder="Country"
             className="w-full border px-2 py-1 rounded mb-2"
           />
         </div>

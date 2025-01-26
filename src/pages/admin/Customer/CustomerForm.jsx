@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { updateSingularFields, updatePrimaryContact, updatePhone } from "../../../features/customerSlice";
+import { createGeneralDetails, updateSingularFields, updatePrimaryContact, updatePhone } from "../../../features/customerSlice";
 import OtherDetails from "./OtherDetails";
 import Address from "./Address";
+import Remarks from "./Remarks";
+import ContactPersons from "./ContactPersons";
 import axios from "axios";
 
 const API_URL = process.env.REACT_APP_API_URL;
@@ -13,17 +15,9 @@ const CustomerForm = () => {
   const [activeSection, setActiveSection] = useState("OtherDetails");
   const customerData = useSelector((state) => state.customer);
 
-  const handleCustomerFormChange = (e) => {
-    dispatch(updateSingularFields({ field: e.target.name, value: e.target.value }))
+  const handleCustomerGeneralDetails = (e) => {
+    dispatch(createGeneralDetails({ field: e.target.name, value: e.target.value }))
   }
-
-  const handlePrimaryInfoChange = (e) => {
-    dispatch(updatePrimaryContact({ field: e.target.name, value: e.target.value}));
-  };  
-
-  const handlePhoneChange = (e) => {
-    dispatch(updatePhone({ field: e.target.name, value: e.target.value}));
-  };  
 
   const handleSubmit = async () => {
     console.log(customerData);
@@ -53,11 +47,11 @@ const CustomerForm = () => {
         <h2 className="text-lg font-semibold mb-2">Customer Type</h2>
         <div className="flex gap-4 mb-4">
           <label className="flex items-center">
-            <input type="radio" name="customer_Type" value="Business" onChange={handleCustomerFormChange} />
+            <input type="radio" name="customer_Type" value="Business" onChange={handleCustomerGeneralDetails} />
             <span className="ml-2">Business</span>
           </label>
           <label className="flex items-center">
-            <input type="radio" name="customer_Type" value="Individual" onChange={handleCustomerFormChange} />
+            <input type="radio" name="customer_Type" value="Individual" onChange={handleCustomerGeneralDetails} />
             <span className="ml-2">Individual</span>
           </label>
         </div>
@@ -70,7 +64,7 @@ const CustomerForm = () => {
               <label className="block font-medium mb-1">Salutation:</label>
               <select
                 name="salutation"
-                onChange={handlePrimaryInfoChange}
+                onChange={handleCustomerGeneralDetails}
                 className="w-full border-gray-300 rounded-md shadow-sm"
               >
                 <option value="">Select</option>
@@ -84,7 +78,7 @@ const CustomerForm = () => {
               <input
                 type="text"
                 name="firstName"
-                onChange={handlePrimaryInfoChange}
+                onChange={handleCustomerGeneralDetails}
                 className="w-full border-gray-300 rounded-md shadow-sm"
               />
             </div>
@@ -93,7 +87,7 @@ const CustomerForm = () => {
               <input
                 type="text"
                 name="lastName"
-                onChange={handlePrimaryInfoChange}
+                onChange={handleCustomerGeneralDetails}
                 className="w-full border-gray-300 rounded-md shadow-sm"
               />
             </div>
@@ -105,7 +99,7 @@ const CustomerForm = () => {
             <input
               type="text"
               name="customer_CompanyName"
-              onChange={handleCustomerFormChange}
+              onChange={handleCustomerGeneralDetails}
               className="w-full border-gray-300 rounded-md shadow-sm"
             />
           </div>
@@ -116,7 +110,7 @@ const CustomerForm = () => {
             <input
               type="text"
               name="customer_DisplayName"
-              onChange={handleCustomerFormChange}
+              onChange={handleCustomerGeneralDetails}
               className="w-full border-gray-300 rounded-md shadow-sm"
             />
           </div>
@@ -127,7 +121,7 @@ const CustomerForm = () => {
             <input
               type="email"
               name="customer_Email"
-              onChange={handleCustomerFormChange}
+              onChange={handleCustomerGeneralDetails}
               className="w-full border-gray-300 rounded-md shadow-sm"
             />
           </div>
@@ -139,7 +133,7 @@ const CustomerForm = () => {
               <input
                 type="text"
                 name="workPhone"
-                onChange={handlePhoneChange}
+                onChange={handleCustomerGeneralDetails}
                 className="w-full border-gray-300 rounded-md shadow-sm"
               />
             </div>
@@ -148,7 +142,7 @@ const CustomerForm = () => {
               <input
                 type="text"
                 name="mobilePhone"
-                onChange={handlePhoneChange}
+                onChange={handleCustomerGeneralDetails}
                 className="w-full border-gray-300 rounded-md shadow-sm"
               />
             </div>
@@ -171,10 +165,26 @@ const CustomerForm = () => {
           >
             Address
           </button>
+          <button
+            onClick={() => setActiveSection("Remarks")}
+            className={`px-4 py-2 rounded-md shadow ${activeSection === "Remarks" ? "bg-blue-600 text-white" : "bg-gray-200"
+              }`}
+          >
+            Remarks
+          </button>
+          <button
+            onClick={() => setActiveSection("ContactPersons")}
+            className={`px-4 py-2 rounded-md shadow ${activeSection === "ContactPersons" ? "bg-blue-600 text-white" : "bg-gray-200"
+              }`}
+          >
+            Contact Persons
+          </button>
         </div>
 
         {activeSection === "OtherDetails" && <OtherDetails />}
         {activeSection === "Address" && <Address />}
+        {activeSection === "Remarks" && <Remarks />}
+        {activeSection === "ContactPersons" && <ContactPersons />}
       </div>
 
       <button

@@ -254,10 +254,7 @@ const AddCustomer = () => {
             </li>
           </ul>
 
-          {/* Tab Content */}
-          <div className="tab-content mb-7">
-            {/* Other Details Tab */}
-            {/* Other Details Tab */}
+          <div className="tab-content mb-7">   
             {activeTab === "otherDetails" && (
               <div className="tab-pane active">
                 <div className="space-y-6">
