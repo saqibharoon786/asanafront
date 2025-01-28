@@ -25,8 +25,6 @@ import {
   AdminPayrolls,
   PanelCalender,
   PanelCustomers,
-  AddCustomer,
-  EditCustomer,
   CustomerForm
 } from "../pages/admin/AdminPages";
 import { AdminLayout } from "../layouts/Layout";
@@ -61,13 +59,10 @@ const AdminRoutes = () => (
 
         <Route path="/departments" element={<AdminProtectedRoute><AdminLayout><PanelDepartment /></AdminLayout></AdminProtectedRoute>} />
 
-
         <Route path="/calender" element={<AdminProtectedRoute><AdminLayout><PanelCalender /></AdminLayout></AdminProtectedRoute>} />
        
         <Route path="/customers" element={<AdminProtectedRoute><AdminLayout><PanelCustomers /></AdminLayout></AdminProtectedRoute>} />
-        {/* <Route path="/add-customers" element={<AdminProtectedRoute><AdminLayout><AddCustomer /></AdminLayout></AdminProtectedRoute>} /> */}
-        <Route path="/view-customer" element={<AdminProtectedRoute><AdminLayout><EditCustomer /></AdminLayout></AdminProtectedRoute>} />
-        <Route path="/add-customers" element={<AdminProtectedRoute><AdminLayout><CustomerForm /></AdminLayout></AdminProtectedRoute>} />
+        <Route path="/add-customer" element={<AdminProtectedRoute><AdminLayout><CustomerForm /></AdminLayout></AdminProtectedRoute>} />
 
   </>
 );

@@ -1,6 +1,6 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { createAddress } from "../../../features/customerSlice";
+import { createAddress } from "../../../../features/customerSlice";
 
 const Address = () => {
   const dispatch = useDispatch();

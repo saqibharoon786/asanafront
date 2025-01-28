@@ -21,10 +21,8 @@ import AddProduct from "./Products/AddProduct";
 import EditProduct from "./Products/EditProduct";
 import AdminPayrolls from "./Payrolls/AdminPayrolls";
 import PanelCalender from "./Calender/PanelCalender";
-import PanelCustomers from "./Customers/PanelCustomer";
-import AddCustomer from "./Customers/AddCustomer";
-import EditCustomer from "./Customers/EditCustomer";
-import CustomerForm from "./Customer/CustomerForm";
+import PanelCustomers from "./Customer/PanelCustomers";
+import CustomerForm from "./Customer/addCustomer/CustomerForm";
 
 export {
   AdminDashboard,
@@ -51,7 +49,5 @@ export {
   EditProduct,
   PanelCalender,
   PanelCustomers,
-  AddCustomer,
-  EditCustomer,
-  CustomerForm
+  CustomerForm,
 };

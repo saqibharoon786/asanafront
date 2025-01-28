@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { createGeneralDetails, updateSingularFields, updatePrimaryContact, updatePhone } from "../../../features/customerSlice";
+import {
+  createGeneralDetails,
+  updateSingularFields,
+  updatePrimaryContact,
+  updatePhone,
+} from "../../../../features/customerSlice";
 import OtherDetails from "./OtherDetails";
 import Address from "./Address";
 import Remarks from "./Remarks";
@@ -16,18 +21,30 @@ const CustomerForm = () => {
   const customerData = useSelector((state) => state.customer);
 
   const handleCustomerGeneralDetails = (e) => {
-    dispatch(createGeneralDetails({ field: e.target.name, value: e.target.value }))
-  }
+    dispatch(
+      createGeneralDetails({ field: e.target.name, value: e.target.value })
+    );
+  };
 
-  const handleSubmit = async () => {
-    console.log(customerData);
+  const handleSectionChange = (section) => {
+    setActiveSection(section);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Prevent default form submission
+    e.stopPropagation(); // Stop event bubbling
+
     try {
-      const response = await axios.post(`${API_URL}/customer/add-customer`, customerData, {
-        headers: {
-          Authorization: `Bearer ${jwtLoginToken}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await axios.post(
+        `${API_URL}/customer/add-customer`,
+        customerData,
+        {
+          headers: {
+            Authorization: `Bearer ${jwtLoginToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (response.data.success) {
         alert("Customer created successfully!");
@@ -41,21 +58,30 @@ const CustomerForm = () => {
   };
 
   return (
-    <div className="p-4 max-w-3xl mx-auto">
-        <h1 className="text-2xl font-bold mb-4">New Customer</h1>
+    <div className="mx-auto">
       <div className="bg-white p-4 rounded-xl shadow-md">
+        <h1 className="text-2xl font-bold mb-4">New Customer</h1>
         <h2 className="text-lg font-semibold mb-2">Customer Type</h2>
         <div className="flex gap-4 mb-4">
           <label className="flex items-center">
-            <input type="radio" name="customer_Type" value="Business" onChange={handleCustomerGeneralDetails} />
+            <input
+              type="radio"
+              name="customer_Type"
+              value="Business"
+              onChange={handleCustomerGeneralDetails}
+            />
             <span className="ml-2">Business</span>
           </label>
           <label className="flex items-center">
-            <input type="radio" name="customer_Type" value="Individual" onChange={handleCustomerGeneralDetails} />
+            <input
+              type="radio"
+              name="customer_Type"
+              value="Individual"
+              onChange={handleCustomerGeneralDetails}
+            />
             <span className="ml-2">Individual</span>
           </label>
         </div>
-
         {/* Added new input fields */}
         <div className="space-y-4">
           {/* Primary Contact */}
@@ -149,33 +175,48 @@ const CustomerForm = () => {
           </div>
         </div>
         {/* End of new input fields */}
-
         <div className="flex gap-4 mb-4">
           <button
-            onClick={() => setActiveSection("OtherDetails")}
-            className={`px-4 py-2 rounded-md shadow ${activeSection === "OtherDetails" ? "bg-blue-600 text-white" : "bg-gray-200"
-              }`}
+            type="button" // Add this line
+            onClick={() => handleSectionChange("OtherDetails")}
+            className={`px-4 py-2 rounded-md shadow ${
+              activeSection === "OtherDetails"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200"
+            }`}
           >
             Other Details
           </button>
           <button
-            onClick={() => setActiveSection("Address")}
-            className={`px-4 py-2 rounded-md shadow ${activeSection === "Address" ? "bg-blue-600 text-white" : "bg-gray-200"
-              }`}
+            type="button" // Add this line
+            onClick={() => handleSectionChange("Address")}
+            className={`px-4 py-2 rounded-md shadow ${
+              activeSection === "Address"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200"
+            }`}
           >
             Address
           </button>
           <button
-            onClick={() => setActiveSection("Remarks")}
-            className={`px-4 py-2 rounded-md shadow ${activeSection === "Remarks" ? "bg-blue-600 text-white" : "bg-gray-200"
-              }`}
+            type="button" // Add this line
+            onClick={() => handleSectionChange("Remarks")}
+            className={`px-4 py-2 rounded-md shadow ${
+              activeSection === "Remarks"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200"
+            }`}
           >
             Remarks
           </button>
           <button
-            onClick={() => setActiveSection("ContactPersons")}
-            className={`px-4 py-2 rounded-md shadow ${activeSection === "ContactPersons" ? "bg-blue-600 text-white" : "bg-gray-200"
-              }`}
+            type="button" // Add this line
+            onClick={() => handleSectionChange("ContactPersons")}
+            className={`px-4 py-2 rounded-md shadow ${
+              activeSection === "ContactPersons"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200"
+            }`}
           >
             Contact Persons
           </button>

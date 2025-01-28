@@ -30,6 +30,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
     HR: false,
     product: false,
     sales: false,
+    customers: false,
     reporting: false,
   });
 
@@ -249,6 +250,20 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
               <ul className="ml-6 mt-2 space-y-2 text-gray-600">
                 <li>
                   <Link
+                    to="/customers"
+                    className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
+                      activeItem === "customers"
+                        ? "bg-btnPrimaryClr text-white"
+                        : "hover:text-gray-900"
+                    }`}
+                    onClick={() => handleOptionClick("customers")}
+                  >
+                    <FontAwesomeIcon icon={faClipboardList} />
+                    <span>Customers</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     to="/leads"
                     className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
                       activeItem === "leads"
@@ -375,7 +390,6 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
               </ul>
             )}
           </li>
-
         </ul>
       </div>
     </div>

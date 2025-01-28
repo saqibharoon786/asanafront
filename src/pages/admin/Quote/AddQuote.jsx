@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import Select from 'react-select';
+import CustomerForm from "../Customer/addCustomer/CustomerForm";
 import {
   FaUser,
   FaHashtag,
@@ -28,9 +30,11 @@ const AddQuote = () => {
       product_AfterDiscountPrice: 0,
     },
   ]);
+  const [showCustomerForm, setShowCustomerForm] = useState(false);
   const [salesEmployees, setSalesEmployees] = useState([]);
+  const [customers, setCustomers] = useState([]);
   const [quotePayload, setQuotePayload] = useState({
-    quote_Client: "",
+    quote_Customer: "",
     quote_Products: [],
     quote_SalesPerson: "",
     quote_InitialPayment: "",
@@ -76,12 +80,34 @@ const AddQuote = () => {
     }
   };
 
-  fetchProducts();
-  fetchSalesEmployees();
+  const fetchCustomers = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/customer/get-all-customers`,
+        {
+          headers: { Authorization: `Bearer ${jwtLoginToken}` },
+        }
+      );
+      if (response.data.success && response.data.information?.customers) {
+        setCustomers(response.data.information.customers);
+      }
+    } catch (err) {
+      console.error("Error fetching sales employees:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+    fetchSalesEmployees();
+  }, []);
+
+  useEffect(() => {
+    fetchCustomers();
+  }, [showCustomerForm]);
 
   useEffect(() => {
     updateQuoteSummary();
-  }, [productRows]);
+  }, [productRows, showCustomerForm]);
 
   const calculateRowValues = (row) => {
     const product_BeforeTaxPrice = row.quantity * row.product_SellingPrice;
@@ -214,7 +240,7 @@ const AddQuote = () => {
     }));
 
     const formData = new FormData();
-    formData.append("quote_Client", quotePayload.quote_Client);
+    formData.append("quote_Customer", quotePayload.quote_Customer);
     formData.append("quote_Products", JSON.stringify(products));
     formData.append("quote_SalesPerson", quotePayload.quote_SalesPerson);
     formData.append("quote_InitialPayment", quotePayload.quote_InitialPayment);
@@ -250,7 +276,7 @@ const AddQuote = () => {
       if (response.data.success) {
         // Reset quotePayload and productRows to their default states
         setQuotePayload({
-          quote_Client: "",
+          quote_Customer: "",
           quote_Products: [], // This will be reset in the form
           quote_SalesPerson: "",
           quote_InitialPayment: "",
@@ -289,27 +315,74 @@ const AddQuote = () => {
 
   return (
     <form onSubmit={handleSubmit} className="p-4">
+      {/* Customer Name */}
       <div className="mb-6 w-1/4">
         <label
-          className="block text-sm font-medium text-gray-700   mb-1"
+          className="block text-sm font-medium text-gray-700 mb-1"
           htmlFor="customerName"
         >
           <FaUser className="inline-block mr-2" /> Customer Name
         </label>
-        <input
-          type="text"
-          id="customerName"
-          value={quotePayload.quote_Client}
-          onChange={(e) =>
-            setQuotePayload((prevPayload) => ({
-              ...prevPayload,
-              quote_Client: e.target.value,
-            }))
-          }
-          placeholder="Select or add a customer"
-          className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-        />
+        <div className="flex items-center space-x-2">
+          <Select
+            id="customerName"
+            options={customers.map((customer) => ({
+              value: customer._id,
+              label: customer.customer_GeneralDetails.customer_DisplayName,
+            }))}
+            value={{
+              value: quotePayload.quote_Customer,
+              label:
+                customers.find((c) => c._id === quotePayload.quote_Customer)
+                  ?.customer_GeneralDetails.customer_DisplayName || "",
+            }}
+            onChange={(selectedOption) =>
+              setQuotePayload((prevPayload) => ({
+                ...prevPayload,
+                quote_Customer: selectedOption ? selectedOption.value : "",
+              }))
+            }
+            placeholder="Select Customer"
+            className="mt-1 block w-full"
+          />
+          <button
+            type="button"
+            onClick={() => setShowCustomerForm(true)}
+            className="bg-blue-500 text-white px-3 py-2 rounded-md hover:bg-blue-600"
+          >
+            +
+          </button>
+        </div>
       </div>
+
+      {showCustomerForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-[80%] max-h-[90%] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Add Customer</h2>
+              <button
+                onClick={() => setShowCustomerForm(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="p-4">
+              <CustomerForm
+                onClose={() => setShowCustomerForm(false)} // Close the modal after adding
+                onCustomerAdded={(newCustomer) => {
+                  setCustomers((prev) => [...prev, newCustomer]); // Add the new customer locally
+                  setQuotePayload((prevPayload) => ({
+                    ...prevPayload,
+                    quote_Customer: newCustomer._id, // Set the newly added customer
+                  }));
+                  setShowCustomerForm(false); // Close the modal
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Reference */}
       <div className="mb-6 w-1/4">
@@ -583,10 +656,11 @@ const AddQuote = () => {
           className="mt-4 w-full p-2 border rounded-lg bg-gray-50"
         />
         <button
-          type="submit"
-          className="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 text-"
+          type="submit" // This should remain as type="submit"
+          onClick={handleSubmit}
+          className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md shadow hover:bg-blue-500"
         >
-          Submit Quote
+          Submit
         </button>
       </div>
     </form>

@@ -1,6 +1,6 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { createOtherDetails } from "../../../features/customerSlice";
+import { createOtherDetails } from "../../../../features/customerSlice";
 
 const OtherDetails = () => {
   const dispatch = useDispatch();

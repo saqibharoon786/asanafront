@@ -68,7 +68,7 @@ const PanelQuote = () => {
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
 
   const handleNewQuote = () => {
-    navigate('/add-quote');
+    navigate("/add-quote");
   };
 
   const handleTimeFilterChange = (event) => {
@@ -82,7 +82,7 @@ const PanelQuote = () => {
       });
 
       if (response.data.success) {
-        let filteredQuotes = response.data.information.Quotes;
+        let filteredQuotes = response.data.information.quotes;
 
         if (timeFilter !== "All") {
           const now = new Date();
@@ -158,7 +158,6 @@ const PanelQuote = () => {
           setQuotes((prevQuotes) =>
             prevQuotes.filter((quote) => quote._id !== quoteId)
           );
-
         }
       } catch (error) {
         setModalMessage("Failed to delete the quote. Please try again.");
@@ -185,7 +184,6 @@ const PanelQuote = () => {
           setQuotes((prevQuotes) =>
             prevQuotes.filter((quote) => quote._id !== quoteId)
           );
-
         }
       } catch (error) {
         setModalMessage("Failed to mark the quote as paid. Please try again.");
@@ -264,7 +262,9 @@ const PanelQuote = () => {
         </div>
       ) : totalQuotes === 0 ? (
         <div className="bg-delta p-6 rounded-lg shadow mb-6">
-          <p className="text-red-500 text-center font-medium">No quotes available.</p>
+          <p className="text-red-500 text-center font-medium">
+            No quotes available.
+          </p>
         </div>
       ) : (
         <div className="bg-delta shadow">
@@ -289,7 +289,7 @@ const PanelQuote = () => {
                   Created By
                 </th>
                 <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border">
-                  Client Name
+                  Customer
                 </th>
                 <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border">
                   Total Price
@@ -331,13 +331,16 @@ const PanelQuote = () => {
                     className="px-4 py-2 border"
                     onClick={() => navigate(`/view-quote/${quote._id}`)}
                   >
-                    {quote.quote_Creater|| "N/A"}
+                    {quote.quote_Creater || "N/A"}
                   </td>
                   <td
                     className="px-4 py-2 border"
                     onClick={() => navigate(`/view-quote/${quote._id}`)}
                   >
-                    {quote.quote_Client || "Unknown"}
+                    {
+                      quote.quote_CustomerDetails.customer_GeneralDetails
+                        .customer_DisplayName
+                    }
                   </td>
                   <td
                     className="px-4 py-2 border"
@@ -368,24 +371,7 @@ const PanelQuote = () => {
                         </h3>
                         <div className="flex flex-col">
                           <button
-                            className="px-4 my-2 py-2 bg-btnSecClr hover:bg-btnSecHoverClr"
-                            onClick={() => {
-                              handlePaidQuote(quote._id);
-                              setShowActionPopup(null);
-                            }}
-                          >
-                            Mark as Paid
-                          </button>
-                          <button
-                            className="px-4 py-2 bg-btnSecClr hover:bg-btnSecHoverClr"
-                            onClick={() => {
-                              handleViewQuote(quote._id);
-                            }}
-                          >
-                            View Quote
-                          </button>
-                          <button
-                            className="px-4 py-2 bg-btnTerClr text-gray-800 hover:bg-btnTerHoverClr"
+                            className="px-4 py-2 bg-btnPrimaryClr text-gray-800 hover:bg-btnTerHoverClr"
                             onClick={() => handleDeleteQuote(quote._id)}
                           >
                             Delete Quote
@@ -404,7 +390,6 @@ const PanelQuote = () => {
               ))}
             </tbody>
           </table>
-
         </div>
       )}
 

@@ -1,10 +1,12 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { createContactPersons } from "../../../features/customerSlice";
+import { createContactPersons } from "../../../../features/customerSlice";
 
 const ContactPersons = () => {
   const dispatch = useDispatch();
-  const contactPersons = useSelector((state) => state.customer.customer_ContactPersons);
+  const contactPersons = useSelector(
+    (state) => state.customer.customer_ContactPersons
+  );
 
   const handleContactPersons = (index, field) => (e) => {
     dispatch(
@@ -66,7 +68,9 @@ const ContactPersons = () => {
         </div>
       ))}
       <button
-        onClick={() => dispatch(createContactPersons({ index: contactPersons.length }))}
+        onClick={() =>
+          dispatch(createContactPersons({ index: contactPersons.length }))
+        }
         className="mt-2 px-4 py-2 bg-blue-500 text-white rounded"
       >
         Add Contact Person
