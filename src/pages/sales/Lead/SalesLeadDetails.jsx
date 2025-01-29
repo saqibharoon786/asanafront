@@ -7,36 +7,41 @@ const API_URL = process.env.REACT_APP_API_URL;
 const SalesLeadDetails = () => {
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
   const { leadId } = useParams(); // Get the lead ID from the URL
+  const [leads, setLeads] = useState([]);
   const [leadDetails, setLeadDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showNotePopup, setShowNotePopup] = useState(false);
   const [showInteractionHistoryPopup, setShowInteractionHistoryPopup] =
     useState(false);
-  const [salesEmployees, setSalesEmployees] = useState([]);
-  const [leadTransferHistoryUsersNames, setLeadTransferHistoryUsersNames] =
-    useState([]);
-
   const [noteInput, setNoteInput] = useState("");
   const [interactionHistoryInput, setInteractionHistoryInput] = useState({
     stage_Name: "",
     stage_Detail: "",
   });
 
-  const fetchLeadDetails = async () => {
+  const fetchAllLeads = async () => {
     try {
-      const response = await axios.get(
-        `${API_URL}/lead/${leadId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${jwtLoginToken}`,
-          },
-        }
-      );
+      const response = await axios.get(`${API_URL}/lead/all-leads`, {
+        headers: {
+          Authorization: `Bearer ${jwtLoginToken}`,
+        },
+      });
+      setLeads(response.data.information.allLeads); // Corrected this line
+      console.log(response.data.information.allLeads);
+    } catch (err) {
+      setError(err.response ? err.response.data.message : err.message);
+    }
+  };
+
+  const fetchLeadDetails = async (leadId) => {
+    try {
+      const response = await axios.get(`${API_URL}/lead/${leadId}`, {
+        headers: {
+          Authorization: `Bearer ${jwtLoginToken}`,
+        },
+      });
       setLeadDetails(response.data.information.lead);
-      setLeadTransferHistoryUsersNames(
-        response.data.information.leadTransferHistoryUsersNames
-      );
       setLoading(false);
     } catch (err) {
       setError(err.response ? err.response.data.message : err.message);
@@ -45,8 +50,11 @@ const SalesLeadDetails = () => {
   };
 
   useEffect(() => {
-    fetchLeadDetails();
-  }, [noteInput, interactionHistoryInput]);
+    fetchAllLeads();
+    if (leadId) {
+      fetchLeadDetails(leadId);
+    }
+  }, [leadId]); // Corrected the dependency array
 
   const handleAddNote = async () => {
     try {
@@ -62,6 +70,7 @@ const SalesLeadDetails = () => {
       alert("Note added successfully!");
       setShowNotePopup(false);
       setNoteInput("");
+      fetchLeadDetails(leadId); // Refresh lead details after adding a note
     } catch (err) {
       alert(err.response ? err.response.data.message : err.message);
     }
@@ -81,183 +90,224 @@ const SalesLeadDetails = () => {
       alert("Interaction stage added successfully!");
       setShowInteractionHistoryPopup(false);
       setInteractionHistoryInput({ stage_Name: "", stage_Detail: "" });
+      fetchLeadDetails(leadId); // Refresh lead details after adding interaction history
     } catch (err) {
       alert(err.response ? err.response.data.message : err.message);
-    }
-  };
-
-  const fetchSalesEmployees = async () => {
-    try {
-      const response = await axios.get(
-        `${API_URL}/department/get-sales-employees`,
-        {
-          headers: {
-            Authorization: `Bearer ${jwtLoginToken}`,
-          },
-        }
-      );
-      console.log(response.data);
-
-      if (
-        response.data.success &&
-        response.data.information &&
-        response.data.information.users
-      ) {
-        setSalesEmployees(response.data.information.users);
-        console.log("Sales Employees:", response.data.information.users);
-      } else {
-        console.error("No users found or invalid response structure.");
-      }
-    } catch (err) {
-      console.error("Error fetching sales employees:", err);
     }
   };
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
-  const {
-    lead_Client,
-    lead_Demography,
-    lead_Behaviour,
-    lead_Action,
-    lead_AttributesOrAction,
-    lead_Organization,
-    lead_Title,
-    lead_Label,
-    lead_Source,
-    lead_Notes,
-    lead_InteractionHistory,
-    lead_TransferAndAssign,
-  } = leadDetails;
-
   return (
-    <>
-        <div className="flex flex-row gap-6">
+    <div className="flex flex-row gap-1">
+      {/* Leads List Section */}
+      <div className="w-1/3 bg-white rounded-lg p-1">
+        <h1 className="text-2xl font-bold text-gray-800 border-b border-gray-400 p-2">
+          Leads
+        </h1>
+        <div className="mt-4 space-y-2">
+          {leads.map((lead) => (
+            <div
+              key={lead._id}
+              className="p-4 border rounded-md hover:bg-gray-100 cursor-pointer"
+              onClick={() => fetchLeadDetails(lead._id)}
+            >
+              <h2 className="text-xl font-semibold text-gray-700">
+                {lead.lead_Title}
+              </h2>
+              <p className="text-gray-600">{lead.lead_Customer}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Lead Details Section */}
       <div className="w-2/3 bg-white shadow-lg rounded-lg p-6">
-        <h1 className="text-2xl font-bold text-gray-800 border-b pb-4">
-          Lead Details
-        </h1>
-        <div className="m-2 space-y-4 space-x-3">
-          <button
-            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 mx-1"
-            onClick={() => setShowNotePopup(true)}
-          >
-            Add Note
-          </button>
-          <button
-            className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
-            onClick={() => setShowInteractionHistoryPopup(true)}
-          >
-            Add Interaction History
-          </button>
-        </div>
-        <div className="mt-4">
-          <h2 className="text-xl font-semibold text-gray-700">{lead_Title}</h2>
-          <p className="text-gray-600">Organization: {lead_Organization}</p>
-          <p className="text-gray-600">Label: {lead_Label}</p>
-          <p className="text-gray-600">Source: {lead_Source}</p>
-
-          <h3 className="text-lg font-semibold text-gray-700 mt-6">
-            Client Info
-          </h3>
-          <div className="grid grid-cols-2 gap-4 text-gray-600">
-            <p>Name: {lead_Client.client_Name}</p>
-            <p>Email: {lead_Client.client_Email}</p>
-            <p>Address: {lead_Client.client_Address}</p>
-          </div>
-
-          <h3 className="text-lg font-semibold text-gray-700 mt-6">
-            Demography
-          </h3>
-          <div className="grid grid-cols-2 gap-4 text-gray-600">
-            <p>Company Size: {lead_Demography.company_Size}</p>
-            <p>Industry: {lead_Demography.industry_Match}</p>
-            <p>Location: {lead_Demography.location}</p>
-            <p>Job Title: {lead_Demography.job_Title}</p>
-          </div>
-
-          <h3 className="text-lg font-semibold text-gray-700 mt-6">
-            Behaviour
-          </h3>
-          <div className="grid grid-cols-2 gap-4 text-gray-600">
-            <p>Visited Pricing Page: {lead_Behaviour.visited_Pricing_Page}</p>
-            <p>
-              Downloaded White Paper: {lead_Behaviour.downloaded_White_Paper}
-            </p>
-            <p>
-              Repeated Website Visits: {lead_Behaviour.repeated_Website_Visits}
-            </p>
-            <p>
-              Ignored Email or Unsubscribed:{" "}
-              {lead_Behaviour.ignore_Email_or_Unsubscribed}
-            </p>
-          </div>
-
-          <h3 className="text-lg font-semibold text-gray-700 mt-6">Actions</h3>
-          <div className="grid grid-cols-2 gap-4 text-gray-600">
-            <p>
-              Requested Demo or Quote:{" "}
-              {lead_Action.requested_Demo_or_Quote ? "Yes" : "No"}
-            </p>
-            <p>
-              Attended Sales Call:{" "}
-              {lead_Action.attended_Sales_Call ? "Yes" : "No"}
-            </p>
-            <p>
-              Opted for Trial Services:{" "}
-              {lead_Action.opted_for_Trial_Services ? "Yes" : "No"}
-            </p>
-          </div>
-
-          <h3 className="text-lg font-semibold text-gray-700 mt-6">Notes</h3>
-          <div className="space-y-2">
-            {lead_Notes.map((note) => (
-              <div key={note._id} className="border p-4 rounded-md">
-                <p>{note.note}</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  Created At: {new Date(note.note_CreatedAt).toLocaleString()}
-                </p>
+        {leadDetails ? (
+          <>
+            <div className="flex justify-between itmes-center">
+              <h1 className="text-2xl font-bold text-gray-800 ">
+                Lead Details
+              </h1>
+              <div className="space-x-2">
+                <button
+                  className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                  onClick={() => setShowNotePopup(true)}
+                >
+                  Add Note
+                </button>
+                <button
+                  className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
+                  onClick={() => setShowInteractionHistoryPopup(true)}
+                >
+                  Add Interaction History
+                </button>
               </div>
-            ))}
-          </div>
+            </div>
 
-          <h3 className="text-lg font-semibold text-gray-700 mt-6">
-            Interaction History
-          </h3>
-          <div className="">
-            {lead_InteractionHistory.map((stage) => (
-              <div key={stage._id} className="border p-4 rounded-md">
-                <p>Stage: {stage.stage_Name}</p>
-                <p>Details: {stage.stage_Detail}</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  Created At:{" "}
-                  {new Date(stage.stage_CreatedAt).toLocaleString()}
-                </p>
+            <div className="mt-4">
+              <h2 className="text-xl font-semibold text-gray-700">
+                {leadDetails.lead_Title}
+              </h2>
+
+              {/* General Details */}
+              <div className="grid grid-cols-2 gap-x-4 text-gray-600 mt-2">
+                <div className="grid grid-cols-[auto_1fr] gap-x-2">
+                  <span className="font-medium text-gray-700">Label:</span>
+                  <span>{leadDetails.lead_Label}</span>
+                </div>
+                <div className="grid grid-cols-[auto_1fr] gap-x-2">
+                  <span className="font-medium text-gray-700">Source:</span>
+                  <span>{leadDetails.lead_Source}</span>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
-      {/* Lead Transfer History Section */}
-      <div className="w-1/3 bg-white shadow-lg rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-700 border-b pb-4">
-          Lead Transfer History
-        </h3>
-        {leadTransferHistoryUsersNames.map((transfer) => (
-          <div key={transfer.transferredAt} className="border p-4 rounded-md">
-            <p>Transferred By: {transfer.transferredBy}</p>
-            <p>Assigned To: {transfer.assignedTo}</p>
-            <p className="text-sm text-gray-500 mt-2">
-              Transferred At:{" "}
-              {new Date(transfer.transferredAt).toLocaleString()}
-            </p>
-          </div>
-        ))}
+              {/* Demography */}
+              <h3 className="text-lg font-semibold text-gray-700 mt-6">
+                Demography
+              </h3>
+              <div className="grid grid-cols-2 gap-x-4 text-gray-600">
+                {[
+                  ["Company Size:", leadDetails.lead_Demography.company_Size],
+                  [
+                    "Industry:",
+                    leadDetails.lead_Demography.industry_Match
+                      ? "Match"
+                      : "No Match",
+                  ],
+                  ["Location:", leadDetails.lead_Demography.location],
+                  ["Job Title:", leadDetails.lead_Demography.job_Title],
+                ].map(([label, value], index) => (
+                  <div
+                    key={index}
+                    className="grid grid-cols-[auto_1fr] gap-x-2"
+                  >
+                    <span className="font-medium text-gray-700">{label}</span>
+                    <span>{value}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Behaviour */}
+              <h3 className="text-lg font-semibold text-gray-700 mt-6">
+                Behaviour
+              </h3>
+              <div className="grid grid-cols-2 gap-x-4 text-gray-600">
+                {[
+                  [
+                    "Visited Pricing Page:",
+                    leadDetails.lead_Behaviour.visited_Pricing_Page,
+                  ],
+                  [
+                    "Downloaded White Paper:",
+                    leadDetails.lead_Behaviour.downloaded_White_Paper
+                      ? "Yes"
+                      : "No",
+                  ],
+                  [
+                    "Repeated Website Visits:",
+                    leadDetails.lead_Behaviour.repeated_Website_Visits
+                      ? "Yes"
+                      : "No",
+                  ],
+                  [
+                    "Ignored Email or Unsubscribed:",
+                    leadDetails.lead_Behaviour.ignore_Email_or_Unsubscribed
+                      ? "Yes"
+                      : "No",
+                  ],
+                ].map(([label, value], index) => (
+                  <div
+                    key={index}
+                    className="grid grid-cols-[auto_1fr] gap-x-2"
+                  >
+                    <span className="font-medium text-gray-700">{label}</span>
+                    <span>{value}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Actions */}
+              <h3 className="text-lg font-semibold text-gray-700 mt-6">
+                Actions
+              </h3>
+              <div className="grid grid-cols-2 gap-x-4 text-gray-600">
+                {[
+                  [
+                    "Requested Demo or Quote:",
+                    leadDetails.lead_Action.requested_Demo_or_Quote
+                      ? "Yes"
+                      : "No",
+                  ],
+                  [
+                    "Attended Sales Call:",
+                    leadDetails.lead_Action.attended_Sales_Call ? "Yes" : "No",
+                  ],
+                  [
+                    "Opted for Trial Services:",
+                    leadDetails.lead_Action.opted_for_Trial_Services
+                      ? "Yes"
+                      : "No",
+                  ],
+                ].map(([label, value], index) => (
+                  <div
+                    key={index}
+                    className="grid grid-cols-[auto_1fr] gap-x-2"
+                  >
+                    <span className="font-medium text-gray-700">{label}</span>
+                    <span>{value}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Notes */}
+              <h3 className="text-lg font-semibold text-gray-700 mt-6">
+                Notes
+              </h3>
+              <div className="space-y-2">
+                {leadDetails.lead_Notes && leadDetails.lead_Notes.length > 0 ? (
+                  leadDetails.lead_Notes.map((note) => (
+                    <div key={note._id} className="border p-4 rounded-md">
+                      <p>{note.note}</p>
+                      <p className="text-sm text-gray-500 mt-2">
+                        Created At:{" "}
+                        {new Date(note.note_CreatedAt).toLocaleString()}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p>No notes available.</p>
+                )}
+              </div>
+
+              {/* Interaction History */}
+              <h3 className="text-lg font-semibold text-gray-700 mt-6">
+                Interaction History
+              </h3>
+              <div>
+                {leadDetails.lead_InteractionHistory &&
+                leadDetails.lead_InteractionHistory.length > 0 ? (
+                  leadDetails.lead_InteractionHistory.map((stage) => (
+                    <div key={stage._id} className="border p-4 rounded-md">
+                      <p>Stage: {stage.stage_Name}</p>
+                      <p>Details: {stage.stage_Detail}</p>
+                      <p className="text-sm text-gray-500 mt-2">
+                        Created At:{" "}
+                        {new Date(stage.stage_CreatedAt).toLocaleString()}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p>No interaction history available.</p>
+                )}
+              </div>
+            </div>
+          </>
+        ) : (
+          <div>Select a lead to view details</div>
+        )}
       </div>
-    </div>
 
       {/* Note Popup */}
       {showNotePopup && (
@@ -336,7 +386,7 @@ const SalesLeadDetails = () => {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };
 

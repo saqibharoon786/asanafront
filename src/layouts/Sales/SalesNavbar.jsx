@@ -31,19 +31,21 @@ const SalesNavbar = ({ toggleSidebar }) => {
         const data = await response.json();
         if (data.success) {
           setNotifications(data.information.events);
-          setUnreadCount(data.information.events.filter((n) => !n.event_Read).length);
+          setUnreadCount(
+            data.information.events.filter((n) => !n.event_Read).length
+          );
         }
       } catch (error) {
         console.error("Error fetching notifications:", error);
       }
     };
 
-    if (jwtLoginToken) {
-      fetchNotifications(); // Initial fetch
-      const intervalId = setInterval(fetchNotifications, 3000); // Poll every 3 seconds
+    // if (jwtLoginToken) {
+    //   fetchNotifications(); // Initial fetch
+    //   const intervalId = setInterval(fetchNotifications, 3000); // Poll every 3 seconds
 
-      return () => clearInterval(intervalId); // Clean up interval on component unmount
-    }
+    //   return () => clearInterval(intervalId); // Clean up interval on component unmount
+    // }
   }, [API_URL, jwtLoginToken]);
 
   const handleLogout = () => {
@@ -52,7 +54,6 @@ const SalesNavbar = ({ toggleSidebar }) => {
   };
 
   // Mark notification as read
-  
 
   const markAsRead = async (notificationId) => {
     try {
@@ -66,7 +67,7 @@ const SalesNavbar = ({ toggleSidebar }) => {
           },
         }
       );
-  
+
       if (response.data.success) {
         setNotifications((prevNotifications) =>
           prevNotifications.map((notification) =>
@@ -81,11 +82,11 @@ const SalesNavbar = ({ toggleSidebar }) => {
       console.error("Error marking notification as read:", error);
     }
   };
-  
+
   return (
-    <div className="relative shadow-md">
+    <div className="relative  font-poppins bg-white text-black">
       {/* Primary Navbar */}
-      <div className="flex item s-center justify-between bg-gray-900 text-white h-12 px-4">
+      <div className="flex items-center justify-between bg-white text-black h-20 px-4">
         {/* Logo and Company Name */}
         <div className="flex items-center space-x-4">
           <img
@@ -98,11 +99,11 @@ const SalesNavbar = ({ toggleSidebar }) => {
 
         {/* Navbar Controls */}
         <div className="flex items-center space-x-6">
-          <FontAwesomeIcon icon={faEnvelope} className="hover:text-gray-300" />
+          <FontAwesomeIcon icon={faEnvelope} className="hover:text-gray-500" />
           <div className="relative">
             <FontAwesomeIcon
               icon={faBell}
-              className="hover:text-gray-300 cursor-pointer"
+              className="hover:text-gray-500 cursor-pointer"
               onClick={() => setShowModal(true)} // Open modal
             />
             {unreadCount > 0 && (
@@ -111,17 +112,13 @@ const SalesNavbar = ({ toggleSidebar }) => {
               </span>
             )}
           </div>
-          <FontAwesomeIcon icon={faUser} className="hover:text-gray-300" />
+          <FontAwesomeIcon icon={faUser} className="hover:text-gray-500" />
 
           {/* Conditionally Show Login or Logout Button */}
           {jwtLoginToken ? (
             <button
               onClick={handleLogout}
-              className="font-medium py-1 px-3 rounded hover:bg-red-600 transition duration-300"
-              style={{
-                backgroundColor: "#dc3545", // Red
-                color: "#fff", // White text
-              }}
+              className="font-medium py-1 px-3 rounded hover:bg-red-600 transition duration-300 bg-red-500 text-white"
             >
               Logout
             </button>
@@ -131,11 +128,7 @@ const SalesNavbar = ({ toggleSidebar }) => {
                 console.log("Redirecting to login...");
                 // Add your login redirection logic here
               }}
-              className="font-medium py-1 px-3 rounded hover:bg-green-600 transition duration-300"
-              style={{
-                backgroundColor: "#28a745", // Green
-                color: "#fff", // White text
-              }}
+              className="font-medium py-1 px-3 rounded hover:bg-green-600 transition duration-300 bg-green-500 text-white"
             >
               Login
             </button>
@@ -143,7 +136,7 @@ const SalesNavbar = ({ toggleSidebar }) => {
 
           {/* Sidebar Toggle Button */}
           <button
-            className="md:hidden p-2 rounded bg-gray-700 hover:bg-gray-600"
+            className="md:hidden p-2 rounded bg-gray-300 hover:bg-gray-400"
             onClick={toggleSidebar}
           >
             <FontAwesomeIcon icon={faBars} />
@@ -157,19 +150,30 @@ const SalesNavbar = ({ toggleSidebar }) => {
           <div className="bg-white rounded-lg w-96 p-4">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold">Notifications</h2>
-              <button className="text-gray-500 hover:text-gray-700" onClick={() => setShowModal(false)}>
+              <button
+                className="text-gray-500 hover:text-gray-700"
+                onClick={() => setShowModal(false)}
+              >
                 ✖
               </button>
             </div>
             <div className="space-y-4">
               {notifications.length > 0 ? (
                 notifications.map((notification) => (
-                  <div key={notification._id} className={`p-3 rounded ${notification.event_Read ? "bg-gray-100" : "bg-blue-100"}`}>
+                  <div
+                    key={notification._id}
+                    className={`p-3 rounded ${
+                      notification.event_Read ? "bg-gray-100" : "bg-blue-100"
+                    }`}
+                  >
                     <h1>{notification.event_Title}</h1>
                     <p>{notification.event_Description}</p>
 
                     {!notification.event_Read && (
-                      <button className="mt-2 text-sm text-white bg-blue-500 px-3 py-1 rounded hover:bg-blue-600" onClick={() => markAsRead(notification._id)}>
+                      <button
+                        className="mt-2 text-sm text-white bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
+                        onClick={() => markAsRead(notification._id)}
+                      >
                         Mark as Read
                       </button>
                     )}

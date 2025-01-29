@@ -1,490 +1,669 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import Select from "react-select";
+import SalesCustomerForm from "../Customer/addCustomer/SalesCustomerForm";
 import {
-  UserIcon,
-  MailIcon,
-  PhoneIcon,
-  LocationMarkerIcon,
-} from "@heroicons/react/outline";
+  FaUser,
+  FaHashtag,
+  FaUserTie,
+  FaCalendarAlt,
+  FaPercentage,
+  FaFileAlt,
+} from "react-icons/fa";
 
 const API_URL = process.env.REACT_APP_API_URL;
-const TAX_RATE = 0.05; // Define tax rate here
+const jwtLoginToken = localStorage.getItem("jwtLoginToken");
+const TAX = 0.05;
 
 const SalesAddQuote = () => {
-  const jwtLoginToken = localStorage.getItem("jwtLoginToken");
-  const { user } = useSelector((state) => state.auth) || {};
-  const [grandTotal, setGrandTotal] = useState(0);
-  const [beforeTaxTotal, setBeforeTaxTotal] = useState(0);
-  const [afterTaxTotal, setAfterTaxTotal] = useState(0);
-  const [quoteInitialPayment, setQuoteInitialPayment] = useState(0);
-
-  const navigate = useNavigate();
-
-  const [client, setClient] = useState({
-    client_Name: "",
-    client_Email: "",
-    client_Contact: "",
-    client_Address: "",
+  const [fetchedProducts, setFetchedProducts] = useState([]);
+  const [productRows, setProductRows] = useState([
+    {
+      product: "",
+      quantity: 0,
+      product_SellingPrice: 0,
+      product_BeforeTaxPrice: 0,
+      product_Tax: 0,
+      product_AfterTaxPrice: 0,
+      product_DiscountPercentage: 0,
+      product_Discount: 0,
+      product_AfterDiscountPrice: 0,
+    },
+  ]);
+  const [showCustomerForm, setShowCustomerForm] = useState(false);
+  const [salesEmployees, setSalesEmployees] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [quotePayload, setQuotePayload] = useState({
+    quote_Customer: "",
+    quote_Products: [],
+    quote_SalesPerson: "",
+    quote_InitialPayment: "",
+    quote_BeforeTaxPrice: 0,
+    quote_TotalTax: 0,
+    quote_AfterDiscountPrice: 0,
+    quote_Subject: "",
+    quote_Image: null,
+    previewUrl: null,
+    quote_Project: "",
+    quote_Date: "",
+    quote_ExpiryDate: "",
+    quote_ReferenceNumber: "",
   });
 
-  const [products, setProducts] = useState([]);
-  const [currentProduct, setCurrentProduct] = useState({
-    product: "",
-    product_SellingPrice: 0,
-    quantity: 1,
-    product_Discount: 0,
-    product_Tax: TAX_RATE * 100, // Default tax rate
-    totalPrice: 0,
-  });
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/product/get-products`, {
+        headers: { Authorization: `Bearer ${jwtLoginToken}` },
+      });
 
-  const [productOptions, setProductOptions] = useState([]);
-  const [clientError, setClientError] = useState({
-    client_Name: "",
-    client_Email: "",
-    client_Contact: "",
-    client_Address: "",
-  });
-  const [productError, setProductError] = useState("");
+      if (response.data.success) {
+        setFetchedProducts(response.data.information.products);
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+  const fetchSalesEmployees = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/department/get-sales-employees`,
+        {
+          headers: { Authorization: `Bearer ${jwtLoginToken}` },
+        }
+      );
+      if (response.data.success && response.data.information?.users) {
+        setSalesEmployees(response.data.information.users);
+      }
+    } catch (err) {
+      console.error("Error fetching sales employees:", err);
+    }
+  };
+
+  const fetchCustomers = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/customer/get-all-customers`,
+        {
+          headers: { Authorization: `Bearer ${jwtLoginToken}` },
+        }
+      );
+      if (response.data.success && response.data.information?.customers) {
+        setCustomers(response.data.information.customers);
+      }
+    } catch (err) {
+      console.error("Error fetching sales employees:", err);
+    }
+  };
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      if (!jwtLoginToken) return;
-
-      try {
-        const response = await axios.get(`${API_URL}/product/get-products`, {
-          headers: { Authorization: `Bearer ${jwtLoginToken}` },
-        });
-        const products = response.data?.information?.products || [];
-        const formattedProducts = products.map((prod) => ({
-          id: prod._id,
-          name: prod.product_Name,
-          price: prod.product_SellingPrice,
-        }));
-        setProductOptions(formattedProducts);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-        setProductOptions([]);
-        alert("Failed to load products. Please check your network connection.");
-      }
-    };
-
     fetchProducts();
-  }, [jwtLoginToken]);
+    fetchSalesEmployees();
+  }, []);
 
-  const handleClientChange = (e) => {
-    const { name, value } = e.target;
-    setClient((prevClient) => ({
-      ...prevClient,
-      [name]: value,
-    }));
-  };
+  useEffect(() => {
+    fetchCustomers();
+  }, [showCustomerForm]);
 
-  const validateClient = () => {
-    let isValid = true;
-    let errors = { ...clientError };
+  useEffect(() => {
+    updateQuoteSummary();
+  }, [productRows, showCustomerForm]);
 
-    if (!client.client_Name) {
-      errors.client_Name = "Client name is required!";
-      isValid = false;
-    } else {
-      errors.client_Name = "";
-    }
-
-    if (!client.client_Email) {
-      errors.client_Email = "Client email is required!";
-      isValid = false;
-    } else {
-      errors.client_Email = "";
-    }
-
-    if (!client.client_Contact) {
-      errors.client_Contact = "Client contact is required!";
-      isValid = false;
-    } else {
-      errors.client_Contact = "";
-    }
-
-    if (!client.client_Address) {
-      errors.client_Address = "Client address is required!";
-      isValid = false;
-    } else {
-      errors.client_Address = "";
-    }
-
-    setClientError(errors);
-    return isValid;
-  };
-
-  const handleCurrentProductChange = (e) => {
-    const { name, value } = e.target;
-
-    if (name === "product") {
-      const selectedProduct = productOptions.find(
-        (prod) => prod.name === value
-      );
-      if (selectedProduct) {
-        setCurrentProduct((prev) => ({
-          ...prev,
-          product: selectedProduct.name,
-          product_SellingPrice: selectedProduct.price,
-        }));
-        return;
-      }
-    }
-
-    setCurrentProduct((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const calculateProductTotal = () => {
-    const price = Number(currentProduct.product_SellingPrice); // Price per unit
-    const quantity = Number(currentProduct.quantity); // Quantity of products
-    const discountPercentage = Number(currentProduct.product_Discount); // Discount percentage entered (e.g., 10)
-
-    // Calculations
-    const product_BeforeTax = price * quantity;
-    const product_Tax = product_BeforeTax * TAX_RATE; // 5% tax
-    const product_AfterTax = product_BeforeTax + product_Tax;
-    const product_Discount = (product_AfterTax * discountPercentage) / 100; // Discount in currency
-    const product_AfterDiscount = product_AfterTax - product_Discount;
+  const calculateRowValues = (row) => {
+    const product_BeforeTaxPrice = row.quantity * row.product_SellingPrice;
+    const product_Tax = product_BeforeTaxPrice * TAX; // 5% Tax
+    const product_AfterTaxPrice = product_BeforeTaxPrice + product_Tax;
+    const product_Discount =
+      (product_AfterTaxPrice * row.product_DiscountPercentage) / 100;
+    const product_AfterDiscountPrice = product_AfterTaxPrice - product_Discount;
 
     return {
-      product_BeforeTax,
+      ...row,
+      product_BeforeTaxPrice,
       product_Tax,
-      product_AfterTax,
-      product_Discount, // Actual discount value (currency)
-      product_DiscountPercentage: discountPercentage, // Discount percentage
-      product_AfterDiscount,
-    };
-  };
-
-  const validateProduct = () => {
-    if (
-      !currentProduct.product ||
-      currentProduct.product_SellingPrice <= 0 ||
-      currentProduct.quantity <= 0
-    ) {
-      setProductError("Please provide valid product details.");
-      return false;
-    }
-    setProductError("");
-    return true;
-  };
-
-  const handleAddProduct = () => {
-    if (!validateProduct()) return;
-
-    const {
-      product_BeforeTax,
-      product_Tax,
-      product_AfterTax,
+      product_AfterTaxPrice,
       product_Discount,
-      product_DiscountPercentage,
-      product_AfterDiscount,
-    } = calculateProductTotal();
-
-    const newProduct = {
-      ...currentProduct,
-      product_BeforeTaxPrice: product_BeforeTax.toFixed(2),
-      product_Tax: product_Tax.toFixed(2),
-      product_AfterTaxPrice: product_AfterTax.toFixed(2),
-      product_Discount: product_Discount.toFixed(2), // Calculated discount value
-      product_DiscountPercentage: product_DiscountPercentage.toFixed(2), // Entered percentage
-      product_AfterDiscountPrice: product_AfterDiscount.toFixed(2),
-      totalPrice: product_AfterDiscount.toFixed(2),
+      product_AfterDiscountPrice,
     };
-
-    const updatedProducts = [...products, newProduct];
-    setProducts(updatedProducts);
-    updateGrandTotal(updatedProducts);
-
-    setCurrentProduct({
-      product: "",
-      product_SellingPrice: 0,
-      quantity: 1,
-      product_Discount: 0,
-      totalPrice: 0,
-    });
   };
 
-  const handleRemoveProduct = (index) => {
-    const updatedProducts = products.filter((_, i) => i !== index);
-    setProducts(updatedProducts);
-    updateGrandTotal(updatedProducts);
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setQuotePayload((prevPayload) => ({
+      ...prevPayload,
+      quote_Image: file,
+    }));
+  };
+
+  const handleProductChange = (index, productName) => {
+    const product = fetchedProducts.find(
+      (prod) => prod.product_Name === productName
+    );
+    const newRows = [...productRows];
+    newRows[index] = calculateRowValues({
+      ...newRows[index],
+      product: productName,
+      product_SellingPrice: product ? product.product_SellingPrice : 0,
+    });
+    setProductRows(newRows);
+  };
+
+  const handleRateChange = (index, rate) => {
+    const newRows = [...productRows];
+    newRows[index].product_SellingPrice =
+      isNaN(rate) || rate === "" ? 0 : Number(rate); // Allow empty input temporarily
+    newRows[index] = calculateRowValues({
+      ...newRows[index],
+      product_SellingPrice: newRows[index].product_SellingPrice,
+    });
+    setProductRows(newRows);
+  };
+
+  const handleQuantityChange = (index, quantity) => {
+    const newRows = [...productRows];
+    newRows[index].quantity =
+      isNaN(quantity) || quantity === "" ? 0 : Number(quantity); // Allow empty input temporarily
+    newRows[index] = calculateRowValues({
+      ...newRows[index],
+      quantity: newRows[index].quantity,
+    });
+    setProductRows(newRows);
+  };
+
+  const handleDiscountChange = (index, discountPercentage) => {
+    const newRows = [...productRows];
+    newRows[index].product_DiscountPercentage =
+      isNaN(discountPercentage) || discountPercentage === ""
+        ? 0
+        : Number(discountPercentage); // Allow empty input temporarily
+    newRows[index] = calculateRowValues({
+      ...newRows[index],
+      product_DiscountPercentage: newRows[index].product_DiscountPercentage,
+    });
+    setProductRows(newRows);
+  };
+
+  const addRow = () => {
+    setProductRows([
+      ...productRows,
+      {
+        product: "",
+        quantity: 0,
+        product_SellingPrice: 0,
+        product_BeforeTaxPrice: 0,
+        product_Tax: 0,
+        product_AfterTaxPrice: 0,
+        product_DiscountPercentage: 0,
+        product_Discount: 0,
+        product_AfterDiscountPrice: 0,
+      },
+    ]);
+  };
+
+  const deleteRow = (index) => {
+    const newRows = productRows.filter((_, i) => i !== index);
+    setProductRows(newRows);
+  };
+
+  const updateQuoteSummary = () => {
+    const totalBeforeTax = productRows.reduce(
+      (sum, row) => sum + row.product_BeforeTaxPrice,
+      0
+    );
+    const totalTax = productRows.reduce((sum, row) => sum + row.product_Tax, 0);
+    const totalAfterDiscount = productRows.reduce(
+      (sum, row) => sum + row.product_AfterDiscountPrice,
+      0
+    );
+
+    setQuotePayload((prevPayload) => ({
+      ...prevPayload,
+      quote_BeforeTaxPrice: totalBeforeTax,
+      quote_TotalTax: totalTax,
+      quote_AfterDiscountPrice: totalAfterDiscount,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateClient()) return;
-    if (products.length === 0) {
-      alert("Please add at least one product!");
-      return;
-    }
+    const products = productRows.map((row) => ({
+      product: row.product,
+      quantity: row.quantity,
+      product_SellingPrice: row.product_SellingPrice,
+      product_BeforeTaxPrice: row.product_BeforeTaxPrice,
+      product_Tax: row.product_Tax,
+      product_AfterTaxPrice: row.product_AfterTaxPrice,
+      product_DiscountPercentage: row.product_DiscountPercentage,
+      product_Discount: row.product_Discount,
+      product_AfterDiscountPrice: row.product_AfterDiscountPrice,
+    }));
 
-    // Calculate the total price values
-    const quote_BeforeTaxPrice = products.reduce((total, product) => {
-      return total + parseFloat(product.product_BeforeTaxPrice);
-    }, 0);
-
-    const quote_AfterTaxPrice = products.reduce((total, product) => {
-      return total + parseFloat(product.product_AfterTaxPrice);
-    }, 0);
-
-    const quote_AfterDiscountPrice = products.reduce((total, product) => {
-      return total + parseFloat(product.product_AfterDiscountPrice);
-    }, 0);
-
-    const payload = {
-      quote_Client: client,
-      quote_Products: products.map((prod) => ({
-        product: prod.product,
-        quantity: prod.quantity,
-        product_SellingPrice: prod.product_SellingPrice,
-        product_Tax: prod.product_Tax,
-        product_DiscountPercentage: prod.product_DiscountPercentage,
-        product_Discount: prod.product_Discount,
-        product_BeforeTaxPrice: prod.product_BeforeTaxPrice,
-        product_AfterTaxPrice: prod.product_AfterTaxPrice,
-        product_AfterDiscountPrice: prod.product_AfterDiscountPrice,
-      })),
-      quote_BeforeTaxPrice: quote_BeforeTaxPrice.toFixed(2),
-      quote_AfterTaxPrice: quote_AfterTaxPrice.toFixed(2),
-      quote_AfterDiscountPrice: quote_AfterDiscountPrice.toFixed(2),
-      quote_InitialPayment: quoteInitialPayment, // Include initial payment
-      quote_Details: { status: "Pending" },
-    };
+    const formData = new FormData();
+    formData.append("quote_Customer", quotePayload.quote_Customer);
+    formData.append("quote_Products", JSON.stringify(products));
+    formData.append("quote_SalesPerson", quotePayload.quote_SalesPerson);
+    formData.append("quote_InitialPayment", quotePayload.quote_InitialPayment);
+    formData.append("quote_BeforeTaxPrice", quotePayload.quote_BeforeTaxPrice);
+    formData.append("quote_TotalTax", quotePayload.quote_TotalTax);
+    formData.append(
+      "quote_AfterDiscountPrice",
+      quotePayload.quote_AfterDiscountPrice
+    );
+    formData.append("quote_Subject", quotePayload.quote_Subject);
+    formData.append("quote_Image", quotePayload.quote_Image);
+    formData.append("previewUrl", quotePayload.previewUrl); // Image file
+    formData.append("quote_Project", quotePayload.quote_Project);
+    formData.append("quote_Date", quotePayload.quote_Date);
+    formData.append("quote_ExpiryDate", quotePayload.quote_ExpiryDate);
+    formData.append(
+      "quote_ReferenceNumber",
+      quotePayload.quote_ReferenceNumber
+    );
 
     try {
       const response = await axios.post(
         `${API_URL}/quote/create-quote`,
-        payload,
-        { headers: { Authorization: `Bearer ${jwtLoginToken}` } }
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${jwtLoginToken}`,
+          },
+        }
       );
-      console.log(response.data);
+
       if (response.data.success) {
-        alert("Quote Created");
-        navigate("/sales/quotes");
-        setProducts([]);
-        setClient({
-          client_Name: "",
-          client_Email: "",
-          client_Contact: "",
-          client_Address: "",
+        // Reset quotePayload and productRows to their default states
+        setQuotePayload({
+          quote_Customer: "",
+          quote_Products: [], // This will be reset in the form
+          quote_SalesPerson: "",
+          quote_InitialPayment: "",
+          quote_BeforeTaxPrice: 0,
+          quote_TotalTax: 0,
+          quote_AfterDiscountPrice: 0,
+          quote_Subject: "",
+          quote_Project: "",
+          quote_Image: null,
+          previewUrl: null,
+          quote_Date: "",
+          quote_ExpiryDate: "",
+          quote_ReferenceNumber: "",
         });
-      } else {
-        alert("Failed to create quote. Please try again.");
+
+        setProductRows([
+          {
+            product: "",
+            quantity: 0,
+            product_SellingPrice: 0,
+            product_BeforeTaxPrice: 0,
+            product_Tax: 0,
+            product_AfterTaxPrice: 0,
+            product_DiscountPercentage: 0,
+            product_Discount: 0,
+            product_AfterDiscountPrice: 0,
+          },
+        ]);
+
+        alert("Quote Created");
       }
     } catch (error) {
       console.error("Error creating quote:", error);
-      alert("Failed to create quote. Please try again.");
     }
   };
 
-  const updateGrandTotal = (updatedProducts) => {
-    const beforeTaxTotal = updatedProducts.reduce(
-      (sum, product) => sum + parseFloat(product.product_BeforeTaxPrice),
-      0
-    );
-    const afterTaxTotal = updatedProducts.reduce(
-      (sum, product) => sum + parseFloat(product.product_AfterTaxPrice),
-      0
-    );
-    const afterDiscountTotal = updatedProducts.reduce(
-      (sum, product) => sum + parseFloat(product.product_AfterDiscountPrice),
-      0
-    );
-
-    setBeforeTaxTotal(beforeTaxTotal.toFixed(2));
-    setAfterTaxTotal(afterTaxTotal.toFixed(2));
-    setGrandTotal(afterDiscountTotal.toFixed(2));
-  };
-
   return (
-    <div className="max-w-4xl mx-auto p-8 bg-white rounded-lg shadow-lg">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">
-        Create New quote
-      </h1>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <section className="p-6 border border-gray-300 rounded-md bg-gray-50">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">
-            Client Details
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {[
-              "client_Name",
-              "client_Email",
-              "client_Contact",
-              "client_Address",
-            ].map((field) => (
-              <div key={field} className="flex flex-col gap-1">
-                <label
-                  htmlFor={field}
-                  className="text-sm font-medium text-gray-600"
-                >
-                  {field.replace("client_", "").replace("_", " ")}
-                </label>
-                <input
-                  type="text"
-                  id={field}
-                  name={field}
-                  value={client[field]}
-                  onChange={handleClientChange}
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                />
-                {clientError[field] && (
-                  <p className="text-xs text-red-500">{clientError[field]}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <div className="mt-6">
-          <label
-            htmlFor="initialPayment"
-            className="text-sm font-medium text-gray-600"
-          >
-            Initial Payment %
-          </label>
-          <input
-            type="number"
-            id="initialPayment"
-            name="initialPayment"
-            value={quoteInitialPayment}
-            onChange={(e) => setQuoteInitialPayment(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded-md mt-2"
+    <form onSubmit={handleSubmit} className="p-4">
+      {/* Customer Name */}
+      <div className="mb-6 w-1/4">
+        <label
+          className="block text-sm font-medium text-gray-700 mb-1"
+          htmlFor="customerName"
+        >
+          <FaUser className="inline-block mr-2" /> Customer Name
+        </label>
+        <div className="flex items-center space-x-2">
+          <Select
+            id="customerName"
+            options={customers.map((customer) => ({
+              value: customer._id,
+              label: customer.customer_GeneralDetails.customer_DisplayName,
+            }))}
+            value={{
+              value: quotePayload.quote_Customer,
+              label:
+                customers.find((c) => c._id === quotePayload.quote_Customer)
+                  ?.customer_GeneralDetails.customer_DisplayName || "",
+            }}
+            onChange={(selectedOption) =>
+              setQuotePayload((prevPayload) => ({
+                ...prevPayload,
+                quote_Customer: selectedOption ? selectedOption.value : "",
+              }))
+            }
+            placeholder="Select Customer"
+            className="mt-1 block w-full"
           />
-        </div>
-
-        <section className="p-6 border border-gray-300 rounded-md bg-gray-50">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">Products</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label
-                htmlFor="product"
-                className="text-sm font-medium text-gray-600"
-              >
-                Product
-              </label>
-              <select
-                id="product"
-                name="product"
-                value={currentProduct.product}
-                onChange={handleCurrentProductChange}
-                className="w-full p-2 border border-gray-300 rounded-md"
-              >
-                <option value="" disabled>
-                  Select a product
-                </option>
-                {productOptions.map(({ id, name }) => (
-                  <option key={id} value={name}>
-                    {name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {["product_SellingPrice", "quantity", "product_Discount"].map(
-              (field) => (
-                <div key={field}>
-                  <label
-                    htmlFor={field}
-                    className="text-sm font-medium text-gray-600"
-                  >
-                    {field.replace("product_", "").replace("_", " ")}
-                  </label>
-                  <input
-                    type="number"
-                    id={field}
-                    name={field}
-                    value={currentProduct[field]}
-                    onChange={handleCurrentProductChange}
-                    className="w-full p-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-              )
-            )}
-          </div>
-
           <button
             type="button"
-            onClick={handleAddProduct}
-            className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-md"
+            onClick={() => setShowCustomerForm(true)}
+            className="bg-blue-500 text-white px-3 py-2 rounded-md hover:bg-blue-600"
           >
-            Add Product
+            +
           </button>
+        </div>
+      </div>
 
-          {productError && <p className="text-red-500 mt-2">{productError}</p>}
-
-          {products.length > 0 && (
-            <table className="w-full mt-4 border border-gray-300 text-sm">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="border px-4 py-2">Product</th>
-                  <th className="border px-4 py-2">Price</th>
-                  <th className="border px-4 py-2">Quantity</th>
-                  <th className="border px-4 py-2">Discount Amount</th>
-                  <th className="border px-4 py-2">Total (AED)</th>
-                  <th className="border px-4 py-2">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.map((prod, index) => (
-                  <tr key={index}>
-                    <td className="border px-4 py-2">{prod.product}</td>
-                    <td className="border px-4 py-2">
-                      {prod.product_SellingPrice}
-                    </td>
-                    <td className="border px-4 py-2">{prod.quantity}</td>
-                    <td className="border px-4 py-2">
-                      {prod.product_Discount}
-                    </td>
-                    <td className="border px-4 py-2">{prod.totalPrice}</td>
-                    <td className="border px-4 py-2 text-center">
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveProduct(index)}
-                        className="text-red-600 hover:underline"
-                      >
-                        Remove
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-          {products.length > 0 && (
-            <div className="mt-4 text-right">
-              <p className="text-lg font-semibold">
-                Before Tax Total:{" "}
-                <span className="text-indigo-600">{beforeTaxTotal} AED</span>
-              </p>
-              <p className="text-lg font-semibold">
-                After Tax Total:{" "}
-                <span className="text-indigo-600">{afterTaxTotal} AED</span>
-              </p>
-              <p className="text-lg font-semibold">
-                Grand Total (After Discount):{" "}
-                <span className="text-indigo-600">{grandTotal} AED</span>
-              </p>
+      {showCustomerForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-[80%] max-h-[90%] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Add Customer</h2>
+              <button
+                onClick={() => setShowCustomerForm(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+              >
+                &times;
+              </button>
             </div>
-          )}
-        </section>
+            <div className="p-4">
+              <SalesCustomerForm
+                onClose={() => setShowCustomerForm(false)} // Close the modal after adding
+                onCustomerAdded={(newCustomer) => {
+                  setCustomers((prev) => [...prev, newCustomer]); // Add the new customer locally
+                  setQuotePayload((prevPayload) => ({
+                    ...prevPayload,
+                    quote_Customer: newCustomer._id, // Set the newly added customer
+                  }));
+                  setShowCustomerForm(false); // Close the modal
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
-        <button
-          type="submit"
-          className="w-full px-4 py-2 bg-green-600 text-white rounded-md"
+      {/* Reference */}
+      <div className="mb-6 w-1/4">
+        <label
+          className="block text-sm font-medium text-gray-700   mb-1"
+          htmlFor="reference"
         >
-          Submit Quote
+          <FaHashtag className="inline-block mr-2" /> Reference
+        </label>
+        <input
+          type="text"
+          id="reference"
+          value={quotePayload.quote_ReferenceNumber}
+          onChange={(e) =>
+            setQuotePayload((prevPayload) => ({
+              ...prevPayload,
+              quote_ReferenceNumber: e.target.value,
+            }))
+          }
+          placeholder="Enter reference"
+          className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        />
+      </div>
+
+      {/* Sales Person */}
+      <div className="mb-6 w-1/4">
+        <label
+          className="block text-sm font-medium text-gray-700   mb-1"
+          htmlFor="salesPerson"
+        >
+          <FaUserTie className="inline-block mr-2" /> Salesperson
+        </label>
+        <select
+          id="salesPerson"
+          value={quotePayload.quote_SalesPerson}
+          onChange={(e) =>
+            setQuotePayload((prevPayload) => ({
+              ...prevPayload,
+              quote_SalesPerson: e.target.value,
+            }))
+          }
+          className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        >
+          <option value="">Select Salesperson</option>
+          {Array.isArray(salesEmployees) &&
+            salesEmployees.map((employee) => (
+              <option key={employee.userId} value={employee.userId}>
+                {employee.name}
+              </option>
+            ))}
+        </select>
+      </div>
+
+      {/* Quote Dates */}
+      <div className="flex space-x-4 mb-6 w-1/4">
+        <div className="flex-1">
+          <label
+            className="block text-sm font-medium text-gray-700   mb-1"
+            htmlFor="quoteDate"
+          >
+            <FaCalendarAlt className="inline-block mr-2" /> Quote Date
+          </label>
+          <input
+            type="date"
+            id="quoteDate"
+            value={quotePayload.quote_Date}
+            onChange={(e) =>
+              setQuotePayload((prevPayload) => ({
+                ...prevPayload,
+                quote_Date: e.target.value,
+              }))
+            }
+            className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          />
+        </div>
+        <div className="flex-1">
+          <label
+            className="block text-sm font-medium text-gray-700   mb-1"
+            htmlFor="expiryDate"
+          >
+            <FaCalendarAlt className="inline-block mr-2" /> Expiry Date
+          </label>
+          <input
+            type="date"
+            id="expiryDate"
+            value={quotePayload.quote_ExpiryDate}
+            onChange={(e) =>
+              setQuotePayload((prevPayload) => ({
+                ...prevPayload,
+                quote_ExpiryDate: e.target.value,
+              }))
+            }
+            className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          />
+        </div>
+      </div>
+
+      {/* Quote Initial Payment */}
+      <div className="mb-6 w-1/4">
+        <label
+          className="block text-sm font-medium text-gray-700   mb-1"
+          htmlFor="initialPayment"
+        >
+          <FaPercentage className="inline-block mr-2" /> Initial Payment (%)
+        </label>
+        <input
+          type="text"
+          id="initialPayment"
+          value={quotePayload.quote_InitialPayment}
+          onChange={(e) =>
+            setQuotePayload((prevPayload) => ({
+              ...prevPayload,
+              quote_InitialPayment: e.target.value,
+            }))
+          }
+          placeholder="Enter Initial Payment"
+          className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        />
+      </div>
+
+      {/* Subject */}
+      <div className="mb-6 w-1/4">
+        <label
+          className="block text-sm font-medium text-gray-700   mb-1"
+          htmlFor="subject"
+        >
+          <FaFileAlt className="inline-block mr-2" /> Subject
+        </label>
+        <input
+          type="text"
+          id="subject"
+          value={quotePayload.quote_Subject}
+          onChange={(e) =>
+            setQuotePayload((prevPayload) => ({
+              ...prevPayload,
+              quote_Subject: e.target.value,
+            }))
+          }
+          placeholder="Enter subject"
+          className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        />
+      </div>
+
+      {/* Products Table */}
+      <h1 className="text-xl font-bold mb-4">Item Table</h1>
+      <table className="w-full table-auto border border-gray-300 rounded-md">
+        <thead>
+          <tr className="bg-gray-100 text-left">
+            <th className="border border-gray-300 px-4 py-2">
+              Item Description
+            </th>
+            <th className="border border-gray-300 px-4 py-2">Qty</th>
+            <th className="border border-gray-300 px-4 py-2">Rate</th>
+            <th className="border border-gray-300 px-4 py-2">Discount (%)</th>
+            <th className="border border-gray-300 px-4 py-2">Tax</th>
+            <th className="border border-gray-300 px-4 py-2">Amount</th>
+            <th className="border border-gray-300 px-4 py-2">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {productRows.map((row, index) => (
+            <tr key={index} className="hover:bg-gray-50">
+              <td className="border border-gray-300 px-4 py-2 flex items-center">
+                <input
+                  type="text"
+                  value={row.product}
+                  onChange={(e) => handleProductChange(index, e.target.value)}
+                  placeholder="Type or select a product"
+                  className="w-full border border-gray-300 rounded-md px-2 py-1 mr-2"
+                />
+                <select
+                  value={row.product}
+                  onChange={(e) => handleProductChange(index, e.target.value)}
+                  className="border border-gray-300 rounded-md px-2 py-1"
+                >
+                  <option value="">Select Item</option>
+                  {fetchedProducts.map((product) => (
+                    <option key={product.id} value={product.product_Name}>
+                      {product.product_Name}
+                    </option>
+                  ))}
+                </select>
+              </td>
+              <td className="border border-gray-300 px-4 py-2">
+                <input
+                  type="number"
+                  value={row.quantity === 0 ? "" : row.quantity} // Display empty if 0
+                  onChange={(e) => handleQuantityChange(index, e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-2 py-1"
+                />
+              </td>
+              <td className="border border-gray-300 px-4 py-2">
+                <input
+                  type="number"
+                  value={
+                    row.product_SellingPrice === 0
+                      ? ""
+                      : row.product_SellingPrice
+                  } // Hide 0 value temporarily
+                  onChange={(e) =>
+                    handleRateChange(index, Number(e.target.value))
+                  }
+                  className="w-full border border-gray-300 rounded-md px-2 py-1"
+                />
+              </td>
+              <td className="border border-gray-300 px-4 py-2">
+                <input
+                  type="number"
+                  value={
+                    row.product_DiscountPercentage === 0
+                      ? ""
+                      : row.product_DiscountPercentage
+                  } // Hide 0 value temporarily
+                  onChange={(e) =>
+                    handleDiscountChange(index, Number(e.target.value))
+                  }
+                  className="w-full border border-gray-300 rounded-md px-2 py-1"
+                />
+              </td>
+              <td className="border border-gray-300 px-4 py-2 text-center">
+                5%
+              </td>
+              <td className="border border-gray-300 px-4 py-2 text-center">
+                {row.product_AfterDiscountPrice.toFixed(2)}
+              </td>
+              <td className="border border-gray-300 px-4 py-2 text-center">
+                <button
+                  onClick={() => deleteRow(index)}
+                  type="button"
+                  className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <button
+        type="button"
+        onClick={addRow}
+        className="mt-4 bg-blue-500 text-white px-5 py-2 rounded-md hover:bg-blue-600"
+      >
+        Add Row
+      </button>
+
+      <div className="bg-white p-6 rounded-lg shadow-md space-y-4 text-lg font-semibold text-right">
+        <h2 className="text-gray-700 flex justify-between">
+          Subtotal:
+          <span className="text-gray-900 font-medium">
+            AED {quotePayload.quote_BeforeTaxPrice.toFixed(2)}
+          </span>
+        </h2>
+        <h2 className="text-gray-700 flex justify-between">
+          Total Tax:
+          <span className="text-gray-900 font-medium">
+            AED {quotePayload.quote_TotalTax.toFixed(2)}
+          </span>
+        </h2>
+        <h2 className="text-gray-700 flex justify-between border-t pt-4">
+          Grand Total:
+          <span className="text-gray-900 font-bold text-xl">
+            AED {quotePayload.quote_AfterDiscountPrice.toFixed(2)}
+          </span>
+        </h2>
+      </div>
+      <div className="flex justify-end">
+        <input
+          type="file"
+          onChange={handleFileChange}
+          className="mt-4 w-full p-2 border rounded-lg bg-gray-50"
+        />
+        <button
+          type="submit" // This should remain as type="submit"
+          onClick={handleSubmit}
+          className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md shadow hover:bg-blue-500"
+        >
+          Submit
         </button>
-      </form>
-    </div>
+      </div>
+    </form>
   );
 };
 

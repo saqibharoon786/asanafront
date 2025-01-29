@@ -398,7 +398,9 @@ const PanelLeads = () => {
                     className="px-4 py-2 border"
                     onClick={() => navigate(`/lead-detail/${lead._id}`)}
                   >
-                    {lead.lead_Title}
+                    {lead.lead_Title.length > 20
+                      ? `${lead.lead_Title.slice(0, 20)}...`
+                      : lead.lead_Title}
                   </td>
                   <td
                     className="px-4 py-2 border"
@@ -629,7 +631,9 @@ const PanelLeads = () => {
 
       {showCustomerForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
-          <div className="bg-white w-full max-w-lg p-5 rounded-lg">
+          <div className="bg-white w-full max-w-3xl p-6 rounded-lg overflow-y-auto max-h-[90vh]">
+            {" "}
+            {/* Added overflow-y-auto and max-h-[90vh] for scrolling */}
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-semibold text-gray-800">
                 Add Customer

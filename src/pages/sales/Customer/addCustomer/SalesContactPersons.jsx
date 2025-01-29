@@ -2,7 +2,7 @@ import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { createContactPersons } from "../../../../features/customerSlice";
 
-const ContactPersons = () => {
+const SalesContactPersons = () => {
   const dispatch = useDispatch();
   const contactPersons = useSelector(
     (state) => state.customer.customer_ContactPersons
@@ -94,4 +94,4 @@ const ContactPersons = () => {
   );
 };
 
-export default ContactPersons;
+export default SalesContactPersons;

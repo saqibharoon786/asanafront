@@ -12,6 +12,7 @@ const API_URL = process.env.REACT_APP_API_URL;
 const SalesViewQuote = () => {
   const { quoteId } = useParams();
   const [quote, setQuote] = useState(null);
+  const [customer, setCustomer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -19,28 +20,27 @@ const SalesViewQuote = () => {
 
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
 
-  useEffect(() => {
-    const fetchQuoteDetails = async () => {
-      try {
-        const response = await axios.get(`${API_URL}/quote/${quoteId}`, {
-          headers: { Authorization: `Bearer ${jwtLoginToken}` },
-        });
+  const fetchQuoteDetails = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/quote/${quoteId}`, {
+        headers: { Authorization: `Bearer ${jwtLoginToken}` },
+      });
 
-        if (response.data.success) {
-          setQuote(response.data.information.quote);
-        } else {
-          setError("Failed to load quote details.");
-        }
-      } catch (err) {
-        console.error("Error fetching quote details:", err);
-        setError(
-          "Failed to load quote details. Please check your connection."
-        );
-      } finally {
-        setLoading(false);
+      if (response.data.success) {
+        setQuote(response.data.information.quote);
+        setCustomer(response.data.information.customer);
+      } else {
+        setError("Failed to load quote details.");
       }
-    };
+    } catch (err) {
+      console.error("Error fetching quote details:", err);
+      setError("Failed to load quote details. Please check your connection.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchQuoteDetails();
   }, [quoteId]);
 
@@ -127,17 +127,14 @@ const SalesViewQuote = () => {
       const workbook = utils.book_new();
       utils.book_append_sheet(workbook, worksheet, "Quote Items");
 
-      writeFile(
-        workbook,
-        `Quote_${quote.quote_Identifier || "N/A"}.xlsx`
-      );
+      writeFile(workbook, `Quote_${quote.quote_Identifier || "N/A"}.xlsx`);
     } catch (error) {
       console.error("Error generating Excel:", error);
     }
   };
 
   const handleNavigateToEditQuote = () => {
-    navigate(`/sales/edit-quote/${quoteId}`);
+    navigate(`/edit-quote/${quoteId}`);
   };
   const hasDiscount = quote?.quote_Products?.some(
     (product) => product.product_DiscountPercentage > 0
@@ -201,9 +198,8 @@ const SalesViewQuote = () => {
         <div className="flex justify-end items-center mb-4">
           <p className="text-xl text-gray-600">
             <strong>Quote Date:</strong>{" "}
-            {new Date(
-              quote.quote_Details?.dateCreated
-            ).toLocaleDateString() || "N/A"}
+            {new Date(quote.quote_Details?.dateCreated).toLocaleDateString() ||
+              "N/A"}
           </p>
         </div>
 
@@ -212,19 +208,21 @@ const SalesViewQuote = () => {
           <h2 className="text-3xl font-bold text-gray-700">Bill To</h2>
           <p className="text-xl text-gray-600">
             <strong>Name:</strong>{" "}
-            {quote.quote_Client?.client_Name || "N/A"}
+            {customer.customer_GeneralDetails.customer_CompanyName || "N/A"}
           </p>
           <p className="text-xl text-gray-600">
             <strong>Email:</strong>{" "}
-            {quote.quote_Client?.client_Email || "N/A"}
+            {customer.customer_GeneralDetails.customer_Email || "N/A"}
           </p>
           <p className="text-xl text-gray-600">
             <strong>Contact:</strong>{" "}
-            {quote.quote_Client?.client_Contact || "N/A"}
+            {customer.customer_GeneralDetails.customer_Contact.workPhone ||
+              "N/A"}
           </p>
           <p className="text-xl text-gray-600">
             <strong>Address:</strong>{" "}
-            {quote.quote_Client?.client_Address || "N/A"}
+            {customer.customer_Address.billingAddress.street || "N/A"} -
+            {customer.customer_Address.billingAddress.city || "N/A"}
           </p>
           <p className="text-xl text-gray-600">
             <strong>TRN:</strong> {quote.quote_Client?.trn || "N/A"}
@@ -233,8 +231,8 @@ const SalesViewQuote = () => {
 
         {/* Initial Payment Information */}
         <p className="text-xl text-gray-600">
-          <strong>Initial Payment</strong>{" "}
-          {quote.quote_InitialPayment || "N/A"}%
+          <strong>Initial Payment</strong> {quote.quote_InitialPayment || "N/A"}
+          %
         </p>
 
         {/* Items Table */}

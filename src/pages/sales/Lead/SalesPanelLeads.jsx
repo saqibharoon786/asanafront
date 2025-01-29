@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import Select from "react-select";
+import SalesCustomerForm from "../Customer/addCustomer/SalesCustomerForm";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faUser,
@@ -22,13 +24,21 @@ const API_URL = process.env.REACT_APP_API_URL;
 
 const SalesPanelLeads = () => {
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({ clientName: "", clientEmail: "", clientAddress: "", clientContactPersonName: "", clientContactPersonEmail: "", clientContactPersonContact: "", organization: "", leadScope: "", contactPerson: "", source: "", title: "" });
+  const [formData, setFormData] = useState({
+    lead_Customer: "",
+    lead_Title: "",
+    lead_Source: "",
+    lead_Scope: "",
+  });
   const [leads, setLeads] = useState([]);
+  const [showCustomerForm, setShowCustomerForm] = useState(false);
   const [salesEmployees, setSalesEmployees] = useState([]);
-  const [showMassLeadTransferPopup, setShowMassLeadTransferPopup] = useState(false);
+  const [showMassLeadTransferPopup, setShowMassLeadTransferPopup] =
+    useState(false);
   const [transferUserId, setTransferUserId] = useState("");
   const [leadId, setLeadId] = useState("");
   const [search, setSearch] = useState("");
+  const [customers, setCustomers] = useState([]);
   const [showActionPopup, setShowActionPopup] = useState(false);
   const [showMassActionsPopup, setShowMassActionsPopup] = useState(false);
   const [selectedLeads, setSelectedLeads] = useState([]);
@@ -37,7 +47,6 @@ const SalesPanelLeads = () => {
   const [timeFilter, setTimeFilter] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
-
 
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
   const navigate = useNavigate();
@@ -62,9 +71,12 @@ const SalesPanelLeads = () => {
   /** Fetch Leads */
   const fetchLeads = async () => {
     try {
-      const response = await axios.get(`${API_URL}/lead/all-leads`, {
-        headers: { Authorization: `Bearer ${jwtLoginToken}` },
-      });
+      const response = await axios.get(
+        `${API_URL}/lead/all-sales-employee-leads`,
+        {
+          headers: { Authorization: `Bearer ${jwtLoginToken}` },
+        }
+      );
 
       if (response.data.success) {
         let filteredLeads = response.data.information.allLeads;
@@ -90,17 +102,37 @@ const SalesPanelLeads = () => {
         setLeads(filteredLeads);
         setTotalLeads(filteredLeads.length);
       } else {
-        console.log("Error fetching leads ",);
+        console.log("Error fetching leads ");
       }
     } catch (err) {
       console.log("Error fetching leads ");
     }
   };
 
+  const fetchCustomers = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/customer/get-all-customers`,
+        {
+          headers: { Authorization: `Bearer ${jwtLoginToken}` },
+        }
+      );
+      if (response.data.success && response.data.information?.customers) {
+        setCustomers(response.data.information.customers);
+      }
+    } catch (err) {
+      console.error("Error fetching customers:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchSalesEmployees();
+    fetchCustomers();
+  }, []);
+
   useEffect(() => {
     fetchLeads();
-    fetchSalesEmployees();
-  }, [leads]); // Fetch only once on component mount
+  }, [leads]);
 
   /** Handle Input Change */
   const handleInputChange = (e) => {
@@ -140,21 +172,10 @@ const SalesPanelLeads = () => {
   const handleFormSubmit = async (event) => {
     event.preventDefault();
     const data = {
-      lead_Client: {
-        client_Name: formData.clientName,
-        client_Email: formData.clientEmail,
-        client_Address: formData.clientAddress,
-      },
-      lead_ClientContactPerson: {
-        client_ClientContactPersonName: formData.clientContactPersonName,
-        client_ClientContactPersonEmail: formData.clientContactPersonEmail,
-        client_ClientContactPersonContact: formData.clientContactPersonContact,
-      },
-      lead_Organization: formData.organization,
-      lead_Scope: formData.leadScope,
-      lead_Title: formData.title,
-      lead_ContactPerson: formData.contactPerson,
-      lead_Source: formData.source,
+      lead_Customer: formData.lead_Customer,
+      lead_Scope: formData.lead_Scope,
+      lead_Title: formData.lead_Title,
+      lead_Source: formData.lead_Source,
     };
 
     try {
@@ -193,7 +214,6 @@ const SalesPanelLeads = () => {
     }
   };
 
-
   /** Handle Mass Delete */
   const handleMassTransfer = async () => {
     const userConfirmed = window.confirm(
@@ -222,8 +242,6 @@ const SalesPanelLeads = () => {
     }
   };
 
-
-
   /** Pagination Handlers */
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
@@ -235,12 +253,14 @@ const SalesPanelLeads = () => {
       lead.lead_Title?.toLowerCase().includes(searchLower) ||
       lead.lead_Organization?.toLowerCase().includes(searchLower) ||
       lead.lead_AssignedToUserName?.toLowerCase().includes(searchLower) ||
-      lead.lead_PreviousOwnerName?.toLowerCase().includes(searchLower) ||
-      lead.leadIdentifier?.toString().toLowerCase().includes(searchLower) // Ensure it's a string before calling toLowerCase()
+      lead.lead_PreviousOwnerName?.toLowerCase().includes(searchLower)
     );
   });
 
-  const currentRecords = filteredLeads.slice(indexOfFirstRecord, indexOfLastRecord);
+  const currentRecords = filteredLeads.slice(
+    indexOfFirstRecord,
+    indexOfLastRecord
+  );
 
   const handleNextPage = () => {
     if (currentPage < Math.ceil(filteredLeads.length / recordsPerPage)) {
@@ -253,10 +273,6 @@ const SalesPanelLeads = () => {
       setCurrentPage(currentPage - 1);
     }
   };
-
-
-
-
 
   return (
     <div className="p-5 bg-delta min-h-screen">
@@ -291,7 +307,6 @@ const SalesPanelLeads = () => {
         <div className="flex justify-between items-center p-4 border-b">
           <h1 className="text-3xl font-bold text-textPrimaryClr">Leads</h1>
           <div className="space-x-2">
-
             <select
               value={timeFilter}
               onChange={handleTimeFilterChange}
@@ -331,7 +346,7 @@ const SalesPanelLeads = () => {
                   />
                 </th>
                 <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border">
-                  Lead Identifier
+                  Created at
                 </th>
                 <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border">
                   Lead Creator
@@ -340,7 +355,7 @@ const SalesPanelLeads = () => {
                   Title
                 </th>
                 <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border">
-                  Organization
+                  Customer
                 </th>
                 <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border">
                   Label
@@ -360,7 +375,7 @@ const SalesPanelLeads = () => {
               </tr>
             </thead>
             <tbody>
-              {currentRecords.map((lead) => (
+              {[...currentRecords].reverse().map((lead) => (
                 <tr key={lead._id} className="hover:bg-gray-100 border-b">
                   <td className="px-4 py-2 border">
                     <input
@@ -374,7 +389,7 @@ const SalesPanelLeads = () => {
                     className="px-4 py-2 border"
                     onClick={() => navigate(`/sales/lead-detail/${lead._id}`)}
                   >
-                    {lead.leadIdentifier}
+                    {new Date(lead.createdAt).toLocaleDateString()}
                   </td>
                   <td
                     className="px-4 py-2 border"
@@ -386,13 +401,18 @@ const SalesPanelLeads = () => {
                     className="px-4 py-2 border"
                     onClick={() => navigate(`/sales/lead-detail/${lead._id}`)}
                   >
-                    {lead.lead_Title}
+                    {lead.lead_Title.length > 20
+                      ? `${lead.lead_Title.slice(0, 20)}...`
+                      : lead.lead_Title}{" "}
                   </td>
                   <td
                     className="px-4 py-2 border"
                     onClick={() => navigate(`/sales/lead-detail/${lead._id}`)}
                   >
-                    {lead.lead_Organization}
+                    {
+                      lead.lead_CustomerDetails.customer_GeneralDetails
+                        .customer_DisplayName
+                    }
                   </td>
                   <td
                     className="flex justify-center align-center mt-2"
@@ -463,7 +483,9 @@ const SalesPanelLeads = () => {
                           <button
                             className="px-4 py-2 bg-btnSecClr hover:bg-btnSecHoverClr"
                             onClick={() => {
-                              navigate(`/sales/lead-to-quote-conversion/${lead._id}`);
+                              navigate(
+                                `/sales/lead-to-quote-conversion/${lead._id}`
+                              );
                             }}
                           >
                             Convert to Quote
@@ -484,7 +506,6 @@ const SalesPanelLeads = () => {
           </table>
         </div>
       </section>
-
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
           <div className="bg-white w-full max-w-lg p-5 rounded-lg">
@@ -498,20 +519,65 @@ const SalesPanelLeads = () => {
               </button>
             </div>
             <form onSubmit={handleFormSubmit} className="space-y-4">
-              {/* Input fields with icons */}
+              {/* Customer Name Field (Updated) */}
+              <div className="flex items-center border border-btnPrimaryClr p-3 rounded focus-within:ring-2 focus-within:ring-green-500">
+                <FontAwesomeIcon icon={faUser} className="text-gray-500 mr-3" />
+                <Select
+                  id="lead_Customer"
+                  options={customers.map((customer) => ({
+                    value: customer._id,
+                    label:
+                      customer.customer_GeneralDetails.customer_DisplayName,
+                  }))}
+                  value={customers
+                    .map((customer) => ({
+                      value: customer._id,
+                      label:
+                        customer.customer_GeneralDetails.customer_DisplayName,
+                    }))
+                    .find((option) => option.value === formData.lead_Customer)}
+                  onChange={(selectedOption) =>
+                    setFormData({
+                      ...formData,
+                      lead_Customer: selectedOption ? selectedOption.value : "",
+                    })
+                  }
+                  placeholder="Select Customer"
+                  className="w-full outline-none"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCustomerForm(true)}
+                  className="ml-2 px-4 bg-btnPrimaryClr text-white hover:bg-btnHoverClr rounded-lg"
+                >
+                  + Add Customer
+                </button>
+              </div>
+
+              {/* Other Input Fields */}
               {[
-                { id: "clientName", icon: faUser, placeholder: "Client Name", type: "text" },
-                { id: "clientEmail", icon: faEnvelope, placeholder: "Client Email", type: "email" },
-                { id: "clientAddress", icon: faAddressBook, placeholder: "Client Address", type: "text" },
-                { id: "clientContactPersonName", icon: faPhone, placeholder: "Client Contact Person Name", type: "text" },
-                { id: "clientContactPersonEmail", icon: faEnvelope, placeholder: "Client Contact Person Email", type: "email" },
-                { id: "clientContactPersonContact", icon: faPhone, placeholder: "Client Contact Person landline ", type: "text" },
-                { id: "organization", icon: faBuilding, placeholder: "Organization", type: "text" },
-                { id: "leadScope", icon: faMapMarkerAlt, placeholder: "Lead Scope", type: "text" },
-                { id: "title", icon: faTag, placeholder: "Lead Title", type: "text" },
+                {
+                  id: "lead_Scope",
+                  icon: faMapMarkerAlt,
+                  placeholder: "Lead Scope",
+                  type: "text",
+                },
+                {
+                  id: "lead_Title",
+                  icon: faTag,
+                  placeholder: "Lead Title",
+                  type: "text",
+                },
               ].map((field) => (
-                <div key={field.id} className="flex items-center border border-btnPrimaryClr p-3 rounded focus-within:ring-2 focus-within:ring-green-500">
-                  <FontAwesomeIcon icon={field.icon} className="text-gray-500 mr-3" />
+                <div
+                  key={field.id}
+                  className="flex items-center border border-btnPrimaryClr p-3 rounded focus-within:ring-2 focus-within:ring-green-500"
+                >
+                  <FontAwesomeIcon
+                    icon={field.icon}
+                    className="text-gray-500 mr-3"
+                  />
                   <input
                     id={field.id}
                     type={field.type}
@@ -526,10 +592,13 @@ const SalesPanelLeads = () => {
 
               {/* Source Selection */}
               <div className="flex items-center border border-btnPrimaryClr p-3 rounded focus-within:ring-2 focus-within:ring-green-500">
-                <FontAwesomeIcon icon={faGlobe} className="text-gray-500 mr-3" />
+                <FontAwesomeIcon
+                  icon={faGlobe}
+                  className="text-gray-500 mr-3"
+                />
                 <select
-                  id="source"
-                  value={formData.source}
+                  id="lead_Source"
+                  value={formData.lead_Source}
                   onChange={handleInputChange}
                   className="w-full outline-none"
                   required
@@ -561,6 +630,32 @@ const SalesPanelLeads = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showCustomerForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+          <div className="bg-white w-full max-w-3xl p-6 rounded-lg overflow-y-auto max-h-[90vh]">
+            {" "}
+            {/* Added overflow-y-auto and max-h-[90vh] for scrolling */}
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Add Customer
+              </h3>
+              <button
+                onClick={() => setShowCustomerForm(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <FontAwesomeIcon icon={faTimes} className="h-6 w-6" />
+              </button>
+            </div>
+            <SalesCustomerForm
+              onSuccess={() => {
+                setShowCustomerForm(false);
+                fetchCustomers(); // Refresh the customer list after adding a new customer
+              }}
+            />
           </div>
         </div>
       )}
@@ -605,24 +700,28 @@ const SalesPanelLeads = () => {
           disabled={currentPage === 1}
           className="flex items-center px-4 py-2 bg-blue-500 rounded hover:bg-blue-600 disabled:bg-gray-100"
         >
-          <i className="fas fa-arrow-left mr-2"></i> {/* FontAwesome left arrow icon */}
+          <i className="fas fa-arrow-left mr-2"></i>{" "}
+          {/* FontAwesome left arrow icon */}
           Previous
         </button>
 
         <span>
-          Page {currentPage} of {Math.ceil(filteredLeads.length / recordsPerPage)}
+          Page {currentPage} of{" "}
+          {Math.ceil(filteredLeads.length / recordsPerPage)}
         </span>
 
         <button
           onClick={handleNextPage}
-          disabled={currentPage === Math.ceil(filteredLeads.length / recordsPerPage)}
+          disabled={
+            currentPage === Math.ceil(filteredLeads.length / recordsPerPage)
+          }
           className="flex items-center px-4 py-2 bg-blue-500 rounded hover:bg-blue-600 disabled:bg-gray-100"
         >
           Next
-          <i className="fas fa-arrow-right ml-2"></i> {/* FontAwesome right arrow icon */}
+          <i className="fas fa-arrow-right ml-2"></i>{" "}
+          {/* FontAwesome right arrow icon */}
         </button>
       </div>
-
     </div>
   );
 };

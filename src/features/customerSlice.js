@@ -63,7 +63,11 @@ const customerSlice = createSlice({
   reducers: {
     createGeneralDetails: (state, action) => {
       const { field, value } = action.payload;
-      if (field === "salutation" || field === "firstName" || field === "lastName") {
+      if (
+        field === "salutation" ||
+        field === "firstName" ||
+        field === "lastName"
+      ) {
         state.customer_GeneralDetails.customer_PrimaryInfo[field] = value;
       }
       if (field === "workPhone" || field === "mobilePhone") {
@@ -84,27 +88,31 @@ const customerSlice = createSlice({
       const { addressType, field, value } = action.payload;
       if (addressType === "billingAddress") {
         state.customer_Address.billingAddress[field] = value;
-      }
-      else if (addressType === "shippingAddress"){
+      } else if (addressType === "shippingAddress") {
         state.customer_Address.shippingAddress[field] = value;
       }
     },
     createContactPersons: (state, action) => {
-      const { field, index, value } = action.payload;
-      if (state.customer_ContactPersons[index]) {
+      const { field, index, value, action: contactAction } = action.payload;
+
+      if (contactAction === "remove") {
+        state.customer_ContactPersons = state.customer_ContactPersons.filter(
+          (_, i) => i !== index
+        );
+      } else if (state.customer_ContactPersons[index]) {
         state.customer_ContactPersons[index][field] = value;
       } else {
-        state.customer_ContactPersons.push({ 
-          salutation: "", 
-          firstName: "", 
-          lastName: "", 
-          email: "", 
-          phone: "", 
-          designation: "" 
+        state.customer_ContactPersons.push({
+          salutation: "",
+          firstName: "",
+          lastName: "",
+          email: "",
+          phone: "",
+          designation: "",
         });
         state.customer_ContactPersons[index][field] = value;
       }
-    },    
+    },
     createRemarks: (state, action) => {
       const { field, value } = action.payload;
       state[field] = value;
@@ -112,6 +120,11 @@ const customerSlice = createSlice({
   },
 });
 
-export const { createGeneralDetails, createOtherDetails, createAddress, createContactPersons, createRemarks } = customerSlice.actions;
+export const {
+  createGeneralDetails,
+  createOtherDetails,
+  createAddress,
+  createContactPersons,
+  createRemarks,
+} = customerSlice.actions;
 export default customerSlice.reducer;
-

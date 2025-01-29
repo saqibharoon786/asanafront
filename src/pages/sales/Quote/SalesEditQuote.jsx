@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import Select from "react-select";
-import SalesCustomerForm from "../Customer/addCustomer/SalesCustomerForm";
 import {
   FaUser,
   FaHashtag,
@@ -10,14 +8,14 @@ import {
   FaPercentage,
   FaFileAlt,
 } from "react-icons/fa";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 const API_URL = process.env.REACT_APP_API_URL;
 const jwtLoginToken = localStorage.getItem("jwtLoginToken");
 const TAX = 0.05;
 
-const SalesLeadToQuote = () => {
-  const { leadId } = useParams();
+const SalesEditQuote = () => {
+  const { quoteId } = useParams();
   const [fetchedProducts, setFetchedProducts] = useState([]);
   const [productRows, setProductRows] = useState([
     {
@@ -32,12 +30,9 @@ const SalesLeadToQuote = () => {
       product_AfterDiscountPrice: 0,
     },
   ]);
-  const [lead, setLead] = useState(null);
-  const [showCustomerForm, setShowCustomerForm] = useState(false);
   const [salesEmployees, setSalesEmployees] = useState([]);
-  const [customers, setCustomers] = useState([]);
   const [quotePayload, setQuotePayload] = useState({
-    quote_Customer: "",
+    quote_Client: "",
     quote_Products: [],
     quote_SalesPerson: "",
     quote_InitialPayment: "",
@@ -51,8 +46,8 @@ const SalesLeadToQuote = () => {
     quote_Date: "",
     quote_ExpiryDate: "",
     quote_ReferenceNumber: "",
-    quote_Lead: "",
   });
+  const navigate = useNavigate();
 
   const fetchProducts = async () => {
     try {
@@ -84,33 +79,28 @@ const SalesLeadToQuote = () => {
     }
   };
 
-  const fetchCustomers = async () => {
+  const fetchQuote = async () => {
     try {
-      const response = await axios.get(
-        `${API_URL}/customer/get-all-customers`,
-        {
-          headers: { Authorization: `Bearer ${jwtLoginToken}` },
-        }
-      );
-      if (response.data.success && response.data.information?.customers) {
-        setCustomers(response.data.information.customers);
-      }
-    } catch (err) {
-      console.error("Error fetching sales employees:", err);
-    }
-  };
-
-  const fetchLead = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/lead/${leadId}`, {
+      const response = await axios.get(`${API_URL}/quote/${quoteId}`, {
         headers: { Authorization: `Bearer ${jwtLoginToken}` },
       });
-      if (response.data.success && response.data.information?.lead) {
-        setLead(response.data.information.lead);
+
+      if (response.data.success && response.data.information?.quote) {
+        const quote = response.data.information.quote;
+        setProductRows(quote.quote_Products);
         setQuotePayload((prevPayload) => ({
-          ...prevPayload,
-          quote_Customer: response.data.information.lead.lead_Customer,
-          quote_LeadId: leadId,
+          quote_Client: quote.quote_Client,
+          quote_SalesPerson: quote.quote_SalesPerson,
+          quote_InitialPayment: quote.quote_InitialPayment,
+          quote_BeforeTaxPrice: quote.quote_BeforeTaxPrice,
+          quote_TotalTax: quote.quote_TotalTax,
+          quote_AfterDiscountPrice: quote.quote_AfterDiscountPrice,
+          quote_Subject: quote.quote_Subject,
+          quote_Image: quote.quote_Image,
+          quote_Project: quote.quote_Project,
+          quote_Date: quote.quote_Date,
+          quote_ExpiryDate: quote.quote_ExpiryDate,
+          quote_ReferenceNumber: quote.quote_ReferenceNumber,
         }));
       }
     } catch (err) {
@@ -119,18 +109,14 @@ const SalesLeadToQuote = () => {
   };
 
   useEffect(() => {
+    fetchQuote();
     fetchProducts();
     fetchSalesEmployees();
-    fetchLead();
   }, []);
 
   useEffect(() => {
-    fetchCustomers();
-  }, [showCustomerForm]);
-
-  useEffect(() => {
     updateQuoteSummary();
-  }, [productRows, showCustomerForm]);
+  }, [productRows]);
 
   const calculateRowValues = (row) => {
     const product_BeforeTaxPrice = row.quantity * row.product_SellingPrice;
@@ -263,7 +249,7 @@ const SalesLeadToQuote = () => {
     }));
 
     const formData = new FormData();
-    formData.append("quote_Customer", quotePayload.quote_Customer);
+    formData.append("quote_Client", quotePayload.quote_Client);
     formData.append("quote_Products", JSON.stringify(products));
     formData.append("quote_SalesPerson", quotePayload.quote_SalesPerson);
     formData.append("quote_InitialPayment", quotePayload.quote_InitialPayment);
@@ -285,8 +271,8 @@ const SalesLeadToQuote = () => {
     );
 
     try {
-      const response = await axios.post(
-        `${API_URL}/quote/create-quote`,
+      const response = await axios.patch(
+        `${API_URL}/quote/edit-quote/${quoteId}`,
         formData,
         {
           headers: {
@@ -295,11 +281,11 @@ const SalesLeadToQuote = () => {
           },
         }
       );
-
+      navigate("/quotes");
       if (response.data.success) {
         // Reset quotePayload and productRows to their default states
         setQuotePayload({
-          quote_Customer: "",
+          quote_Client: "",
           quote_Products: [], // This will be reset in the form
           quote_SalesPerson: "",
           quote_InitialPayment: "",
@@ -329,7 +315,7 @@ const SalesLeadToQuote = () => {
           },
         ]);
 
-        alert("Quote Created");
+        alert("Quote Edited");
       }
     } catch (error) {
       console.error("Error creating quote:", error);
@@ -338,48 +324,27 @@ const SalesLeadToQuote = () => {
 
   return (
     <form onSubmit={handleSubmit} className="p-4">
-      {/* Customer Name */}
       <div className="mb-6 w-1/4">
         <label
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-medium text-gray-700   mb-1"
           htmlFor="customerName"
         >
           <FaUser className="inline-block mr-2" /> Customer Name
         </label>
-        <div>
-          {lead &&
-            lead.customer_Details.customer_GeneralDetails.customer_DisplayName}
-        </div>
+        <input
+          type="text"
+          id="customerName"
+          value={quotePayload.quote_Client}
+          onChange={(e) =>
+            setQuotePayload((prevPayload) => ({
+              ...prevPayload,
+              quote_Client: e.target.value,
+            }))
+          }
+          placeholder="Select or add a customer"
+          className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        />
       </div>
-
-      {showCustomerForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-[80%] max-h-[90%] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Add Customer</h2>
-              <button
-                onClick={() => setShowCustomerForm(false)}
-                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
-              >
-                &times;
-              </button>
-            </div>
-            <div className="p-4">
-              <SalesCustomerForm
-                onClose={() => setShowCustomerForm(false)} // Close the modal after adding
-                onCustomerAdded={(newCustomer) => {
-                  setCustomers((prev) => [...prev, newCustomer]); // Add the new customer locally
-                  setQuotePayload((prevPayload) => ({
-                    ...prevPayload,
-                    quote_Customer: newCustomer._id, // Set the newly added customer
-                  }));
-                  setShowCustomerForm(false); // Close the modal
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Reference */}
       <div className="mb-6 w-1/4">
@@ -653,15 +618,14 @@ const SalesLeadToQuote = () => {
           className="mt-4 w-full p-2 border rounded-lg bg-gray-50"
         />
         <button
-          type="submit" // This should remain as type="submit"
-          onClick={handleSubmit}
-          className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md shadow hover:bg-blue-500"
+          type="submit"
+          className="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 text-"
         >
-          Submit
+          Submit Quote
         </button>
       </div>
     </form>
   );
 };
 
-export default SalesLeadToQuote;
+export default SalesEditQuote;

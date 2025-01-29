@@ -2,7 +2,7 @@ import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { createOtherDetails } from "../../../../features/customerSlice";
 
-const OtherDetails = () => {
+const SalesOtherDetails = () => {
   const dispatch = useDispatch();
 
   const handleOtherDetails = (e) => {
@@ -85,4 +85,4 @@ const OtherDetails = () => {
   
 };
 
-export default OtherDetails;
+export default SalesOtherDetails;

@@ -17,9 +17,8 @@ import {
   SalesOptionalDataLead,
   SalesPanelLeads,
   SalesPanelCalender,
-  SalesPanelCustomer,
-  SalesAddCustomer,
-  SalesEditCustomer,
+  SalesPanelCustomers,
+  SalesCustomerForm,
   SalesLeadToQuoteConversion
 } from "../pages/sales/SalesPages";
 import { SalesLayout } from "../layouts/Layout";
@@ -48,9 +47,8 @@ const SalesRoutes = () => (
 
     <Route path="/sales/calender" element={<SalesProtectedRoute><SalesLayout> <SalesPanelCalender /></SalesLayout></SalesProtectedRoute>}/>
 
-    <Route path="/sales/customers" element={<SalesProtectedRoute><SalesLayout><SalesPanelCustomer /></SalesLayout></SalesProtectedRoute>} />
-    <Route path="/sales/add-customers" element={<SalesProtectedRoute><SalesLayout><SalesAddCustomer /></SalesLayout></SalesProtectedRoute>} />
-    <Route path="/sales/view-customer" element={<SalesProtectedRoute><SalesLayout><SalesEditCustomer /></SalesLayout></SalesProtectedRoute>} />
+    <Route path="/sales/customers" element={<SalesProtectedRoute><SalesLayout><SalesPanelCustomers /></SalesLayout></SalesProtectedRoute>} />
+    <Route path="/sales/add-customer" element={<SalesProtectedRoute><SalesLayout><SalesCustomerForm /></SalesLayout></SalesProtectedRoute>} />
   </>
 );
 
