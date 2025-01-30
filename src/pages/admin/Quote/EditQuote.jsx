@@ -17,6 +17,8 @@ const TAX = 0.05;
 const EditQuote = () => {
   const { quoteId } = useParams();
   const [fetchedProducts, setFetchedProducts] = useState([]);
+  const [quote, setFetchedQuote] = useState(null);
+  const [customer, setCustomer] = useState(null);
   const [productRows, setProductRows] = useState([
     {
       product: "",
@@ -32,7 +34,7 @@ const EditQuote = () => {
   ]);
   const [salesEmployees, setSalesEmployees] = useState([]);
   const [quotePayload, setQuotePayload] = useState({
-    quote_Client: "",
+    quote_Customer: "",
     quote_Products: [],
     quote_SalesPerson: "",
     quote_InitialPayment: "",
@@ -86,10 +88,12 @@ const EditQuote = () => {
       });
 
       if (response.data.success && response.data.information?.quote) {
-        const quote = response.data.information.quote;
+        setFetchedQuote(response.data.information.quote);
+        setCustomer(response.data.information.customer);
+        var quote = response.data.information.quote;
         setProductRows(quote.quote_Products);
         setQuotePayload((prevPayload) => ({
-          quote_Client: quote.quote_Client,
+          quote_Customer: quote.quote_Customer,
           quote_SalesPerson: quote.quote_SalesPerson,
           quote_InitialPayment: quote.quote_InitialPayment,
           quote_BeforeTaxPrice: quote.quote_BeforeTaxPrice,
@@ -249,7 +253,7 @@ const EditQuote = () => {
     }));
 
     const formData = new FormData();
-    formData.append("quote_Client", quotePayload.quote_Client);
+    formData.append("quote_Customer", quotePayload.quote_Customer);
     formData.append("quote_Products", JSON.stringify(products));
     formData.append("quote_SalesPerson", quotePayload.quote_SalesPerson);
     formData.append("quote_InitialPayment", quotePayload.quote_InitialPayment);
@@ -285,7 +289,7 @@ const EditQuote = () => {
       if (response.data.success) {
         // Reset quotePayload and productRows to their default states
         setQuotePayload({
-          quote_Client: "",
+          quote_Customer: "",
           quote_Products: [], // This will be reset in the form
           quote_SalesPerson: "",
           quote_InitialPayment: "",
@@ -331,19 +335,9 @@ const EditQuote = () => {
         >
           <FaUser className="inline-block mr-2" /> Customer Name
         </label>
-        <input
-          type="text"
-          id="customerName"
-          value={quotePayload.quote_Client}
-          onChange={(e) =>
-            setQuotePayload((prevPayload) => ({
-              ...prevPayload,
-              quote_Client: e.target.value,
-            }))
-          }
-          placeholder="Select or add a customer"
-          className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-        />
+        <div className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+          {customer && customer.customer_GeneralDetails.customer_DisplayName}
+        </div>
       </div>
 
       {/* Reference */}
@@ -354,19 +348,9 @@ const EditQuote = () => {
         >
           <FaHashtag className="inline-block mr-2" /> Reference
         </label>
-        <input
-          type="text"
-          id="reference"
-          value={quotePayload.quote_ReferenceNumber}
-          onChange={(e) =>
-            setQuotePayload((prevPayload) => ({
-              ...prevPayload,
-              quote_ReferenceNumber: e.target.value,
-            }))
-          }
-          placeholder="Enter reference"
-          className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-        />
+        <div className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+          {quote && quote.quote_ReferenceNumber}
+        </div>
       </div>
 
       {/* Sales Person */}

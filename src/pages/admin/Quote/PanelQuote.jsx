@@ -19,6 +19,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 const API_URL = process.env.REACT_APP_API_URL;
+const jwtLoginToken = localStorage.getItem("jwtLoginToken");
 
 const Modal = ({ isOpen, title, message, onClose, onConfirm }) => {
   if (!isOpen) return null;
@@ -63,9 +64,12 @@ const PanelQuote = () => {
   const [modalMessage, setModalMessage] = useState("");
   const [modalAction, setModalAction] = useState(null);
   const [showActionPopup, setShowActionPopup] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
 
   const navigate = useNavigate();
-  const jwtLoginToken = localStorage.getItem("jwtLoginToken");
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
 
   const handleNewQuote = () => {
     navigate("/add-quote");
@@ -218,9 +222,26 @@ const PanelQuote = () => {
     }
   };
 
+  // Filter quotes based on search and time filter
+  const filteredQuotes = quotes.filter((quote) => {
+    const searchLower = search.toLowerCase();
+    return (
+      quote.quote_Identifier?.toLowerCase().includes(searchLower) ||
+      quote.quote_Creater?.toLowerCase().includes(searchLower) ||
+      quote.quote_CustomerDetails?.customer_GeneralDetails?.customer_DisplayName
+        ?.toLowerCase()
+        .includes(searchLower)
+    );
+  });
+
   const handleViewQuote = (quoteId) => {
     navigate(`/view-quote/${quoteId}`);
   };
+
+  const currentRecords = filteredQuotes.slice(
+    indexOfFirstRecord,
+    indexOfLastRecord
+  );
 
   const getStatusClass = (status) => {
     switch (status) {
@@ -303,7 +324,7 @@ const PanelQuote = () => {
               </tr>
             </thead>
             <tbody>
-              {[...quotes].reverse().map((quote) => (
+              {[...currentRecords].reverse().map((quote) => (
                 <tr key={quote._id} className="hover:bg-gray-100 border-b">
                   <td className="px-4 py-2 border">
                     <input
@@ -390,6 +411,31 @@ const PanelQuote = () => {
               ))}
             </tbody>
           </table>
+          <div className="flex justify-end items-center space-x-4 m-4">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="flex items-center px-4 py-2 mb-2 bg-blue-500 rounded hover:bg-blue-600 disabled:bg-gray-100"
+            >
+              <i className="fas fa-arrow-left mr-2"></i> Previous
+            </button>
+
+            <span>
+              Page {currentPage} of{" "}
+              {Math.ceil(filteredQuotes.length / recordsPerPage)}
+            </span>
+
+            <button
+              onClick={() => setCurrentPage((prev) => prev + 1)}
+              disabled={
+                currentPage ===
+                Math.ceil(filteredQuotes.length / recordsPerPage)
+              }
+              className="flex items-center px-4 py-2 mb-2 bg-blue-500 rounded hover:bg-blue-600 disabled:bg-gray-100"
+            >
+              Next <i className="fas fa-arrow-right ml-2"></i>
+            </button>
+          </div>
         </div>
       )}
 
