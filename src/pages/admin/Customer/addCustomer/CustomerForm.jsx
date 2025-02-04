@@ -43,7 +43,8 @@ const CustomerForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent default form submission
     e.stopPropagation(); // Stop event bubbling
-
+    
+    console.log(customerData)
     try {
       const response = await axios.post(
         `${API_URL}/customer/add-customer`,

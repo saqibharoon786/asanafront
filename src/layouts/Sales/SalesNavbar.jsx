@@ -41,10 +41,10 @@ const SalesNavbar = ({ toggleSidebar }) => {
     };
 
     if (jwtLoginToken) {
-      fetchNotifications(); 
-      const intervalId = setInterval(fetchNotifications, 1000); 
+      // fetchNotifications(); 
+      // const intervalId = setInterval(fetchNotifications, 1000); 
 
-      return () => clearInterval(intervalId); 
+      // return () => clearInterval(intervalId); 
     }
   }, [API_URL, jwtLoginToken]);
 

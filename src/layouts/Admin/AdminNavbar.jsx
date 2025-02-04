@@ -41,10 +41,10 @@ const AdminNavbar = ({ toggleSidebar }) => {
     };
 
     if (jwtLoginToken) {
-      fetchNotifications(); // Initial fetch
-      const intervalId = setInterval(fetchNotifications, 5000); 
+      // fetchNotifications(); // Initial fetch
+      // const intervalId = setInterval(fetchNotifications, 5000); 
 
-      return () => clearInterval(intervalId); // Clean up interval on component unmount
+      // return () => clearInterval(intervalId); // Clean up interval on component unmount
     }
   }, [API_URL, jwtLoginToken]);
 

@@ -6,18 +6,14 @@ import SalesCustomerForm from "../Customer/addCustomer/SalesCustomerForm";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faUser,
-  faEnvelope,
-  faAddressBook,
-  faPhone,
-  faBuilding,
   faTag,
   faGlobe,
   faTimes,
-  faMapMarkerAlt,
   faFire,
   faSun,
   faSnowflake,
   faCaretSquareDown,
+  faBullseye,
 } from "@fortawesome/free-solid-svg-icons";
 
 const API_URL = process.env.REACT_APP_API_URL;
@@ -128,10 +124,10 @@ const SalesPanelLeads = () => {
   useEffect(() => {
     fetchSalesEmployees();
     fetchCustomers();
+    fetchLeads();
   }, []);
 
   useEffect(() => {
-    fetchLeads();
   }, [leads]);
 
   /** Handle Input Change */
@@ -274,6 +270,44 @@ const SalesPanelLeads = () => {
     }
   };
 
+  const handleApproveLead = async (leadId) => {
+    if (window.confirm('Are you sure you want to approve this lead?')) {
+      try {
+        const response = await axios.patch(
+          `${API_URL}/lead/approve-lead/${leadId}`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${jwtLoginToken}`,
+            },
+          }
+        );
+
+        if (response.status === 200) {
+          setLeads((prevLeads) =>
+            prevLeads.filter((lead) => lead._id !== leadId)
+          );
+          alert('Lead approved successfully.');
+        } else {
+          throw new Error(response.data.message || 'Failed to approve the lead.');
+        }
+      } catch (error) {
+        const errorMessage = error.response?.data?.message || error.message || 'An error occurred. Please try again later.';
+        alert(errorMessage);
+      }
+    }
+  };
+  const getStatusClass = (status) => {
+    switch (status) {
+      case 'Pending':
+        return 'bg-white'; // Red for Pending
+      case 'Approved':
+        return 'bg-green-200'; // Green for Approved
+      default:
+        return 'bg-white'; // Default if status is not defined
+    }
+  }; 
+
   return (
     <div className="p-5 bg-delta min-h-screen">
       <div className="relative">
@@ -361,6 +395,9 @@ const SalesPanelLeads = () => {
                   Label
                 </th>
                 <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border">
+                  Status
+                </th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border">
                   Transferred By
                 </th>
                 <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border">
@@ -375,133 +412,145 @@ const SalesPanelLeads = () => {
               </tr>
             </thead>
             <tbody>
-              {[...currentRecords].reverse().map((lead) => (
-                <tr key={lead._id} className="hover:bg-gray-100 border-b">
-                  <td className="px-4 py-2 border">
-                    <input
-                      type="checkbox"
-                      className="form-checkbox h-4 w-4 text-blue-600"
-                      checked={selectedLeads.includes(lead._id)}
-                      onChange={() => handleCheckboxChange(lead._id)}
-                    />
-                  </td>
-                  <td
-                    className="px-4 py-2 border"
-                    onClick={() => navigate(`/sales/lead-detail/${lead._id}`)}
-                  >
-                    {new Date(lead.createdAt).toLocaleDateString()}
-                  </td>
-                  <td
-                    className="px-4 py-2 border"
-                    onClick={() => navigate(`/sales/lead-detail/${lead._id}`)}
-                  >
-                    {lead.lead_CreaterName}
-                  </td>
-                  <td
-                    className="px-4 py-2 border"
-                    onClick={() => navigate(`/sales/lead-detail/${lead._id}`)}
-                  >
-                    {lead.lead_Title.length > 20
-                      ? `${lead.lead_Title.slice(0, 20)}...`
-                      : lead.lead_Title}{" "}
-                  </td>
-                  <td
-                    className="px-4 py-2 border"
-                    onClick={() => navigate(`/sales/lead-detail/${lead._id}`)}
-                  >
-                    {
-                      lead.lead_CustomerDetails.customer_GeneralDetails
-                        .customer_DisplayName
-                    }
-                  </td>
-                  <td
-                    className="flex justify-center align-center mt-2"
-                    onClick={() => navigate(`/sales/lead-detail/${lead._id}`)}
-                  >
-                    {lead.lead_Label === "Hot" && (
-                      <FontAwesomeIcon
-                        icon={faFire}
-                        className="text-red-500 text-lg"
-                      />
-                    )}
-                    {lead.lead_Label === "Warm" && (
-                      <FontAwesomeIcon
-                        icon={faSun}
-                        className="text-orange-500 text-lg"
-                      />
-                    )}
-                    {lead.lead_Label === "Cold" && (
-                      <FontAwesomeIcon
-                        icon={faSnowflake}
-                        className="text-blue-500 text-lg"
-                      />
-                    )}
-                  </td>
-                  <td
-                    className="px-4 py-2 border"
-                    onClick={() => navigate(`/sales/lead-detail/${lead._id}`)}
-                  >
-                    {lead.lead_TransferredByUserName}
-                  </td>
-                  <td
-                    className="px-4 py-2 border"
-                    onClick={() => navigate(`/sales/lead-detail/${lead._id}`)}
-                  >
-                    {lead.lead_PreviousOwnerName}
-                  </td>
-                  <td
-                    className="px-4 py-2 border"
-                    onClick={() => navigate(`/sales/lead-detail/${lead._id}`)}
-                  >
-                    {lead.lead_AssignedToUserName}
-                  </td>
-                  <td className="px-4 py-2 border">
-                    <button
-                      className="relative px-2 py-1 bg-btnPrimaryClr text-white text-sm hover:bg-btnHoverClr"
-                      onClick={() => {
-                        setShowActionPopup(lead._id);
-                        setLeadId(lead._id);
-                      }}
-                    >
-                      <FontAwesomeIcon icon={faCaretSquareDown} />
-                    </button>
-                    {showActionPopup === lead._id && (
-                      <div className="absolute mt-1 right-0 bg-white border border-btnPrimaryClr p-4 z-10">
-                        <h3 className="text-lg font-semibold mb-2">
-                          Choose an Action
-                        </h3>
-                        <div className="flex flex-col">
-                          <button
-                            className="px-4 my-2 py-2 bg-btnSecClr hover:bg-btnSecHoverClr"
-                            onClick={() => {
-                              navigate(`/sales/optional-data-lead/${lead._id}`);
-                              setShowActionPopup(null);
-                            }}
-                          >
-                            Add Optional Data
-                          </button>
-                          <button
-                            className="px-4 py-2 bg-btnSecClr hover:bg-btnSecHoverClr"
-                            onClick={() => {
-                              navigate(
-                                `/sales/lead-to-quote-conversion/${lead._id}`
-                              );
-                            }}
-                          >
-                            Convert to Quote
-                          </button>
-                          <button
-                            className="mt-2 px-4 py-2 bg-btnTerClr text-gray-800 hover:bg-btnTerHoverClr"
-                            onClick={() => setShowActionPopup(null)}
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
+  {[...currentRecords].reverse().map((lead) => (
+    <tr
+      key={lead._id}
+      className={`hover:bg-gray-100 border-b ${getStatusClass(lead.lead_Status)}`} // Apply the conditional class here
+    >
+      <td className="px-4 py-2 border">
+        <input
+          type="checkbox"
+          className="form-checkbox h-4 w-4 text-blue-600"
+          checked={selectedLeads.includes(lead._id)}
+          onChange={() => handleCheckboxChange(lead._id)}
+        />
+      </td>
+      <td
+        className="px-4 py-2 border"
+        onClick={() => navigate(`/lead-detail/${lead._id}`)}
+      >
+        {new Date(lead.createdAt).toLocaleDateString()}
+      </td>
+      <td
+        className="px-4 py-2 border"
+        onClick={() => navigate(`/lead-detail/${lead._id}`)}
+      >
+        {lead.lead_CreaterName}
+      </td>
+      
+      <td
+        className="px-4 py-2 border"
+        onClick={() => navigate(`/lead-detail/${lead._id}`)}
+      >
+        {lead.lead_Title.length > 20
+          ? `${lead.lead_Title.slice(0, 20)}...`
+          : lead.lead_Title}
+      </td>
+      <td
+        className="px-4 py-2 border"
+        onClick={() => navigate(`/lead-detail/${lead._id}`)}
+      >
+        {
+          lead.lead_CustomerDetails.customer_GeneralDetails
+            .customer_DisplayName
+        }
+      </td>
+      <td
+        className="flex justify-center align-center mt-2"
+        onClick={() => navigate(`/lead-detail/${lead._id}`)}
+      >
+        {lead.lead_Label === "Hot" && (
+          <FontAwesomeIcon
+            icon={faFire}
+            className="text-red-500 text-lg"
+          />
+        )}
+        {lead.lead_Label === "Warm" && (
+          <FontAwesomeIcon
+            icon={faSun}
+            className="text-orange-500 text-lg"
+          />
+        )}
+        {lead.lead_Label === "Cold" && (
+          <FontAwesomeIcon
+            icon={faSnowflake}
+            className="text-blue-500 text-lg"
+          />
+        )}
+      </td>
+      <td className="px-4 py-2 border">
+  {lead.lead_Status}
+</td>
+
+      <td
+        className="px-4 py-2 border"
+        onClick={() => navigate(`/lead-detail/${lead._id}`)}
+      >
+        {lead.lead_TransferredByUserName}
+      </td>
+      <td
+        className="px-4 py-2 border"
+        onClick={() => navigate(`/lead-detail/${lead._id}`)}
+      >
+        {lead.lead_PreviousOwnerName}
+      </td>
+      <td
+        className="px-4 py-2 border"
+        onClick={() => navigate(`/lead-detail/${lead._id}`)}
+      >
+        {lead.lead_AssignedToUserName}
+      </td>
+      <td className="px-4 py-2 border">
+        <button
+          className="relative px-2 py-1 bg-btnPrimaryClr text-white text-sm hover:bg-btnHoverClr"
+          onClick={() => {
+            setShowActionPopup(lead._id);
+            setLeadId(lead._id);
+          }}
+        >
+          <FontAwesomeIcon icon={faCaretSquareDown} />
+        </button>
+        {showActionPopup === lead._id && (
+          <div className="absolute mt-1 right-0 bg-white border border-btnPrimaryClr p-4 z-10">
+            <h3 className="text-lg font-semibold mb-2">
+              Choose an Action
+            </h3>
+            <div className="flex space-y-2 flex-col">
+              <button
+                className="px-4 py-2 bg-btnSecClr hover:bg-btnSecHoverClr"
+                onClick={() => {
+                  navigate(`/optional-data-lead/${lead._id}`);
+                  setShowActionPopup(null);
+                }}
+              >
+                Add Optional Data
+              </button>
+              <button
+                className="px-4 py-2 bg-btnSecClr hover:bg-btnSecHoverClr"
+                onClick={() => {
+                  navigate(`/lead-to-quote-conversion/${lead._id}`);
+                }}
+              >
+                Convert to Quote
+              </button>
+              <button
+                className="px-4 py-2 bg-btnSecClr hover:bg-btnSecHoverClr"
+                onClick={() => handleApproveLead(lead._id)}
+              >
+                Approve Lead
+              </button>
+              <button
+                className="px-4 py-2 bg-btnTerClr text-gray-800 hover:bg-btnTerHoverClr"
+                onClick={() => setShowActionPopup(null)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+      </td>
+    </tr>
+  ))}
             </tbody>
           </table>
         </div>
@@ -559,7 +608,7 @@ const SalesPanelLeads = () => {
               {[
                 {
                   id: "lead_Scope",
-                  icon: faMapMarkerAlt,
+                  icon: faBullseye,
                   placeholder: "Lead Scope",
                   type: "text",
                 },
