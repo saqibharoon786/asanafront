@@ -117,6 +117,12 @@ const customerSlice = createSlice({
       const { field, value } = action.payload;
       state[field] = value;
     },
+    setCustomerData: (state, action) => {
+      console.log(action.payload);
+      state = action.payload.customer;
+      return { ...state, ...action.payload };
+    },
+    resetCustomer: () => initialState,
   },
 });
 
@@ -126,5 +132,7 @@ export const {
   createAddress,
   createContactPersons,
   createRemarks,
+  setCustomerData,
+  resetCustomer
 } = customerSlice.actions;
 export default customerSlice.reducer;

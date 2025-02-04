@@ -68,7 +68,7 @@ const SalesPanelQuote = () => {
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
 
   const handleNewQuote = () => {
-    navigate("/add-quote");
+    navigate("/sales/add-quote");
   };
 
   const handleTimeFilterChange = (event) => {
@@ -219,7 +219,7 @@ const SalesPanelQuote = () => {
   };
 
   const handleViewQuote = (quoteId) => {
-    navigate(`/view-quote/${quoteId}`);
+    navigate(`/sales/view-quote/${quoteId}`);
   };
 
   const getStatusClass = (status) => {
@@ -315,7 +315,7 @@ const SalesPanelQuote = () => {
                   </td>
                   <td
                     className="px-4 py-2 border"
-                    onClick={() => navigate(`/view-quote/${quote._id}`)}
+                    onClick={() => navigate(`/sales/view-quote/${quote._id}`)}
                   >
                     {quote.createdAt
                       ? new Date(quote.createdAt).toLocaleDateString()
@@ -323,19 +323,19 @@ const SalesPanelQuote = () => {
                   </td>
                   <td
                     className="px-4 py-2 border"
-                    onClick={() => navigate(`/view-quote/${quote._id}`)}
+                    onClick={() => navigate(`/sales/view-quote/${quote._id}`)}
                   >
                     {quote.quote_Identifier || "Unknown"}
                   </td>
                   <td
                     className="px-4 py-2 border"
-                    onClick={() => navigate(`/view-quote/${quote._id}`)}
+                    onClick={() => navigate(`/sales/view-quote/${quote._id}`)}
                   >
                     {quote.quote_Creater || "N/A"}
                   </td>
                   <td
                     className="px-4 py-2 border"
-                    onClick={() => navigate(`/view-quote/${quote._id}`)}
+                    onClick={() => navigate(`/sales/view-quote/${quote._id}`)}
                   >
                     {
                       quote.quote_CustomerDetails.customer_GeneralDetails
@@ -344,13 +344,13 @@ const SalesPanelQuote = () => {
                   </td>
                   <td
                     className="px-4 py-2 border"
-                    onClick={() => navigate(`/view-quote/${quote._id}`)}
+                    onClick={() => navigate(`/sales/view-quote/${quote._id}`)}
                   >
                     {quote.quote_AfterDiscountPrice || "N/A"}
                   </td>
                   <td
                     className="px-4 py-2 border"
-                    onClick={() => navigate(`/view-quote/${quote._id}`)}
+                    onClick={() => navigate(`/sales/view-quote/${quote._id}`)}
                   >
                     {quote.quote_Details?.status || "N/A"}
                   </td>

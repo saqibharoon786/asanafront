@@ -306,16 +306,16 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                 </li>
                 <li>
                   <Link
-                    to="/calender"
+                    to="/calendar"
                     className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
-                      activeItem === "calender"
+                      activeItem === "calendar"
                         ? "bg-btnPrimaryClr text-white"
                         : "hover:text-gray-900"
                     }`}
-                    onClick={() => handleOptionClick("calender")}
+                    onClick={() => handleOptionClick("calendar")}
                   >
                     <FontAwesomeIcon icon={faReceipt} />
-                    <span>Calender</span>
+                    <span>Calendar</span>
                   </Link>
                 </li>
               </ul>

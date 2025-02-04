@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 const AddPackage = () => {
   const [formData, setFormData] = useState({
     package_Name: "",
@@ -40,7 +42,7 @@ const AddPackage = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/superadmin/package/create-package",
+        `${API_URL}/superadmin/package/create-package`,
         dataToSend,
         {
           headers: {

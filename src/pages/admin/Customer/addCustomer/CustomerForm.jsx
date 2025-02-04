@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   faUser,
@@ -10,9 +10,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import {
   createGeneralDetails,
-  updateSingularFields,
-  updatePrimaryContact,
-  updatePhone,
+  resetCustomer
 } from "../../../../features/customerSlice";
 import OtherDetails from "./OtherDetails";
 import Address from "./Address";
@@ -37,6 +35,10 @@ const CustomerForm = () => {
   const handleSectionChange = (section) => {
     setActiveSection(section);
   };
+
+  useEffect(() => {
+    dispatch(resetCustomer());
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent default form submission
@@ -114,7 +116,7 @@ const CustomerForm = () => {
             <input
               type="text"
               name="firstName"
-              placeholder="Enter Your First Name"
+              placeholder="First Name"
               onChange={handleCustomerGeneralDetails}
               className="w-full border-gray-300 rounded-md shadow-sm py-2"
             />
@@ -124,7 +126,7 @@ const CustomerForm = () => {
             <input
               type="text"
               name="lastName"
-              placeholder="Enter Your Last Name"
+              placeholder="Last Name"
               onChange={handleCustomerGeneralDetails}
               className="w-full border-gray-300 rounded-md shadow-sm py-2"
             />

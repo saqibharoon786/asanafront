@@ -18,9 +18,10 @@ import SalesOptionalDataLead from './Lead/SalesOptionalDataLead'
 import SalesPanelLeads from './Lead/SalesPanelLeads'
 import SalesLeadToQuoteConversion from './Lead/SalesLeadToQuoteConversion'
 
-import SalesPanelCalender from "./Calender/SalesPanelCalender"
+import SalesPanelCalendar from "./Calendar/SalesPanelCalendar"
 
 import SalesPanelCustomers from "./Customer/SalesPanelCustomers";
 import SalesCustomerForm from "./Customer/addCustomer/SalesCustomerForm";
+import SalesEditCustomer from "./Customer/addCustomer/SalesEditCustomer";
 
-export {SalesDashboard,SalesViewQuote,SalesAddQuote,SalesPanelQuote,SalesLeadToQuoteConversion, SalesLeadDetails, SalesOptionalDataLead, SalesPanelLeads, SalesPanelProducts, SalesAddProduct, SalesEditProduct, SalesViewProduct,SalesPanelInvoices,SalesViewInvoice,SalesAddInvoice,SalesPanelCalender, SalesPanelCustomers, SalesCustomerForm}
+export {SalesDashboard,SalesViewQuote,SalesAddQuote,SalesPanelQuote,SalesLeadToQuoteConversion, SalesLeadDetails, SalesOptionalDataLead, SalesPanelLeads, SalesPanelProducts, SalesAddProduct, SalesEditProduct, SalesViewProduct,SalesPanelInvoices,SalesViewInvoice,SalesAddInvoice,SalesPanelCalendar, SalesPanelCustomers, SalesCustomerForm,SalesEditCustomer}

@@ -1,491 +1,647 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import Select from 'react-select';
+import CustomerForm from "../Customer/addCustomer/CustomerForm";
 import {
-  UserIcon,
-  MailIcon,
-  PhoneIcon,
-  LocationMarkerIcon,
-} from "@heroicons/react/outline";
+  FaUser,
+  FaHashtag,
+  FaUserTie,
+  FaCalendarAlt,
+  FaPercentage,
+  FaFileAlt,
+} from "react-icons/fa";
 
 const API_URL = process.env.REACT_APP_API_URL;
-const TAX_RATE = 0.05; // Define tax rate here
+const jwtLoginToken = localStorage.getItem("jwtLoginToken");
+const TAX = 0.05;
 
 const AddInvoice = () => {
-  const jwtLoginToken = localStorage.getItem("jwtLoginToken");
-  const { user } = useSelector((state) => state.auth) || {};
-  const [grandTotal, setGrandTotal] = useState(0);
-  const [beforeTaxTotal, setBeforeTaxTotal] = useState(0);
-  const [afterTaxTotal, setAfterTaxTotal] = useState(0);
-  const [invoiceInitialPayment, setInvoiceInitialPayment] = useState(0);
-
-  const navigate = useNavigate();
-
-  const [client, setClient] = useState({
-    client_Name: "",
-    client_Email: "",
-    client_Contact: "",
-    client_Address: "",
+  const [fetchedProducts, setFetchedProducts] = useState([]);
+  const [productRows, setProductRows] = useState([
+    {
+      product: "",
+      quantity: 0,
+      product_SellingPrice: 0,
+      product_BeforeTaxPrice: 0,
+      product_Tax: 0,
+      product_AfterTaxPrice: 0,
+      product_DiscountPercentage: 0,
+      product_Discount: 0,
+      product_AfterDiscountPrice: 0,
+    },
+  ]);
+  const [showCustomerForm, setShowCustomerForm] = useState(false);
+  const [salesEmployees, setSalesEmployees] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [invoicePayload, setInvoicePayload] = useState({
+    invoice_Customer: "",
+    invoice_Products: [],
+    invoice_SalesPerson: "",
+    invoice_InitialPayment: "",
+    invoice_BeforeTaxPrice: 0,
+    invoice_TotalTax: 0,
+    invoice_AfterDiscountPrice: 0,
+    invoice_Subject: "",
+    invoice_Image: null,
+    previewUrl: null,
+    invoice_Project: "",
+    invoice_Date: "",
+    invoice_DueDate: "",
+    invoice_ReferenceNumber: "",
   });
 
-  const [products, setProducts] = useState([]);
-  const [currentProduct, setCurrentProduct] = useState({
-    product: "",
-    product_SellingPrice: 0,
-    quantity: 1,
-    product_Discount: 0,
-    product_Tax: TAX_RATE * 100, // Default tax rate
-    totalPrice: 0,
-  });
 
-  const [productOptions, setProductOptions] = useState([]);
-  const [clientError, setClientError] = useState({
-    client_Name: "",
-    client_Email: "",
-    client_Contact: "",
-    client_Address: "",
-  });
-  const [productError, setProductError] = useState("");
+
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/product/get-products`, {
+        headers: { Authorization: `Bearer ${jwtLoginToken}` },
+      });
+
+      if (response.data.success) {
+        setFetchedProducts(response.data.information.products);
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+  const fetchSalesEmployees = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/department/get-sales-employees`,
+        {
+          headers: { Authorization: `Bearer ${jwtLoginToken}` },
+        }
+      );
+      if (response.data.success && response.data.information?.users) {
+        setSalesEmployees(response.data.information.users);
+      }
+    } catch (err) {
+      console.error("Error fetching sales employees:", err);
+    }
+  };
+
+  const fetchCustomers = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/customer/get-all-customers`,
+        {
+          headers: { Authorization: `Bearer ${jwtLoginToken}` },
+        }
+      );
+      if (response.data.success && response.data.information?.customers) {
+        setCustomers(response.data.information.customers);
+      }
+    } catch (err) {
+      console.error("Error fetching customers:", err);
+    }
+  };
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      if (!jwtLoginToken) return;
-
-      try {
-        const response = await axios.get(`${API_URL}/product/get-products`, {
-          headers: { Authorization: `Bearer ${jwtLoginToken}` },
-        });
-        const products = response.data?.information?.products || [];
-        const formattedProducts = products.map((prod) => ({
-          id: prod._id,
-          name: prod.product_Name,
-          price: prod.product_SellingPrice,
-        }));
-        setProductOptions(formattedProducts);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-        setProductOptions([]);
-        alert("Failed to load products. Please check your network connection.");
-      }
-    };
-
     fetchProducts();
-  }, [jwtLoginToken]);
+    fetchSalesEmployees();
+  }, []);
 
-  const handleClientChange = (e) => {
-    const { name, value } = e.target;
-    setClient((prevClient) => ({
-      ...prevClient,
-      [name]: value,
-    }));
-  };
+  useEffect(() => {
+    fetchCustomers();
+  }, [showCustomerForm]);
 
-  const validateClient = () => {
-    let isValid = true;
-    let errors = { ...clientError };
+  useEffect(() => {
+    updateInvoiceSummary();
+  }, [productRows, showCustomerForm]);
 
-    if (!client.client_Name) {
-      errors.client_Name = "Client name is required!";
-      isValid = false;
-    } else {
-      errors.client_Name = "";
-    }
-
-    if (!client.client_Email) {
-      errors.client_Email = "Client email is required!";
-      isValid = false;
-    } else {
-      errors.client_Email = "";
-    }
-
-    if (!client.client_Contact) {
-      errors.client_Contact = "Client contact is required!";
-      isValid = false;
-    } else {
-      errors.client_Contact = "";
-    }
-
-    if (!client.client_Address) {
-      errors.client_Address = "Client address is required!";
-      isValid = false;
-    } else {
-      errors.client_Address = "";
-    }
-
-    setClientError(errors);
-    return isValid;
-  };
-
-  const handleCurrentProductChange = (e) => {
-    const { name, value } = e.target;
-
-    if (name === "product") {
-      const selectedProduct = productOptions.find(
-        (prod) => prod.name === value
-      );
-      if (selectedProduct) {
-        setCurrentProduct((prev) => ({
-          ...prev,
-          product: selectedProduct.name,
-          product_SellingPrice: selectedProduct.price,
-        }));
-        return;
-      }
-    }
-
-    setCurrentProduct((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const calculateProductTotal = () => {
-    const price = Number(currentProduct.product_SellingPrice); // Price per unit
-    const quantity = Number(currentProduct.quantity); // Quantity of products
-    const discountPercentage = Number(currentProduct.product_Discount); // Discount percentage entered (e.g., 10)
-
-    // Calculations
-    const product_BeforeTax = price * quantity;
-    const product_Tax = product_BeforeTax * TAX_RATE; // 5% tax
-    const product_AfterTax = product_BeforeTax + product_Tax;
-    const product_Discount = (product_AfterTax * discountPercentage) / 100; // Discount in currency
-    const product_AfterDiscount = product_AfterTax - product_Discount;
+  const calculateRowValues = (row) => {
+    const product_BeforeTaxPrice = row.quantity * row.product_SellingPrice;
+    const product_Tax = product_BeforeTaxPrice * TAX; // 5% Tax
+    const product_AfterTaxPrice = product_BeforeTaxPrice + product_Tax;
+    const product_Discount =
+      (product_AfterTaxPrice * row.product_DiscountPercentage) / 100;
+    const product_AfterDiscountPrice = product_AfterTaxPrice - product_Discount;
 
     return {
-      product_BeforeTax,
+      ...row,
+      product_BeforeTaxPrice,
       product_Tax,
-      product_AfterTax,
-      product_Discount, // Actual discount value (currency)
-      product_DiscountPercentage: discountPercentage, // Discount percentage
-      product_AfterDiscount,
-    };
-  };
-
-  const validateProduct = () => {
-    if (
-      !currentProduct.product ||
-      currentProduct.product_SellingPrice <= 0 ||
-      currentProduct.quantity <= 0
-    ) {
-      setProductError("Please provide valid product details.");
-      return false;
-    }
-    setProductError("");
-    return true;
-  };
-
-  const handleAddProduct = () => {
-    if (!validateProduct()) return;
-
-    const {
-      product_BeforeTax,
-      product_Tax,
-      product_AfterTax,
+      product_AfterTaxPrice,
       product_Discount,
-      product_DiscountPercentage,
-      product_AfterDiscount,
-    } = calculateProductTotal();
-
-    const newProduct = {
-      ...currentProduct,
-      product_BeforeTaxPrice: product_BeforeTax.toFixed(2),
-      product_Tax: product_Tax.toFixed(2),
-      product_AfterTaxPrice: product_AfterTax.toFixed(2),
-      product_Discount: product_Discount.toFixed(2), // Calculated discount value
-      product_DiscountPercentage: product_DiscountPercentage.toFixed(2), // Entered percentage
-      product_AfterDiscountPrice: product_AfterDiscount.toFixed(2),
-      totalPrice: product_AfterDiscount.toFixed(2),
+      product_AfterDiscountPrice,
     };
-
-    const updatedProducts = [...products, newProduct];
-    setProducts(updatedProducts);
-    updateGrandTotal(updatedProducts);
-
-    setCurrentProduct({
-      product: "",
-      product_SellingPrice: 0,
-      quantity: 1,
-      product_Discount: 0,
-      totalPrice: 0,
-    });
   };
 
-  const handleRemoveProduct = (index) => {
-    const updatedProducts = products.filter((_, i) => i !== index);
-    setProducts(updatedProducts);
-    updateGrandTotal(updatedProducts);
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setInvoicePayload((prevPayload) => ({
+      ...prevPayload,
+      invoice_Image: file,
+    }));
+  };
+
+  const handleProductChange = (index, productName) => {
+    const product = fetchedProducts.find(
+      (prod) => prod.product_Name === productName
+    );
+    const newRows = [...productRows];
+    newRows[index] = calculateRowValues({
+      ...newRows[index],
+      product: productName,
+      product_SellingPrice: product ? product.product_SellingPrice : 0,
+    });
+    setProductRows(newRows);
+  };
+
+  const handleRateChange = (index, rate) => {
+    const newRows = [...productRows];
+    newRows[index].product_SellingPrice =
+      isNaN(rate) || rate === "" ? 0 : Number(rate); // Allow empty input temporarily
+    newRows[index] = calculateRowValues({
+      ...newRows[index],
+      product_SellingPrice: newRows[index].product_SellingPrice,
+    });
+    setProductRows(newRows);
+  };
+
+  const handleQuantityChange = (index, quantity) => {
+    const newRows = [...productRows];
+    newRows[index].quantity =
+      isNaN(quantity) || quantity === "" ? 0 : Number(quantity); // Allow empty input temporarily
+    newRows[index] = calculateRowValues({
+      ...newRows[index],
+      quantity: newRows[index].quantity,
+    });
+    setProductRows(newRows);
+  };
+
+  const handleDiscountChange = (index, discountPercentage) => {
+    const newRows = [...productRows];
+    newRows[index].product_DiscountPercentage =
+      isNaN(discountPercentage) || discountPercentage === ""
+        ? 0
+        : Number(discountPercentage); // Allow empty input temporarily
+    newRows[index] = calculateRowValues({
+      ...newRows[index],
+      product_DiscountPercentage: newRows[index].product_DiscountPercentage,
+    });
+    setProductRows(newRows);
+  };
+
+  const addRow = () => {
+    setProductRows([
+      ...productRows,
+      {
+        product: "",
+        quantity: 0,
+        product_SellingPrice: 0,
+        product_BeforeTaxPrice: 0,
+        product_Tax: 0,
+        product_AfterTaxPrice: 0,
+        product_DiscountPercentage: 0,
+        product_Discount: 0,
+        product_AfterDiscountPrice: 0,
+      },
+    ]);
+  };
+
+  const deleteRow = (index) => {
+    const newRows = productRows.filter((_, i) => i !== index);
+    setProductRows(newRows);
+  };
+
+  const updateInvoiceSummary = () => {
+    const totalBeforeTax = productRows.reduce(
+      (sum, row) => sum + row.product_BeforeTaxPrice,
+      0
+    );
+    const totalTax = productRows.reduce((sum, row) => sum + row.product_Tax, 0);
+    const totalAfterDiscount = productRows.reduce(
+      (sum, row) => sum + row.product_AfterDiscountPrice,
+      0
+    );
+
+    setInvoicePayload((prevPayload) => ({
+      ...prevPayload,
+      invoice_BeforeTaxPrice: totalBeforeTax,
+      invoice_TotalTax: totalTax,
+      invoice_AfterDiscountPrice: totalAfterDiscount,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!validateClient()) return;
-    if (products.length === 0) {
-      alert("Please add at least one product!");
-      return;
+  
+    const formData = new FormData();
+    formData.append("invoice_Customer", invoicePayload.invoice_Customer);
+    formData.append("invoice_Products", JSON.stringify(productRows)); // Correctly converting to JSON string
+    formData.append("invoice_SalesPerson", invoicePayload.invoice_SalesPerson);
+    formData.append("invoice_InitialPayment", invoicePayload.invoice_InitialPayment.toString());
+    formData.append("invoice_BeforeTaxPrice", invoicePayload.invoice_BeforeTaxPrice.toString());
+    formData.append("invoice_TotalTax", invoicePayload.invoice_TotalTax.toString());
+    formData.append("invoice_AfterDiscountPrice", invoicePayload.invoice_AfterDiscountPrice.toString());
+    formData.append("invoice_Subject", invoicePayload.invoice_Subject);
+    if (invoicePayload.invoice_Image) {
+      formData.append("invoice_Image", invoicePayload.invoice_Image);
     }
-
-    // Calculate the total price values
-    const invoice_BeforeTaxPrice = products.reduce((total, product) => {
-      return total + parseFloat(product.product_BeforeTaxPrice);
-    }, 0);
-
-    const invoice_AfterTaxPrice = products.reduce((total, product) => {
-      return total + parseFloat(product.product_AfterTaxPrice);
-    }, 0);
-
-    const invoice_AfterDiscountPrice = products.reduce((total, product) => {
-      return total + parseFloat(product.product_AfterDiscountPrice);
-    }, 0);
-
-    const payload = {
-      invoice_Client: client,
-      invoice_Products: products.map((prod) => ({
-        product: prod.product,
-        quantity: prod.quantity,
-        product_SellingPrice: prod.product_SellingPrice,
-        product_Tax: prod.product_Tax,
-        product_DiscountPercentage: prod.product_DiscountPercentage,
-        product_Discount: prod.product_Discount,
-        product_BeforeTaxPrice: prod.product_BeforeTaxPrice,
-        product_AfterTaxPrice: prod.product_AfterTaxPrice,
-        product_AfterDiscountPrice: prod.product_AfterDiscountPrice,
-      })),
-      invoice_BeforeTaxPrice: invoice_BeforeTaxPrice.toFixed(2),
-      invoice_AfterTaxPrice: invoice_AfterTaxPrice.toFixed(2),
-      invoice_AfterDiscountPrice: invoice_AfterDiscountPrice.toFixed(2),
-      invoice_InitialPayment: invoiceInitialPayment, // Include initial payment
-      invoice_Details: { status: "Unpaid" },
-    };
-
+    formData.append("invoice_Project", invoicePayload.invoice_Project);
+    formData.append("invoice_Date", invoicePayload.invoice_Date);
+    formData.append("invoice_DueDate", invoicePayload.invoice_DueDate);
+    formData.append("invoice_ReferenceNumber", invoicePayload.invoice_ReferenceNumber);
+  
+    // Debugging formData
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
+    }
+  
     try {
       const response = await axios.post(
         `${API_URL}/invoice/create-invoice`,
-        payload,
-        { headers: { Authorization: `Bearer ${jwtLoginToken}` } }
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${jwtLoginToken}`,
+          },
+        }
       );
-      console.log(response.data);
+  
       if (response.data.success) {
-        alert("Invoice Created");
-        navigate("/invoices");
-        setProducts([]);
-        setClient({
-          client_Name: "",
-          client_Email: "",
-          client_Contact: "",
-          client_Address: "",
+        // Reset invoicePayload and productRows to their default states
+        setInvoicePayload({
+          invoice_Customer: "",
+          invoice_Products: [], // This will be reset in the form
+          invoice_SalesPerson: "",
+          invoice_InitialPayment: "",
+          invoice_BeforeTaxPrice: 0,
+          invoice_TotalTax: 0,
+          invoice_AfterDiscountPrice: 0,
+          invoice_Subject: "",
+          invoice_Project: "",
+          invoice_Image: null,
+          previewUrl: null,
+          invoice_Date: "",
+          invoice_DueDate: "",
+          invoice_ReferenceNumber: "",
         });
-      } else {
-        alert("Failed to create invoice. Please try again.");
+  
+        setProductRows([
+          {
+            product: "",
+            quantity: 0,
+            product_SellingPrice: 0,
+            product_BeforeTaxPrice: 0,
+            product_Tax: 0,
+            product_AfterTaxPrice: 0,
+            product_DiscountPercentage: 0,
+            product_Discount: 0,
+            product_AfterDiscountPrice: 0,
+          },
+        ]);
+  
+        alert("Invoice Created");
       }
     } catch (error) {
       console.error("Error creating invoice:", error);
-      alert("Failed to create invoice. Please try again.");
     }
-  };
+  };;
 
-  const updateGrandTotal = (updatedProducts) => {
-    const beforeTaxTotal = updatedProducts.reduce(
-      (sum, product) => sum + parseFloat(product.product_BeforeTaxPrice),
-      0
-    );
-    const afterTaxTotal = updatedProducts.reduce(
-      (sum, product) => sum + parseFloat(product.product_AfterTaxPrice),
-      0
-    );
-    const afterDiscountTotal = updatedProducts.reduce(
-      (sum, product) => sum + parseFloat(product.product_AfterDiscountPrice),
-      0
-    );
 
-    setBeforeTaxTotal(beforeTaxTotal.toFixed(2));
-    setAfterTaxTotal(afterTaxTotal.toFixed(2));
-    setGrandTotal(afterDiscountTotal.toFixed(2));
-  };
+return (
+  <form onSubmit={handleSubmit} className="p-4">
+    {/* Customer Name */}
+    <div className="mb-6 w-1/4">
+      <label
+        className="block text-sm font-medium text-gray-700 mb-1"
+        htmlFor="customerName"
+      >
+        <FaUser className="inline-block mr-2" /> Customer Name
+      </label>
+      <div className="flex items-center space-x-2">
+        <Select
+          id="customerName"
+          options={customers.map((customer) => ({
+            value: customer._id,
+            label: customer.customer_GeneralDetails.customer_DisplayName,
+          }))}
+          value={{
+            value: invoicePayload.invoice_Customer,
+            label:
+              customers.find((c) => c._id === invoicePayload.invoice_Customer)
+                ?.customer_GeneralDetails.customer_DisplayName || "",
+          }}
+          onChange={(selectedOption) =>
+            setInvoicePayload((prevPayload) => ({
+              ...prevPayload,
+              invoice_Customer: selectedOption ? selectedOption.value : "",
+            }))
+          }
+          placeholder="Select Customer"
+          className="mt-1 block w-full"
+        />
+        <button
+          type="button"
+          onClick={() => setShowCustomerForm(true)}
+          className="bg-blue-500 text-white px-3 py-2 rounded-md hover:bg-blue-600"
+        >
+          +
+        </button>
+      </div>
+    </div>
 
-  return (
-    <div className="max-w-4xl mx-auto p-8 bg-white rounded-lg shadow-lg">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">
-        Create New Invoice
-      </h1>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <section className="p-6 border border-gray-300 rounded-md bg-gray-50">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">
-            Client Details
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {[
-              "client_Name",
-              "client_Email",
-              "client_Contact",
-              "client_Address",
-            ].map((field) => (
-              <div key={field} className="flex flex-col gap-1">
-                <label
-                  htmlFor={field}
-                  className="text-sm font-medium text-gray-600"
-                >
-                  {field.replace("client_", "").replace("_", " ")}
-                </label>
-                <input
-                  type="text"
-                  id={field}
-                  name={field}
-                  value={client[field]}
-                  onChange={handleClientChange}
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                />
-                {clientError[field] && (
-                  <p className="text-xs text-red-500">{clientError[field]}</p>
-                )}
-              </div>
-            ))}
+    {showCustomerForm && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white p-6 rounded-lg shadow-lg w-[80%] max-h-[90%] overflow-y-auto">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold">Add Customer</h2>
+            <button
+              onClick={() => setShowCustomerForm(false)}
+              className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+            >
+              &times;
+            </button>
           </div>
-        </section>
-
-        <div className="mt-6">
-          <label
-            htmlFor="initialPayment"
-            className="text-sm font-medium text-gray-600"
-          >
-            Initial Payment %
-          </label>
-          <input
-            type="number"
-            id="initialPayment"
-            name="initialPayment"
-            value={invoiceInitialPayment}
-            onChange={(e) => setInvoiceInitialPayment(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded-md mt-2"
-          />
+          <div className="p-4">
+            <CustomerForm
+              onClose={() => setShowCustomerForm(false)} // Close the modal after adding
+              onCustomerAdded={(newCustomer) => {
+                setCustomers((prev) => [...prev, newCustomer]); // Add the new customer locally
+                setInvoicePayload((prevPayload) => ({
+                  ...prevPayload,
+                  invoice_Customer: newCustomer._id, // Set the newly added customer
+                }));
+                setShowCustomerForm(false); // Close the modal
+              }}
+            />
+          </div>
         </div>
+      </div>
+    )}
 
-        <section className="p-6 border border-gray-300 rounded-md bg-gray-50">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">Products</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label
-                htmlFor="product"
-                className="text-sm font-medium text-gray-600"
-              >
-                Product
-              </label>
+    {/* Reference Number */}
+    <div className="mb-6 w-1/4">
+      <label
+        className="block text-sm font-medium text-gray-700 mb-1"
+        htmlFor="referenceNumber"
+      >
+        <FaHashtag className="inline-block mr-2" /> Reference Number
+      </label>
+      <input
+        type="text"
+        id="referenceNumber"
+        value={invoicePayload.invoice_ReferenceNumber}
+        onChange={(e) =>
+          setInvoicePayload((prevPayload) => ({
+            ...prevPayload,
+            invoice_ReferenceNumber: e.target.value,
+          }))
+        }
+        placeholder="Enter reference number"
+        className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+      />
+    </div>
+
+    {/* Sales Person */}
+    <div className="mb-6 w-1/4">
+      <label
+        className="block text-sm font-medium text-gray-700 mb-1"
+        htmlFor="salesPerson"
+      >
+        <FaUserTie className="inline-block mr-2" /> Salesperson
+      </label>
+      <select
+        id="salesPerson"
+        value={invoicePayload.invoice_SalesPerson}
+        onChange={(e) =>
+          setInvoicePayload((prevPayload) => ({
+            ...prevPayload,
+            invoice_SalesPerson: e.target.value,
+          }))
+        }
+        className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+      >
+        <option value="">Select Salesperson</option>
+        {salesEmployees.map((employee) => (
+          <option key={employee.userId} value={employee.userId}>
+            {employee.name}
+          </option>
+        ))}
+      </select>
+    </div>
+
+    {/* Invoice Dates */}
+    <div className="flex space-x-4 mb-6 w-1/4">
+      <div className="flex-1">
+        <label
+          className="block text-sm font-medium text-gray-700 mb-1"
+          htmlFor="invoiceDate"
+        >
+          <FaCalendarAlt className="inline-block mr-2" /> Invoice Date
+        </label>
+        <input
+          type="date"
+          id="invoiceDate"
+          value={invoicePayload.invoice_Date}
+          onChange={(e) =>
+            setInvoicePayload((prevPayload) => ({
+              ...prevPayload,
+              invoice_Date: e.target.value,
+            }))
+          }
+          className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        />
+      </div>
+      <div className="flex-1">
+        <label
+          className="block text-sm font-medium text-gray-700 mb-1"
+          htmlFor="dueDate"
+        >
+          <FaCalendarAlt className="inline-block mr-2" /> Due Date
+        </label>
+        <input
+          type="date"
+          id="dueDate"
+          value={invoicePayload.invoice_DueDate}
+          onChange={(e) =>
+            setInvoicePayload((prevPayload) => ({
+              ...prevPayload,
+              invoice_DueDate: e.target.value,
+            }))
+          }
+          className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        />
+      </div>
+    </div>
+
+    {/* Initial Payment */}
+    <div className="mb-6 w-1/4">
+      <label
+        className="block text-sm font-medium text-gray-700 mb-1"
+        htmlFor="initialPayment"
+      >
+        <FaPercentage className="inline-block mr-2" /> Initial Payment (%)
+      </label>
+      <input
+        type="text"
+        id="initialPayment"
+        value={invoicePayload.invoice_InitialPayment}
+        onChange={(e) =>
+          setInvoicePayload((prevPayload) => ({
+            ...prevPayload,
+            invoice_InitialPayment: e.target.value,
+          }))
+        }
+        placeholder="Enter Initial Payment"
+        className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+      />
+    </div>
+
+    {/* Subject */}
+    <div className="mb-6 w-1/4">
+      <label
+        className="block text-sm font-medium text-gray-700 mb-1"
+        htmlFor="subject"
+      >
+        <FaFileAlt className="inline-block mr-2" /> Subject
+      </label>
+      <input
+        type="text"
+        id="subject"
+        value={invoicePayload.invoice_Subject}
+        onChange={(e) =>
+          setInvoicePayload((prevPayload) => ({
+            ...prevPayload,
+            invoice_Subject: e.target.value,
+          }))
+        }
+        placeholder="Enter subject"
+        className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+      />
+    </div>
+
+      {/* Item Table */}
+      <h1 className="text-xl font-bold mb-4">Item Table</h1>
+    <table className="w-full table-auto border border-gray-300 rounded-md">
+      <thead>
+        <tr className="bg-gray-100 text-left">
+          <th className="border border-gray-300 px-4 py-2">Item Description</th>
+          <th className="border border-gray-300 px-4 py-2">Qty</th>
+          <th className="border border-gray-300 px-4 py-2">Rate</th>
+          <th className="border border-gray-300 px-4 py-2">Discount (%)</th>
+          <th className="border border-gray-300 px-4 py-2">Tax</th>
+          <th className="border border-gray-300 px-4 py-2">Amount</th>
+          <th className="border border-gray-300 px-4 py-2">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {productRows.map((row, index) => (
+          <tr key={index} className="hover:bg-gray-50">
+            <td className="border border-gray-300 px-4 py-2 flex items-center">
+              <input
+                type="text"
+                value={row.product}
+                onChange={e => handleProductChange(index, e.target.value)}
+                placeholder="Type or select a product"
+                className="w-full border border-gray-300 rounded-md px-2 py-1 mr-2"
+              />
               <select
-                id="product"
-                name="product"
-                value={currentProduct.product}
-                onChange={handleCurrentProductChange}
-                className="w-full p-2 border border-gray-300 rounded-md"
+                value={row.product}
+                onChange={e => handleProductChange(index, e.target.value)}
+                className="border border-gray-300 rounded-md px-2 py-1"
               >
-                <option value="" disabled>
-                  Select a product
-                </option>
-                {productOptions.map(({ id, name }) => (
-                  <option key={id} value={name}>
-                    {name}
+                <option value="">Select Item</option>
+                {fetchedProducts.map(product => (
+                  <option key={product.id} value={product.product_Name}>
+                    {product.product_Name}
                   </option>
                 ))}
               </select>
-            </div>
-            {["product_SellingPrice", "quantity", "product_Discount"].map(
-              (field) => (
-                <div key={field}>
-                  <label
-                    htmlFor={field}
-                    className="text-sm font-medium text-gray-600"
-                  >
-                    {field.replace("product_", "").replace("_", " ")}
-                  </label>
-                  <input
-                    type="number"
-                    id={field}
-                    name={field}
-                    value={currentProduct[field]}
-                    onChange={handleCurrentProductChange}
-                    className="w-full p-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-              )
-            )}
-          </div>
+            </td>
+            <td className="border border-gray-300 px-4 py-2">
+              <input
+                type="number"
+                value={row.quantity === 0 ? "" : row.quantity}
+                onChange={e => handleQuantityChange(index, e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-2 py-1"
+              />
+            </td>
+            <td className="border border-gray-300 px-4 py-2">
+              <input
+                type="number"
+                value={row.product_SellingPrice === 0 ? "" : row.product_SellingPrice}
+                onChange={e => handleRateChange(index, Number(e.target.value))}
+                className="w-full border border-gray-300 rounded-md px-2 py-1"
+              />
+            </td>
+            <td className="border border-gray-300 px-4 py-2">
+              <input
+                type="number"
+                value={row.product_DiscountPercentage === 0 ? "" : row.product_DiscountPercentage}
+                onChange={e => handleDiscountChange(index, Number(e.target.value))}
+                className="w-full border border-gray-300 rounded-md px-2 py-1"
+              />
+            </td>
+            <td className="border border-gray-300 px-4 py-2 text-center">5%</td>
+            <td className="border border-gray-300 px-4 py-2 text-center">
+              {row.product_AfterDiscountPrice.toFixed(2)}
+            </td>
+            <td className="border border-gray-300 px-4 py-2 text-center">
+              <button
+                onClick={() => deleteRow(index)}
+                type="button"
+                className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    <button
+      type="button"
+      onClick={addRow}
+      className="mt-4 bg-blue-500 text-white px-5 py-2 rounded-md hover:bg-blue-600"
+    >
+      Add Row
+    </button>
 
-          <button
-            type="button"
-            onClick={handleAddProduct}
-            className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-md"
-          >
-            Add Product
-          </button>
-
-          {productError && <p className="text-red-500 mt-2">{productError}</p>}
-
-          {products.length > 0 && (
-            <table className="w-full mt-4 border border-gray-300 text-sm">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="border px-4 py-2">Product</th>
-                  <th className="border px-4 py-2">Price</th>
-                  <th className="border px-4 py-2">Quantity</th>
-                  <th className="border px-4 py-2">Discount Amount</th>
-                  <th className="border px-4 py-2">Total (AED)</th>
-                  <th className="border px-4 py-2">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.map((prod, index) => (
-                  <tr key={index}>
-                    <td className="border px-4 py-2">{prod.product}</td>
-                    <td className="border px-4 py-2">
-                      {prod.product_SellingPrice}
-                    </td>
-                    <td className="border px-4 py-2">{prod.quantity}</td>
-                    <td className="border px-4 py-2">
-                      {prod.product_Discount}
-                    </td>
-                    <td className="border px-4 py-2">{prod.totalPrice}</td>
-                    <td className="border px-4 py-2 text-center">
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveProduct(index)}
-                        className="text-red-600 hover:underline"
-                      >
-                        Remove
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-          {products.length > 0 && (
-            <div className="mt-4 text-right">
-              <p className="text-lg font-semibold">
-                Before Tax Total:{" "}
-                <span className="text-indigo-600">{beforeTaxTotal} AED</span>
-              </p>
-              <p className="text-lg font-semibold">
-                After Tax Total:{" "}
-                <span className="text-indigo-600">{afterTaxTotal} AED</span>
-              </p>
-              <p className="text-lg font-semibold">
-                Grand Total (After Discount):{" "}
-                <span className="text-indigo-600">{grandTotal} AED</span>
-              </p>
-            </div>
-          )}
-        </section>
-
-        <button
-          type="submit"
-          className="w-full px-4 py-2 bg-green-600 text-white rounded-md"
-        >
-          Submit Invoice
-        </button>
-      </form>
+    {/* Totals Section */}
+    <div className="bg-white p-6 rounded-lg shadow-md space-y-4 text-lg font-semibold text-right">
+      <h2 className="text-gray-700 flex justify-between">
+        Subtotal:
+        <span className="text-gray-900 font-medium">
+          AED {invoicePayload.invoice_BeforeTaxPrice.toFixed(2)}
+        </span>
+      </h2>
+      <h2 className="text-gray-700 flex justify-between">
+        Total Tax:
+        <span className="text-gray-900 font-medium">
+          AED {invoicePayload.invoice_TotalTax.toFixed(2)}
+        </span>
+      </h2>
+      <h2 className="text-gray-700 flex justify-between border-t pt-4">
+        Grand Total:
+        <span className="text-gray-900 font-bold text-xl">
+          AED {invoicePayload.invoice_AfterDiscountPrice.toFixed(2)}
+        </span>
+      </h2>
     </div>
-  );
+
+    {/* Submit Button and File Input */}
+    <div className="flex justify-end">
+      <input
+        type="file"
+        onChange={handleFileChange}
+        className="mt-4 w-full p-2 border rounded-lg bg-gray-50"
+      />
+      <button
+        type="submit"
+        className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md shadow hover:bg-blue-500"
+      >
+        Submit
+      </button>
+    </div>
+  </form>
+);
+ 
 };
 
 export default AddInvoice;

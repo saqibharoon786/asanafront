@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom"; // Assuming you use react-router-dom for navigation
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 const PanelCompany = () => {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,7 +21,7 @@ const PanelCompany = () => {
 
       try {
         const response = await axios.get(
-          `http://localhost:3000/superadmin/company/get-companies`,
+          `${API_URL}/superadmin/company/get-companies`,
           {
             headers: {
               Authorization: `Bearer ${jwtLoginToken}`,

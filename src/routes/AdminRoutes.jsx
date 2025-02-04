@@ -23,9 +23,10 @@ import {
   AddProduct,
   EditProduct,
   AdminPayrolls,
-  PanelCalender,
+  PanelCalendar,
   PanelCustomers,
-  CustomerForm
+  CustomerForm,
+  EditCustomer
 } from "../pages/admin/AdminPages";
 import { AdminLayout } from "../layouts/Layout";
 
@@ -59,10 +60,11 @@ const AdminRoutes = () => (
 
         <Route path="/departments" element={<AdminProtectedRoute><AdminLayout><PanelDepartment /></AdminLayout></AdminProtectedRoute>} />
 
-        <Route path="/calender" element={<AdminProtectedRoute><AdminLayout><PanelCalender /></AdminLayout></AdminProtectedRoute>} />
+        <Route path="/calendar" element={<AdminProtectedRoute><AdminLayout><PanelCalendar /></AdminLayout></AdminProtectedRoute>} />
        
         <Route path="/customers" element={<AdminProtectedRoute><AdminLayout><PanelCustomers /></AdminLayout></AdminProtectedRoute>} />
         <Route path="/add-customer" element={<AdminProtectedRoute><AdminLayout><CustomerForm /></AdminLayout></AdminProtectedRoute>} />
+        <Route path="/edit-customer/:customerId" element={<AdminProtectedRoute><AdminLayout><EditCustomer /></AdminLayout></AdminProtectedRoute>} />
 
   </>
 );

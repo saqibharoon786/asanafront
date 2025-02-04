@@ -162,90 +162,23 @@ const SalesSidebar = ({ isSidebarOpen, toggleSidebar }) => {
                 </li>
                 <li>
                   <Link
-                    to="/sales/calender"
+                    to="/sales/calendar"
                     className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
-                      activeItem === "calender"
+                      activeItem === "calendar"
                         ? "bg-btnPrimaryClr text-white"
                         : "hover:text-gray-900"
                     }`}
-                    onClick={() => handleOptionClick("calender")}
+                    onClick={() => handleOptionClick("calendar")}
                   >
                     <FontAwesomeIcon icon={faReceipt} />
-                    <span>Calender</span>
+                    <span>Calendar</span>
                   </Link>
                 </li>
               </ul>
             )}
           </li>
 
-          {/* Sales */}
-          <li>
-            <div
-              className="flex items-center justify-between p-3 cursor-pointer hover:bg-blue-100 rounded-lg transition duration-200"
-              onClick={() => toggleDropdown("reporting")}
-            >
-              <div className="flex items-center space-x-2 group">
-                <FontAwesomeIcon
-                  icon={faClipboardList}
-                  className="text-gray-900 group-hover:text-gray-900 transition duration-200"
-                />
-                <span className="group-hover:text-gray-900 transition duration-200">
-                  Reporting
-                </span>
-              </div>
-              <FontAwesomeIcon
-                icon={openDropdowns.reporting ? faChevronDown : faChevronRight}
-                className="text-gray-900 group-hover:text-gray-900 transition duration-200"
-              />
-            </div>
 
-            {openDropdowns.reporting && (
-              <ul className="ml-6 mt-2 space-y-2 text-gray-600">
-                <li>
-                  <Link
-                    to="/sales/leads"
-                    className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
-                      activeItem === "leads"
-                        ? "bg-btnPrimaryClr text-white"
-                        : "hover:text-gray-900"
-                    }`}
-                    onClick={() => handleOptionClick("leads")}
-                  >
-                    <FontAwesomeIcon icon={faClipboardList} />
-                    <span>HR</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/sales/quotes"
-                    className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
-                      activeItem === "quotes"
-                        ? "bg-btnPrimaryClr text-white"
-                        : "hover:text-gray-900"
-                    }`}
-                    onClick={() => handleOptionClick("quotes")}
-                  >
-                    <FontAwesomeIcon icon={faClipboardList} />
-                    <span>Procurements</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/sales/invoices"
-                    className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
-                      activeItem === "invoices"
-                        ? "bg-btnPrimaryClr text-white"
-                        : "hover:text-gray-900"
-                    }`}
-                    onClick={() => handleOptionClick("invoices")}
-                  >
-                    <FontAwesomeIcon icon={faReceipt} />
-                    <span>Sales</span>
-                  </Link>
-                </li>
-              </ul>
-            )}
-          </li>
         </ul>
       </div>
     </div>

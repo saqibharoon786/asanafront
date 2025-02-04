@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 const AddCompany = () => {
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
   const [formData, setFormData] = useState({
@@ -19,7 +21,7 @@ const AddCompany = () => {
     const fetchPackages = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:3000/superadmin/package/get-packages",
+          `${API_URL}/superadmin/package/get-packages`,
           {
             headers: {
               Authorization: `Bearer ${jwtLoginToken}`,
@@ -60,7 +62,7 @@ const AddCompany = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/superadmin/company/add-company",
+        `${API_URL}/superadmin/company/add-company`,
         formDataToSend,
         {
           headers: {

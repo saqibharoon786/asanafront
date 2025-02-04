@@ -10,7 +10,7 @@ import { faTrash, faEdit } from "@fortawesome/free-solid-svg-icons";
 const API_URL = process.env.REACT_APP_API_URL;
 const jwtLoginToken = localStorage.getItem("jwtLoginToken");
 
-const PanelCalender = () => {
+const PanelCalendar = () => {
   const [events, setEvents] = useState([]);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showModal, setShowModal] = useState(false);
@@ -301,4 +301,4 @@ const PanelCalender = () => {
   );
 };
 
-export default PanelCalender;
+export default PanelCalendar;

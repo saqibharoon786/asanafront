@@ -36,16 +36,16 @@ const SalesNavbar = ({ toggleSidebar }) => {
           );
         }
       } catch (error) {
-        console.error("Error fetching notifications:", error);
+        // console.error("Error fetching notifications:", error);
       }
     };
 
-    // if (jwtLoginToken) {
-    //   fetchNotifications(); // Initial fetch
-    //   const intervalId = setInterval(fetchNotifications, 3000); // Poll every 3 seconds
+    if (jwtLoginToken) {
+      fetchNotifications(); 
+      const intervalId = setInterval(fetchNotifications, 1000); 
 
-    //   return () => clearInterval(intervalId); // Clean up interval on component unmount
-    // }
+      return () => clearInterval(intervalId); 
+    }
   }, [API_URL, jwtLoginToken]);
 
   const handleLogout = () => {

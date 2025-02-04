@@ -57,6 +57,10 @@ const PanelCustomers = () => {
     fetchCustomers();
   }, []);
 
+  const handleNavigateToEditCustomer = (customerId) => {
+    navigate(`/edit-customer/${customerId}`)
+  }
+
   /** Pagination Handlers */
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
@@ -200,10 +204,13 @@ const PanelCustomers = () => {
                 <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border">
                   Phone
                 </th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
-              {currentRecords.map((customer) => (
+              {[...currentRecords].reverse().map((customer) => (
                 <tr key={customer._id} className="hover:bg-gray-100 border-b">
                   <td className="px-4 py-2 border">
                     <input
@@ -232,14 +239,23 @@ const PanelCustomers = () => {
                   <td className="px-4 py-2 border">
                     {customer.customer_GeneralDetails.customer_Email}
                   </td>
-                  <td className="px-4 py-2 border">
+                  <td className="px-4 py-2 border" >
                     {
                       customer.customer_GeneralDetails.customer_Contact
                         .mobilePhone
                     }
                   </td>
+                  <td className="px-4 py-2 border">
+                    <button
+                      onClick={() => handleNavigateToEditCustomer(customer._id)}
+                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded"
+                    >
+                      Edit
+                    </button>
+                  </td>
                 </tr>
               ))}
+
             </tbody>
           </table>
         </div>

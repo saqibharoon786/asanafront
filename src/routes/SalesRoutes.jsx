@@ -16,8 +16,9 @@ import {
   SalesLeadDetails,
   SalesOptionalDataLead,
   SalesPanelLeads,
-  SalesPanelCalender,
+  SalesPanelCalendar,
   SalesPanelCustomers,
+  SalesEditCustomer,
   SalesCustomerForm,
   SalesLeadToQuoteConversion
 } from "../pages/sales/SalesPages";
@@ -45,10 +46,12 @@ const SalesRoutes = () => (
     <Route path="/sales/optional-data-lead/:leadId" element={<SalesProtectedRoute><SalesLayout> <SalesOptionalDataLead /></SalesLayout></SalesProtectedRoute>}/>
     <Route path="sales/lead-to-quote-conversion/:leadId" element={<SalesProtectedRoute><SalesLayout> <SalesLeadToQuoteConversion /></SalesLayout></SalesProtectedRoute>}/>
 
-    <Route path="/sales/calender" element={<SalesProtectedRoute><SalesLayout> <SalesPanelCalender /></SalesLayout></SalesProtectedRoute>}/>
+    <Route path="/sales/calendar" element={<SalesProtectedRoute><SalesLayout> <SalesPanelCalendar /></SalesLayout></SalesProtectedRoute>}/>
 
     <Route path="/sales/customers" element={<SalesProtectedRoute><SalesLayout><SalesPanelCustomers /></SalesLayout></SalesProtectedRoute>} />
     <Route path="/sales/add-customer" element={<SalesProtectedRoute><SalesLayout><SalesCustomerForm /></SalesLayout></SalesProtectedRoute>} />
+    <Route path="/sales/edit-customer/:customerId" element={<SalesProtectedRoute><SalesLayout><SalesEditCustomer /></SalesLayout></SalesProtectedRoute>} />
+
   </>
 );
 

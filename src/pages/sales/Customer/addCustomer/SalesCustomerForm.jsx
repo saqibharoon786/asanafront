@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+
 import { useSelector, useDispatch } from "react-redux";
 import {
   faUser,
@@ -10,24 +11,23 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import {
   createGeneralDetails,
-  updateSingularFields,
-  updatePrimaryContact,
-  updatePhone,
+  resetCustomer
 } from "../../../../features/customerSlice";
-import SalesOtherDetails from "./SalesOtherDetails";
-import SalesAddress from "./SalesAddress";
-import SalesRemarks from "./SalesRemarks";
-import SalesContactPersons from "./SalesContactPersons";
+import OtherDetails from "./SalesOtherDetails";
+import Address from "./SalesAddress";
+import Remarks from "./SalesRemarks";
+import ContactPersons from "./SalesContactPersons";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const API_URL = process.env.REACT_APP_API_URL;
 const jwtLoginToken = localStorage.getItem("jwtLoginToken");
 
 const SalesCustomerForm = () => {
   const dispatch = useDispatch();
-  const [activeSection, setActiveSection] = useState("SalesOtherDetails");
+  const [activeSection, setActiveSection] = useState("OtherDetails");
   const customerData = useSelector((state) => state.customer);
-
+const navigate=useNavigate();
   const handleCustomerGeneralDetails = (e) => {
     dispatch(
       createGeneralDetails({ field: e.target.name, value: e.target.value })
@@ -37,6 +37,10 @@ const SalesCustomerForm = () => {
   const handleSectionChange = (section) => {
     setActiveSection(section);
   };
+
+  useEffect(() => {
+    dispatch(resetCustomer());
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent default form submission
@@ -55,6 +59,7 @@ const SalesCustomerForm = () => {
       );
 
       if (response.data.success) {
+        navigate('/sales/customers')
         alert("Customer created successfully!");
       } else {
         alert("Failed to create customer.");
@@ -114,7 +119,7 @@ const SalesCustomerForm = () => {
             <input
               type="text"
               name="firstName"
-              placeholder="Enter Your First Name"
+              placeholder="First Name"
               onChange={handleCustomerGeneralDetails}
               className="w-full border-gray-300 rounded-md shadow-sm py-2"
             />
@@ -124,7 +129,7 @@ const SalesCustomerForm = () => {
             <input
               type="text"
               name="lastName"
-              placeholder="Enter Your Last Name"
+              placeholder="Last Name"
               onChange={handleCustomerGeneralDetails}
               className="w-full border-gray-300 rounded-md shadow-sm py-2"
             />
@@ -193,9 +198,9 @@ const SalesCustomerForm = () => {
         <div className="flex gap-4 mb-4">
           <button
             type="button"
-            onClick={() => handleSectionChange("SalesOtherDetails")}
+            onClick={() => handleSectionChange("OtherDetails")}
             className={`px-4 py-2 rounded-md shadow ${
-              activeSection === "SalesOtherDetails"
+              activeSection === "OtherDetails"
                 ? "bg-blue-600 text-white"
                 : "bg-gray-200"
             }`}
@@ -204,31 +209,31 @@ const SalesCustomerForm = () => {
           </button>
           <button
             type="button"
-            onClick={() => handleSectionChange("SalesAddress")}
+            onClick={() => handleSectionChange("Address")}
             className={`px-4 py-2 rounded-md shadow ${
-              activeSection === "SalesAddress"
+              activeSection === "Address"
                 ? "bg-blue-600 text-white"
                 : "bg-gray-200"
             }`}
           >
-            SalesAddress
+            Address
           </button>
           <button
             type="button"
-            onClick={() => handleSectionChange("SalesRemarks")}
+            onClick={() => handleSectionChange("Remarks")}
             className={`px-4 py-2 rounded-md shadow ${
-              activeSection === "SalesRemarks"
+              activeSection === "Remarks"
                 ? "bg-blue-600 text-white"
                 : "bg-gray-200"
             }`}
           >
-            SalesRemarks
+            Remarks
           </button>
           <button
             type="button"
-            onClick={() => handleSectionChange("SalesContactPersons")}
+            onClick={() => handleSectionChange("ContactPersons")}
             className={`px-4 py-2 rounded-md shadow ${
-              activeSection === "SalesContactPersons"
+              activeSection === "ContactPersons"
                 ? "bg-blue-600 text-white"
                 : "bg-gray-200"
             }`}
@@ -237,10 +242,10 @@ const SalesCustomerForm = () => {
           </button>
         </div>
 
-        {activeSection === "SalesOtherDetails" && <SalesOtherDetails />}
-        {activeSection === "SalesAddress" && <SalesAddress />}
-        {activeSection === "SalesRemarks" && <SalesRemarks />}
-        {activeSection === "SalesContactPersons" && <SalesContactPersons />}
+        {activeSection === "OtherDetails" && <OtherDetails />}
+        {activeSection === "Address" && <Address />}
+        {activeSection === "Remarks" && <Remarks />}
+        {activeSection === "ContactPersons" && <ContactPersons />}
       </div>
 
       <button
