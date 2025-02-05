@@ -36,14 +36,10 @@ const CustomerForm = () => {
     setActiveSection(section);
   };
 
-  useEffect(() => {
-    dispatch(resetCustomer());
-  }, []);
-
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent default form submission
     e.stopPropagation(); // Stop event bubbling
-    
+
     console.log(customerData)
     try {
       const response = await axios.post(
@@ -59,6 +55,7 @@ const CustomerForm = () => {
 
       if (response.data.success) {
         alert("Customer created successfully!");
+        dispatch(resetCustomer());
       } else {
         alert("Failed to create customer.");
       }
@@ -74,20 +71,26 @@ const CustomerForm = () => {
         <h1 className="text-2xl font-bold mb-4">New Customer</h1>
         <h2 className="text-lg font-semibold mb-2">Customer Type</h2>
         <div className="flex  gap-4 mb-4">
-          <label className="  flex items-center">
+          <label className="flex items-center">
             <input
               type="radio"
               name="customer_Type"
-              value="Business"
+              value="business"
+              checked={
+                customerData.customer_GeneralDetails.customer_Type === "business"
+              }
               onChange={handleCustomerGeneralDetails}
             />
             <span className="ml-2">Business</span>
           </label>
-          <label className="  flex items-center">
+          <label className="flex items-center">
             <input
               type="radio"
               name="customer_Type"
-              value="Individual"
+              value="individual"
+              checked={
+                customerData.customer_GeneralDetails.customer_Type === "individual"
+              }
               onChange={handleCustomerGeneralDetails}
             />
             <span className="ml-2">Individual</span>
@@ -102,6 +105,9 @@ const CustomerForm = () => {
             <label className="flex font-medium mb-1">Salutation:</label>
             <select
               name="salutation"
+              value={
+                customerData.customer_GeneralDetails.customer_PrimaryInfo.salutation
+              }
               onChange={handleCustomerGeneralDetails}
               className="w-full border-gray-300 rounded-md shadow-sm py-2"
             >
@@ -118,9 +124,13 @@ const CustomerForm = () => {
               type="text"
               name="firstName"
               placeholder="First Name"
+              value={
+                customerData.customer_GeneralDetails.customer_PrimaryInfo.firstName
+              }
               onChange={handleCustomerGeneralDetails}
               className="w-full border-gray-300 rounded-md shadow-sm py-2"
             />
+
           </div>
           <div className="flex items-center   w-1/2">
             <i className="fas fa-user text-gray-400 mr-2"></i>
@@ -128,9 +138,13 @@ const CustomerForm = () => {
               type="text"
               name="lastName"
               placeholder="Last Name"
+              value={
+                customerData.customer_GeneralDetails.customer_PrimaryInfo.lastName
+              }
               onChange={handleCustomerGeneralDetails}
               className="w-full border-gray-300 rounded-md shadow-sm py-2"
             />
+
           </div>
 
           {/* Company Name */}
@@ -140,9 +154,13 @@ const CustomerForm = () => {
               type="text"
               name="customer_CompanyName"
               placeholder="Company Name"
+              value={
+                customerData.customer_GeneralDetails.customer_CompanyName
+              }
               onChange={handleCustomerGeneralDetails}
               className="w-full border-gray-300 rounded-md shadow-sm py-2"
             />
+
           </div>
 
           {/* Display Name */}
@@ -152,9 +170,13 @@ const CustomerForm = () => {
               type="text"
               name="customer_DisplayName"
               placeholder="Display Name"
+              value={
+                customerData.customer_GeneralDetails.customer_DisplayName
+              }
               onChange={handleCustomerGeneralDetails}
               className="w-full border-gray-300 rounded-md shadow-sm py-2"
             />
+
           </div>
 
           {/* Email Address */}
@@ -164,9 +186,13 @@ const CustomerForm = () => {
               type="email"
               name="customer_Email"
               placeholder="Email Address"
+              value={
+                customerData.customer_GeneralDetails.customer_Email
+              }
               onChange={handleCustomerGeneralDetails}
               className="w-full border-gray-300 rounded-md shadow-sm py-2"
             />
+
           </div>
 
           {/* Phone */}
@@ -177,9 +203,13 @@ const CustomerForm = () => {
               type="text"
               name="workPhone"
               placeholder="Work Phone"
+              value={
+                customerData.customer_GeneralDetails.customer_Contact.workPhone
+              }
               onChange={handleCustomerGeneralDetails}
               className="w-full border-gray-300 rounded-md shadow-sm py-2"
             />
+
           </div>
           <div className="flex items-center   w-1/2">
             <i className="fas fa-mobile-alt text-gray-400 mr-2"></i>
@@ -187,9 +217,13 @@ const CustomerForm = () => {
               type="text"
               name="mobilePhone"
               placeholder="Mobile Phone"
+              value={
+                customerData.customer_GeneralDetails.customer_Contact.mobilePhone
+              }
               onChange={handleCustomerGeneralDetails}
               className="w-full border-gray-300 rounded-md shadow-sm py-2"
             />
+
           </div>
         </div>
         {/* End of new input fields */}
@@ -197,44 +231,40 @@ const CustomerForm = () => {
           <button
             type="button"
             onClick={() => handleSectionChange("OtherDetails")}
-            className={`px-4 py-2 rounded-md shadow ${
-              activeSection === "OtherDetails"
-                ? "bg-blue-600 text-white"
-                : "bg-gray-200"
-            }`}
+            className={`px-4 py-2 rounded-md shadow ${activeSection === "OtherDetails"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200"
+              }`}
           >
             Other Details
           </button>
           <button
             type="button"
             onClick={() => handleSectionChange("Address")}
-            className={`px-4 py-2 rounded-md shadow ${
-              activeSection === "Address"
-                ? "bg-blue-600 text-white"
-                : "bg-gray-200"
-            }`}
+            className={`px-4 py-2 rounded-md shadow ${activeSection === "Address"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200"
+              }`}
           >
             Address
           </button>
           <button
             type="button"
             onClick={() => handleSectionChange("Remarks")}
-            className={`px-4 py-2 rounded-md shadow ${
-              activeSection === "Remarks"
-                ? "bg-blue-600 text-white"
-                : "bg-gray-200"
-            }`}
+            className={`px-4 py-2 rounded-md shadow ${activeSection === "Remarks"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200"
+              }`}
           >
             Remarks
           </button>
           <button
             type="button"
             onClick={() => handleSectionChange("ContactPersons")}
-            className={`px-4 py-2 rounded-md shadow ${
-              activeSection === "ContactPersons"
-                ? "bg-blue-600 text-white"
-                : "bg-gray-200"
-            }`}
+            className={`px-4 py-2 rounded-md shadow ${activeSection === "ContactPersons"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200"
+              }`}
           >
             Contact Persons
           </button>

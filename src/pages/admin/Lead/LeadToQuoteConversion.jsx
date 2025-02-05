@@ -2,6 +2,11 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Select from "react-select";
 import CustomerForm from "../Customer/addCustomer/CustomerForm";
+import { useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  setInitialDetailsLeadToQuoteConversion
+} from "../../../features/customerSlice";
 import {
   FaUser,
   FaHashtag,
@@ -18,6 +23,7 @@ const TAX = 0.05;
 
 const LeadToQuote = () => {
   const { leadId } = useParams();
+  const dispatch = useDispatch();
   const [fetchedProducts, setFetchedProducts] = useState([]);
   const [productRows, setProductRows] = useState([
     {
@@ -107,6 +113,8 @@ const LeadToQuote = () => {
       });
       if (response.data.success && response.data.information?.lead) {
         setLead(response.data.information.lead);
+        const lead = response.data.information.lead;
+        dispatch(setInitialDetailsLeadToQuoteConversion({ lead }));
         setQuotePayload((prevPayload) => ({
           ...prevPayload,
           quote_Customer: response.data.information.lead.lead_Customer,
@@ -339,17 +347,27 @@ const LeadToQuote = () => {
   return (
     <form onSubmit={handleSubmit} className="p-4">
       {/* Customer Name */}
-      <div className="mb-6 w-1/4">
+      <div className="mb-6">
         <label
           className="block text-sm font-medium text-gray-700 mb-1"
           htmlFor="customerName"
         >
           <FaUser className="inline-block mr-2" /> Customer Name
         </label>
-        <div>
+        <div className="flex m-2 ">
           {lead &&
-            lead.customer_Details.customer_GeneralDetails.customer_DisplayName}
+            lead.lead_Customer.customer_Name}
+          <div className="m-2">
+            <button
+              type="button"
+              onClick={() => setShowCustomerForm(true)}
+              className="bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600"
+            >
+              Add More
+            </button>
+          </div>
         </div>
+
       </div>
 
       {showCustomerForm && (

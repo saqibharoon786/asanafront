@@ -12,6 +12,7 @@ import {
 import {
     createGeneralDetails,
     setCustomerData,
+    resetCustomer,
 } from "../../../../features/customerSlice";
 import OtherDetails from "./OtherDetails";
 import Address from "./Address";
@@ -76,6 +77,7 @@ const EditCustomer = () => {
 
             if (response.data.success) {
                 alert("Customer Updated successfully!");
+                dispatch(resetCustomer());
             } else {
                 alert("Failed to create customer.");
             }

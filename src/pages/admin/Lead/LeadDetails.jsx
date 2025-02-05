@@ -116,7 +116,7 @@ const LeadDetails = () => {
               <h2 className="text-xl font-semibold text-gray-700">
                 {lead.lead_Title}
               </h2>
-              <p className="text-gray-600">{lead.lead_Customer}</p>
+              <p className="text-gray-600">{lead.lead_Customer.customer_Name}</p>
             </div>
           ))}
         </div>

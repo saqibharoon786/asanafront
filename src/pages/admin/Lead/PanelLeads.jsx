@@ -2,14 +2,17 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Select from "react-select";
-import CustomerForm from "../Customer/addCustomer/CustomerForm";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faUser,
+  faEnvelope,
+  faAddressBook,
+  faPhone,
+  faBuilding,
   faTag,
   faGlobe,
   faTimes,
-  faBullseye,
+  faMapMarkerAlt,
   faFire,
   faSun,
   faSnowflake,
@@ -20,14 +23,21 @@ const API_URL = process.env.REACT_APP_API_URL;
 
 const PanelLeads = () => {
   const [showForm, setShowForm] = useState(false);
+  const [formType, setFormType] = useState("individual");
   const [formData, setFormData] = useState({
-    lead_Customer: "",
+    customer_Name: "",
+    customer_Email: "",
+    customer_Address: "",
+    customer_Contact: "",
+    contactPerson_Name: "",
+    contactPerson_Email: "",
+    contactPerson_Contact: "",
+    lead_Type: "individual",
+    lead_Scope: "",
     lead_Title: "",
     lead_Source: "",
-    lead_Scope: "",
   });
   const [leads, setLeads] = useState([]);
-  const [showCustomerForm, setShowCustomerForm] = useState(false);
   const [salesEmployees, setSalesEmployees] = useState([]);
   const [showMassLeadTransferPopup, setShowMassLeadTransferPopup] =
     useState(false);
@@ -73,6 +83,7 @@ const PanelLeads = () => {
 
       if (response.data.success) {
         let filteredLeads = response.data.information.allLeads;
+        console.log(response.data.information.allLeads)
 
         if (timeFilter !== "All") {
           const now = new Date();
@@ -121,10 +132,10 @@ const PanelLeads = () => {
   useEffect(() => {
     fetchSalesEmployees();
     fetchCustomers();
+    fetchLeads();
   }, []);
 
   useEffect(() => {
-    fetchLeads();
   }, [leads]);
 
   /** Handle Input Change */
@@ -164,21 +175,24 @@ const PanelLeads = () => {
   /** Handle Form Submission */
   const handleFormSubmit = async (event) => {
     event.preventDefault();
-    const data = {
-      lead_Customer: formData.lead_Customer,
-      lead_Scope: formData.lead_Scope,
-      lead_Title: formData.lead_Title,
-      lead_Source: formData.lead_Source,
-    };
 
+    console.log(formData);
     try {
-      await axios.post(`${API_URL}/lead/create-lead`, data, {
+      await axios.post(`${API_URL}/lead/create-lead`, formData, {
         headers: { Authorization: `Bearer ${jwtLoginToken}` },
       });
       setShowForm(false);
       fetchLeads(); // Refresh leads after creation
     } catch (error) {
       alert(error.response?.data || "Error submitting form.");
+    }
+  };
+
+  const handleMassActionChange = (action) => {
+    if (action === "delete") {
+      handleMassDelete();
+    } else if (action === "transfer") {
+      setShowMassLeadTransferPopup(true);
     }
   };
 
@@ -244,7 +258,6 @@ const PanelLeads = () => {
     return (
       lead.lead_CreaterName?.toLowerCase().includes(searchLower) ||
       lead.lead_Title?.toLowerCase().includes(searchLower) ||
-      lead.lead_Organization?.toLowerCase().includes(searchLower) ||
       lead.lead_AssignedToUserName?.toLowerCase().includes(searchLower) ||
       lead.lead_PreviousOwnerName?.toLowerCase().includes(searchLower)
     );
@@ -304,7 +317,7 @@ const PanelLeads = () => {
       default:
         return 'bg-white'; // Default if status is not defined
     }
-  }; 
+  };
 
   return (
     <div className="p-5 bg-delta min-h-screen">
@@ -349,12 +362,17 @@ const PanelLeads = () => {
               <option value="Week">Last Week</option>
               <option value="Month">Last Month</option>
             </select>
-            <button
-              className="px-4 py-2 text-white bg-btnPrimaryClr hover:bg-btnHoverClr rounded-lg"
-              onClick={() => setShowMassActionsPopup(!showMassActionsPopup)}
+            <select
+              onChange={(e) => handleMassActionChange(e.target.value)}
+              defaultValue=""
+              className="bg-white border border-gray-300 rounded-lg p-2"
             >
-              Actions
-            </button>
+              <option value="" placeholder="Actions">
+                Actions
+              </option>
+              <option value="delete" onClick={handleMassDelete}>Delete</option>
+              <option value="transfer" onClick={() => setShowMassLeadTransferPopup(true)}>Transfer</option>
+            </select>
             <button
               className="px-4 py-2 text-white bg-btnPrimaryClr hover:bg-btnHoverClr rounded-lg"
               onClick={() => setShowForm(true)}
@@ -410,149 +428,149 @@ const PanelLeads = () => {
               </tr>
             </thead>
             <tbody>
-  {[...currentRecords].reverse().map((lead) => (
-    <tr
-      key={lead._id}
-      className={`hover:bg-gray-100 border-b ${getStatusClass(lead.lead_Status)}`} // Apply the conditional class here
-    >
-      <td className="px-4 py-2 border">
-        <input
-          type="checkbox"
-          className="form-checkbox h-4 w-4 text-blue-600"
-          checked={selectedLeads.includes(lead._id)}
-          onChange={() => handleCheckboxChange(lead._id)}
-        />
-      </td>
-      <td
-        className="px-4 py-2 border"
-        onClick={() => navigate(`/lead-detail/${lead._id}`)}
-      >
-        {new Date(lead.createdAt).toLocaleDateString()}
-      </td>
-      <td
-        className="px-4 py-2 border"
-        onClick={() => navigate(`/lead-detail/${lead._id}`)}
-      >
-        {lead.lead_CreaterName}
-      </td>
-      
-      <td
-        className="px-4 py-2 border"
-        onClick={() => navigate(`/lead-detail/${lead._id}`)}
-      >
-        {lead.lead_Title.length > 20
-          ? `${lead.lead_Title.slice(0, 20)}...`
-          : lead.lead_Title}
-      </td>
-      <td
-        className="px-4 py-2 border"
-        onClick={() => navigate(`/lead-detail/${lead._id}`)}
-      >
-        {
-          lead.lead_CustomerDetails.customer_GeneralDetails
-            .customer_DisplayName
-        }
-      </td>
-      <td
-        className="flex justify-center align-center mt-2"
-        onClick={() => navigate(`/lead-detail/${lead._id}`)}
-      >
-        {lead.lead_Label === "Hot" && (
-          <FontAwesomeIcon
-            icon={faFire}
-            className="text-red-500 text-lg"
-          />
-        )}
-        {lead.lead_Label === "Warm" && (
-          <FontAwesomeIcon
-            icon={faSun}
-            className="text-orange-500 text-lg"
-          />
-        )}
-        {lead.lead_Label === "Cold" && (
-          <FontAwesomeIcon
-            icon={faSnowflake}
-            className="text-blue-500 text-lg"
-          />
-        )}
-      </td>
-      <td className="px-4 py-2 border">
-  {lead.lead_Status}
-</td>
+              {[...currentRecords].reverse().map((lead) => (
+                <tr
+                  key={lead._id}
+                  className={`hover:bg-gray-100 border-b ${getStatusClass(lead.lead_Status)}`} // Apply the conditional class here
+                >
+                  <td className="px-4 py-2 border">
+                    <input
+                      type="checkbox"
+                      className="form-checkbox h-4 w-4 text-blue-600"
+                      checked={selectedLeads.includes(lead._id)}
+                      onChange={() => handleCheckboxChange(lead._id)}
+                    />
+                  </td>
+                  <td
+                    className="px-4 py-2 border"
+                    onClick={() => navigate(`/lead-detail/${lead._id}`)}
+                  >
+                    {new Date(lead.createdAt).toLocaleDateString()}
+                  </td>
+                  <td
+                    className="px-4 py-2 border"
+                    onClick={() => navigate(`/lead-detail/${lead._id}`)}
+                  >
+                    {lead.lead_CreaterName}
+                  </td>
 
-      <td
-        className="px-4 py-2 border"
-        onClick={() => navigate(`/lead-detail/${lead._id}`)}
-      >
-        {lead.lead_TransferredByUserName}
-      </td>
-      <td
-        className="px-4 py-2 border"
-        onClick={() => navigate(`/lead-detail/${lead._id}`)}
-      >
-        {lead.lead_PreviousOwnerName}
-      </td>
-      <td
-        className="px-4 py-2 border"
-        onClick={() => navigate(`/lead-detail/${lead._id}`)}
-      >
-        {lead.lead_AssignedToUserName}
-      </td>
-      <td className="px-4 py-2 border">
-        <button
-          className="relative px-2 py-1 bg-btnPrimaryClr text-white text-sm hover:bg-btnHoverClr"
-          onClick={() => {
-            setShowActionPopup(lead._id);
-            setLeadId(lead._id);
-          }}
-        >
-          <FontAwesomeIcon icon={faCaretSquareDown} />
-        </button>
-        {showActionPopup === lead._id && (
-          <div className="absolute mt-1 right-0 bg-white border border-btnPrimaryClr p-4 z-10">
-            <h3 className="text-lg font-semibold mb-2">
-              Choose an Action
-            </h3>
-            <div className="flex space-y-2 flex-col">
-              <button
-                className="px-4 py-2 bg-btnSecClr hover:bg-btnSecHoverClr"
-                onClick={() => {
-                  navigate(`/optional-data-lead/${lead._id}`);
-                  setShowActionPopup(null);
-                }}
-              >
-                Add Optional Data
-              </button>
-              <button
-                className="px-4 py-2 bg-btnSecClr hover:bg-btnSecHoverClr"
-                onClick={() => {
-                  navigate(`/lead-to-quote-conversion/${lead._id}`);
-                }}
-              >
-                Convert to Quote
-              </button>
-              <button
-                className="px-4 py-2 bg-btnSecClr hover:bg-btnSecHoverClr"
-                onClick={() => handleApproveLead(lead._id)}
-              >
-                Approve Lead
-              </button>
-              <button
-                className="px-4 py-2 bg-btnTerClr text-gray-800 hover:bg-btnTerHoverClr"
-                onClick={() => setShowActionPopup(null)}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
-      </td>
-    </tr>
-  ))}
-</tbody>
+                  <td
+                    className="px-4 py-2 border"
+                    onClick={() => navigate(`/lead-detail/${lead._id}`)}
+                  >
+                    {lead.lead_Title.length > 20
+                      ? `${lead.lead_Title.slice(0, 20)}...`
+                      : lead.lead_Title}
+                  </td>
+                  <td
+                    className="px-4 py-2 border"
+                    onClick={() => navigate(`/lead-detail/${lead._id}`)}
+                  >
+                    {
+                      lead.lead_Customer.customer_Name
+                    }
+                  </td>
+                  <td
+                    className="flex justify-center align-center mt-2"
+                    onClick={() => navigate(`/lead-detail/${lead._id}`)}
+                  >
+                    {lead.lead_Label === "Hot" && (
+                      <FontAwesomeIcon
+                        icon={faFire}
+                        className="text-red-500 text-lg"
+                      />
+                    )}
+                    {lead.lead_Label === "Warm" && (
+                      <FontAwesomeIcon
+                        icon={faSun}
+                        className="text-orange-500 text-lg"
+                      />
+                    )}
+                    {lead.lead_Label === "Cold" && (
+                      <FontAwesomeIcon
+                        icon={faSnowflake}
+                        className="text-blue-500 text-lg"
+                      />
+                    )}
+                  </td>
+                  <td className="px-4 py-2 border">
+                    {lead.lead_Status}
+                  </td>
+
+                  <td
+                    className="px-4 py-2 border"
+                    onClick={() => navigate(`/lead-detail/${lead._id}`)}
+                  >
+                    {lead.lead_TransferredByUserName}
+                  </td>
+                  <td
+                    className="px-4 py-2 border"
+                    onClick={() => navigate(`/lead-detail/${lead._id}`)}
+                  >
+                    {lead.lead_PreviousOwnerName}
+                  </td>
+                  <td
+                    className="px-4 py-2 border"
+                    onClick={() => navigate(`/lead-detail/${lead._id}`)}
+                  >
+                    {lead.lead_AssignedToUserName}
+                  </td>
+                  <td className="px-4 py-2 border">
+                    <button
+                      className="relative px-2 py-1 bg-btnPrimaryClr text-white text-sm hover:bg-btnHoverClr"
+                      onClick={() => {
+                        setShowActionPopup(lead._id);
+                        setLeadId(lead._id);
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faCaretSquareDown} />
+                    </button>
+                    {showActionPopup === lead._id && (
+                      <div className="absolute mt-1 right-0 bg-white border border-btnPrimaryClr p-4 z-10">
+                        <h3 className="text-lg font-semibold mb-2">
+                          Choose an Action
+                        </h3>
+                        <div className="flex space-y-2 flex-col">
+                          <button
+                            className="px-4 py-2 bg-btnSecClr hover:bg-btnSecHoverClr"
+                            onClick={() => {
+                              navigate(`/optional-data-lead/${lead._id}`);
+                              setShowActionPopup(null);
+                            }}
+                          >
+                            Add Optional Data
+                          </button>
+                          <button
+                            className="px-4 py-2 bg-btnSecClr hover:bg-btnSecHoverClr"
+                            onClick={() => {
+                              navigate(`/lead-to-quote-conversion/${lead._id}`);
+                            }}
+                          >
+                            Convert to Quote
+                          </button>
+                          <button
+                            className="px-4 py-2 bg-btnSecClr hover:bg-btnSecHoverClr"
+                            onClick={() => handleApproveLead(lead._id)}
+                          >
+                            Approve Lead
+                          </button>
+                          <button
+                            className="px-4 py-2 bg-btnTerClr text-gray-800 hover:bg-btnTerHoverClr"
+                            onClick={() => setShowActionPopup(null)}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
           </table>
         </div>
       </section>
+
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
           <div className="bg-white w-full max-w-lg p-5 rounded-lg">
@@ -566,86 +584,118 @@ const PanelLeads = () => {
               </button>
             </div>
             <form onSubmit={handleFormSubmit} className="space-y-4">
-              {/* Customer Name Field (Updated) */}
-              <div className="flex items-center border border-btnPrimaryClr p-3 rounded focus-within:ring-2 focus-within:ring-green-500">
-                <FontAwesomeIcon icon={faUser} className="text-gray-500 mr-3" />
-                <Select
-                  id="lead_Customer"
-                  options={customers.map((customer) => ({
-                    value: customer._id,
-                    label:
-                      customer.customer_GeneralDetails.customer_DisplayName,
-                  }))}
-                  value={customers
-                    .map((customer) => ({
-                      value: customer._id,
-                      label:
-                        customer.customer_GeneralDetails.customer_DisplayName,
-                    }))
-                    .find((option) => option.value === formData.lead_Customer)}
-                  onChange={(selectedOption) =>
-                    setFormData({
-                      ...formData,
-                      lead_Customer: selectedOption ? selectedOption.value : "",
-                    })
-                  }
-                  placeholder="Select Customer"
-                  className="w-full outline-none"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowCustomerForm(true)}
-                  className="ml-2 px-4 bg-btnPrimaryClr text-white hover:bg-btnHoverClr rounded-lg"
-                >
-                  + Add Customer
-                </button>
+              {/* Radio Buttons */}
+              <div className="flex space-x-4 mb-4">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="formType"
+                    value="individual"
+                    checked={formType === 'individual'}
+                    onChange={() => {
+                      setFormType('individual');
+                      setFormData({
+                        customer_Name: "",
+                        customer_Email: "",
+                        customer_Address: "",
+                        customer_Contact: "",
+                        contactPerson_Name: "",
+                        contactPerson_Email: "",
+                        contactPerson_Contact: "",
+                        lead_Type: "individual",
+                        lead_Scope: "",
+                        lead_Title: "",
+                        lead_Source: "",
+                      });
+                    }}
+                    className="mr-2"
+                  />
+                  Individual
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="formType"
+                    value="business"
+                    checked={formType === 'business'}
+                    onChange={() => {
+                      setFormType('business');
+                      setFormData({
+                        customer_Name: "",
+                        customer_Email: "",
+                        customer_Address: "",
+                        customer_Contact: "",
+                        contactPerson_Name: "",
+                        contactPerson_Email: "",
+                        contactPerson_Contact: "",
+                        lead_Type: "business",
+                        lead_Scope: "",
+                        lead_Title: "",
+                        lead_Source: "",
+                      });
+                    }}
+                    className="mr-2"
+                  />
+                  Business
+                </label>
               </div>
 
-              {/* Other Input Fields */}
-              {[
-                {
-                  id: "lead_Scope",
-                  icon: faBullseye,
-                  placeholder: "Lead Scope",
-                  type: "text",
-                },
-                {
-                  id: "lead_Title",
-                  icon: faTag,
-                  placeholder: "Lead Title",
-                  type: "text",
-                },
-              ].map((field) => (
-                <div
-                  key={field.id}
-                  className="flex items-center border border-btnPrimaryClr p-3 rounded focus-within:ring-2 focus-within:ring-green-500"
-                >
-                  <FontAwesomeIcon
-                    icon={field.icon}
-                    className="text-gray-500 mr-3"
-                  />
-                  <input
-                    id={field.id}
-                    type={field.type}
-                    value={formData[field.id]}
-                    onChange={handleInputChange}
-                    className="w-full outline-none"
-                    required
-                    placeholder={field.placeholder}
-                  />
-                </div>
-              ))}
+              {/* Input fields with icons */}
+              {formType === 'business' ? (
+                [
+                  { id: "customer_Name", icon: faUser, placeholder: "Company Name", type: "text" },
+                  { id: "customer_Email", icon: faEnvelope, placeholder: "Company Email", type: "email" },
+                  { id: "customer_Contact", icon: faAddressBook, placeholder: "Company Contact", type: "text" },
+                  { id: "customer_Address", icon: faAddressBook, placeholder: "Company Address", type: "text" },
+                  { id: "contactPerson_Name", icon: faPhone, placeholder: "Company Contact Person Name", type: "text" },
+                  { id: "contactPerson_Email", icon: faEnvelope, placeholder: "Company Contact Person Email", type: "email" },
+                  { id: "contactPerson_Contact", icon: faPhone, placeholder: "Company Contact Person Contact", type: "text" },
+                  { id: "lead_Scope", icon: faMapMarkerAlt, placeholder: "Lead Scope", type: "text" },
+                  { id: "lead_Title", icon: faTag, placeholder: "Lead Title", type: "text" },
+                ].map((field) => (
+                  <div key={field.id} className="flex items-center border border-btnPrimaryClr p-3 rounded focus-within:ring-2 focus-within:ring-green-500">
+                    <FontAwesomeIcon icon={field.icon} className="text-gray-500 mr-3" />
+                    <input
+                      id={field.id}
+                      type={field.type}
+                      value={formData[field.id]}
+                      onChange={handleInputChange}
+                      className="w-full outline-none"
+                      required
+                      placeholder={field.placeholder}
+                    />
+                  </div>
+                ))
+              ) : (
+                [
+                  { id: "customer_Name", icon: faUser, placeholder: "Customer Name", type: "text" },
+                  { id: "customer_Email", icon: faEnvelope, placeholder: "Customer Email", type: "email" },
+                  { id: "customer_Contact", icon: faEnvelope, placeholder: "Customer Contact", type: "text" },
+                  { id: "customer_Address", icon: faAddressBook, placeholder: "Customer Address", type: "text" },
+                  { id: "lead_Scope", icon: faMapMarkerAlt, placeholder: "Lead Scope", type: "text" },
+                  { id: "lead_Title", icon: faTag, placeholder: "Lead Title", type: "text" },
+                ].map((field) => (
+                  <div key={field.id} className="flex items-center border border-btnPrimaryClr p-3 rounded focus-within:ring-2 focus-within:ring-green-500">
+                    <FontAwesomeIcon icon={field.icon} className="text-gray-500 mr-3" />
+                    <input
+                      id={field.id}
+                      type={field.type}
+                      value={formData[field.id]}
+                      onChange={handleInputChange}
+                      className="w-full outline-none"
+                      required
+                      placeholder={field.placeholder}
+                    />
+                  </div>
+                ))
+              )}
 
               {/* Source Selection */}
               <div className="flex items-center border border-btnPrimaryClr p-3 rounded focus-within:ring-2 focus-within:ring-green-500">
-                <FontAwesomeIcon
-                  icon={faGlobe}
-                  className="text-gray-500 mr-3"
-                />
+                <FontAwesomeIcon icon={faGlobe} className="text-gray-500 mr-3" />
                 <select
                   id="lead_Source"
-                  value={formData.lead_Source}
+                  value={formData.source}
                   onChange={handleInputChange}
                   className="w-full outline-none"
                   required
@@ -677,32 +727,6 @@ const PanelLeads = () => {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {showCustomerForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
-          <div className="bg-white w-full max-w-3xl p-6 rounded-lg overflow-y-auto max-h-[90vh]">
-            {" "}
-            {/* Added overflow-y-auto and max-h-[90vh] for scrolling */}
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-semibold text-gray-800">
-                Add Customer
-              </h3>
-              <button
-                onClick={() => setShowCustomerForm(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <FontAwesomeIcon icon={faTimes} className="h-6 w-6" />
-              </button>
-            </div>
-            <CustomerForm
-              onSuccess={() => {
-                setShowCustomerForm(false);
-                fetchCustomers(); // Refresh the customer list after adding a new customer
-              }}
-            />
           </div>
         </div>
       )}

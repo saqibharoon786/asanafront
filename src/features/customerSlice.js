@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   customer_GeneralDetails: {
-    customer_Type: "", // Enum: ['Business', 'Individual']
+    customer_Type: "", // Enum: ['business', 'individual']
     customer_PrimaryInfo: {
       salutation: "",
       firstName: "",
@@ -122,6 +122,21 @@ const customerSlice = createSlice({
       state = action.payload.customer;
       return { ...state, ...action.payload };
     },
+    setInitialDetailsLeadToQuoteConversion: (state, action) => {
+      const { lead } = action.payload;
+      if (lead.lead_Type === "individual") {
+        state.customer_GeneralDetails.customer_Type = lead.lead_Type;
+        state.customer_GeneralDetails.customer_PrimaryInfo.firstName = lead.lead_Customer.customer_Name || "";
+        state.customer_GeneralDetails.customer_Contact.mobilePhone = lead.lead_Customer.customer_Contact || "";
+        state.customer_GeneralDetails.customer_Email = lead.lead_Customer.customer_Email || "";
+      } else if (lead.lead_Type === "business") {
+        state.customer_GeneralDetails.customer_Type = lead.lead_Type;
+        state.customer_GeneralDetails.customer_CompanyName = lead.lead_Customer.customer_Name || "";
+        state.customer_GeneralDetails.customer_DisplayName = lead.lead_Customer.customer_Name || "";
+        state.customer_GeneralDetails.customer_PrimaryInfo.firstName = lead.lead_ContactPerson.contactPerson_Name || "";
+      } 
+      console.log(JSON.parse(JSON.stringify(state)));
+    },
     resetCustomer: () => initialState,
   },
 });
@@ -133,6 +148,7 @@ export const {
   createContactPersons,
   createRemarks,
   setCustomerData,
-  resetCustomer
+  resetCustomer,
+  setInitialDetailsLeadToQuoteConversion
 } = customerSlice.actions;
 export default customerSlice.reducer;
