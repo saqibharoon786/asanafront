@@ -349,15 +349,15 @@ const LeadToQuote = () => {
       {/* Customer Name */}
       <div className="mb-6">
         <label
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-medium text-gray-700 mt-5"
           htmlFor="customerName"
         >
           <FaUser className="inline-block mr-2" /> Customer Name
         </label>
-        <div className="flex m-2 ">
+        <div className="flex -5 w-1/4 justify-between mt-5">
           {lead &&
             lead.lead_Customer.customer_Name}
-          <div className="m-2">
+          
             <button
               type="button"
               onClick={() => setShowCustomerForm(true)}
@@ -365,7 +365,7 @@ const LeadToQuote = () => {
             >
               Add More
             </button>
-          </div>
+         
         </div>
 
       </div>

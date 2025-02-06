@@ -11,21 +11,34 @@ const Remarks = () => {
   };
 
   return (
-    <div>
-      <div className="grid grid-cols-2 gap-4">
-        {/* Billing Address */}
-        <div>
-          <input
-            type="text"
-            name="customer_Remarks"
-            value={customerData.customer_Remarks}
-            onChange={handleRemarks}
-            placeholder="Remarks"
-            className="w-full border px-2 py-1 rounded mb-2"
-          />
-        </div>
+
+    <>
+        <div className="tab-pane">
+      <div className="form-group">
+        <label
+          htmlFor="remarks"
+          className="block text-sm font-semibold text-gray-700"
+        >
+          Remarks (For Internal Use)
+        </label>
+        <textarea
+          id="customer_Remarks"
+          name="customer_Remarks"
+          type="text"
+          value={customerData.customer_Remarks}
+          onChange={handleRemarks}
+          rows="3"
+          cols="100"
+          className="mt-2 p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+          placeholder="Enter remarks here"
+        ></textarea>
+        <small
+          id="remarks-help"
+          className="text-xs text-gray-500"
+        ></small>
       </div>
     </div>
+    </>
   );
 };
 

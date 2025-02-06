@@ -84,7 +84,7 @@ const PanelQuote = () => {
       const response = await axios.get(`${API_URL}/quote/get-quotes`, {
         headers: { Authorization: `Bearer ${jwtLoginToken}` },
       });
-
+      
       if (response.data.success) {
         let filteredQuotes = response.data.information.quotes;
 
