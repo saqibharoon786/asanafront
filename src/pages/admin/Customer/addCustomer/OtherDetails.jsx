@@ -1,6 +1,7 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { createOtherDetails } from "../../../../features/customerSlice";
+import { ErrorMessage, Field } from "formik";
 
 const OtherDetails = () => {
   const dispatch = useDispatch();
@@ -43,18 +44,21 @@ const OtherDetails = () => {
               </span>
             </span>
           </label>
-          <input
+          <Field
             id="customer_TRN"
-            name="customer_TRN"
+            name="customer_OtherDetails.customer_TRN"
             type="text"
-            required
             value={customerData.customer_OtherDetails.customer_TRN}
             onChange={handleOtherDetails}
-            
             placeholder="TRN#"
             className="flex-1 mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
           />
-
+          {/* Error Message for TRN */}
+          <ErrorMessage
+            name="customer_OtherDetails.customer_TRN"
+            component="div"
+            className="text-red-600"
+          />
         </div>
 
         {/* Company ID Field */}

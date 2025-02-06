@@ -6,7 +6,7 @@
       customer_PrimaryInfo: {
         salutation: "",
         firstName: "",
-        lastName: null,
+        lastName: "",
       },
       customer_CompanyName: "",
       customer_DisplayName: "",
@@ -95,6 +95,7 @@
       },
       createAddress: (state, action) => {
         const { addressType, field, value } = action.payload;
+
         if (addressType === "billingAddress") {
           state.customer_Address.billingAddress[field] = value;
         } else if (addressType === "shippingAddress") {
@@ -127,7 +128,6 @@
         state[field] = value;
       },
       setCustomerData: (state, action) => {
-        console.log(action.payload);
         state = action.payload.customer;
         return { ...state, ...action.payload };
       },
@@ -146,7 +146,6 @@
           state.customer_GeneralDetails.customer_Email = lead.lead_Customer.customer_Email || "";
           state.customer_GeneralDetails.customer_Contact.workPhone = lead.lead_Customer.customer_Contact || "";
         } 
-        console.log(JSON.parse(JSON.stringify(state)));
       },
       resetCustomer: () => initialState,
     },

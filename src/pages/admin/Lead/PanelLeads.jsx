@@ -515,55 +515,31 @@ const PanelLeads = () => {
                   >
                     {lead.lead_AssignedToUserName}
                   </td>
-                  <td className="px-4 py-2 border">
-                    <button
-                      className="relative px-2 py-1 bg-btnPrimaryClr text-white text-sm hover:bg-btnHoverClr"
-                      onClick={() => {
-                        setShowActionPopup(lead._id);
-                        setLeadId(lead._id);
-                      }}
-                    >
-                      <FontAwesomeIcon icon={faCaretSquareDown} />
-                    </button>
-                    {showActionPopup === lead._id && (
-                      <div className="absolute mt-1 right-0 bg-white border border-btnPrimaryClr p-4 z-10">
-                        <h3 className="text-lg font-semibold mb-2">
-                          Choose an Action
-                        </h3>
-                        <div className="flex space-y-2 flex-col">
-                          <button
-                            className="px-4 py-2 bg-btnSecClr hover:bg-btnSecHoverClr"
-                            onClick={() => {
-                              navigate(`/optional-data-lead/${lead._id}`);
-                              setShowActionPopup(null);
-                            }}
-                          >
-                            Add Optional Data
-                          </button>
-                          <button
-                            className="px-4 py-2 bg-btnSecClr hover:bg-btnSecHoverClr"
-                            onClick={() => {
-                              navigate(`/lead-to-quote-conversion/${lead._id}`);
-                            }}
-                          >
-                            Convert to Quote
-                          </button>
-                          <button
-                            className="px-4 py-2 bg-btnSecClr hover:bg-btnSecHoverClr"
-                            onClick={() => handleApproveLead(lead._id)}
-                          >
-                            Approve Lead
-                          </button>
-                          <button
-                            className="px-4 py-2 bg-btnTerClr text-gray-800 hover:bg-btnTerHoverClr"
-                            onClick={() => setShowActionPopup(null)}
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </td>
+                  <td className="px-4 py-2">
+  <select
+    className="relative px-2 py-1  text-black text-sm "
+    onChange={(e) => {
+      const action = e.target.value;
+      if (action === 'addOptionalData') {
+        navigate(`/optional-data-lead/${lead._id}`);
+      } else if (action === 'convertToQuote') {
+        navigate(`/lead-to-quote-conversion/${lead._id}`);
+      } else if (action === 'approveLead') {
+        handleApproveLead(lead._id);
+      } else if (action === 'cancel') {
+        setShowActionPopup(null);
+      }
+    }}
+    value={showActionPopup === lead._id ? 'selectAction' : ''}
+  >
+    <option value="" disabled>Select an Action</option>
+    <option value="addOptionalData">Add Optional Data</option>
+    <option value="convertToQuote">Convert to Quote</option>
+    <option value="approveLead">Approve Lead</option>
+    <option value="cancel">Cancel</option>
+  </select>
+</td>
+
                 </tr>
               ))}
             </tbody>

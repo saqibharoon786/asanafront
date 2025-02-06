@@ -31,13 +31,13 @@ const EditCustomer = () => {
                     Authorization: `Bearer ${jwtLoginToken}`,
                 },
             });
-
             if (response.data.success) {
                 dispatch(setCustomerData(response.data.information.customer));
             }
         } catch (error) {
             console.error("Error fetching customer data:", error);
         }
+        
     };
 
     useEffect(() => {
@@ -58,7 +58,6 @@ const EditCustomer = () => {
         e.preventDefault(); // Prevent default form submission
         e.stopPropagation(); // Stop event bubbling
 
-        console.log(customerData)
         try {
             const response = await axios.patch(
                 `${API_URL}/customer/update-customer/${customerId}`,
