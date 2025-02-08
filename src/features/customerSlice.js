@@ -2,7 +2,7 @@
 
   const initialState = {
     customer_GeneralDetails: {
-      customer_Type: "",
+      customer_Type: "business",
       customer_PrimaryInfo: {
         salutation: "",
         firstName: "",
@@ -92,6 +92,7 @@
         } else {
           state.customer_OtherDetails[field] = value;
         }
+        console.log(JSON.parse(JSON.stringify(state)));
       },
       createAddress: (state, action) => {
         const { addressType, field, value } = action.payload;
