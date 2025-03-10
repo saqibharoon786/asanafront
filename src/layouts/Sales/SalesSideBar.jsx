@@ -178,7 +178,48 @@ const SalesSidebar = ({ isSidebarOpen, toggleSidebar }) => {
             )}
           </li>
 
-
+          <li>
+            <div
+              className="flex items-center justify-between p-3 cursor-pointer hover:bg-blue-100 rounded-lg transition duration-200"
+              onClick={() => toggleDropdown("project")}
+            >
+              <div className="flex items-center space-x-2 group">
+                <FontAwesomeIcon
+                  icon={faClipboardList}
+                  className="text-gray-900 group-hover:text-gray-900 transition duration-200"
+                />
+                <span className="group-hover:text-gray-900 transition duration-200">
+                  Project
+                </span>
+              </div>
+              <FontAwesomeIcon
+                icon={openDropdowns.project ? faChevronDown : faChevronRight}
+                className="text-gray-900 group-hover:text-gray-900 transition duration-200"
+              />
+            </div>
+            {openDropdowns.project && (
+              <ul className="ml-6 mt-2 space-y-2 text-gray-600">
+                <li>
+                  <Link
+                    to="/project/new-project"
+                    className={`flex items-center space-x-2 p-2 rounded-lg transition duration-200 ${
+                      activeItem === "customers"
+                        ? "bg-btnPrimaryClr text-white"
+                        : "hover:text-gray-900"
+                    }`}
+                    onClick={() => handleOptionClick("new project")}
+                  >
+                    <FontAwesomeIcon icon={faClipboardList} />
+                    <span>New Project</span>
+                  </Link>
+                </li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+              </ul>
+            )}
+          </li>
         </ul>
       </div>
     </div>
