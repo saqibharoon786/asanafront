@@ -39,7 +39,7 @@ const Login = () => {
         }else if(user.access==="Sales"){
           navigate(`/sales/${user.name}`);
         }
-        else if(user.access==="SEO"||user.access==="Developer"){
+        else if(user.access==="Seo"||user.access==="Developer"){
           navigate(`/home`);
         }
         

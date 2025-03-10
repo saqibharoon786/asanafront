@@ -57,6 +57,8 @@ function ProjectGoalPannel() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [subGoalTitle, setSubGoalTitle] = useState(""); // State for sub-goal title
 const [subGoalOwner, setSubGoalOwner] = useState(""); // State for sub-goal owner
+const [submembers, setsubmembers] = useState(""); // State for submembers
+const [timeperiod, settimeperiod] = useState(""); // State for timeperiod
  // State to toggle modal visibility
 
   
@@ -201,6 +203,8 @@ useEffect(() => {
     // Handle form submission logic
     console.log("Sub-goal Title:", subGoalTitle);
     console.log("Sub-goal Owner:", subGoalOwner);
+    console.log("submembers:", submembers);
+    console.log("timeperiod:", timeperiod);
     setIsModalOpen(false); // Close modal after submission
   };
 
@@ -346,51 +350,8 @@ useEffect(() => {
         <FontAwesomeIcon icon={faPlus} /> Connect a sub-goal
       </button>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-md w-[600px] flex">
-            <div className="w-1/3 flex items-center justify-center">
-              <img src={teamgoal} alt="Goal" className="w-full h-auto" />
-            </div>
-            <div className="w-2/3 pl-6">
-              <h2 className="text-xl font-bold mb-4">{`Add Sub-Goal`}</h2>
-              <form onSubmit={handleSubmit}>
-                <label className="block mb-2">Sub-Goal Title</label>
-                <input
-                  type="text"
-                  className="w-full border p-2 mb-4"
-                  placeholder="Enter sub-goal title"
-                  value={subGoalTitle}
-                  onChange={(e) => setSubGoalTitle(e.target.value)}
-                />
-                <label className="block mb-2">Assign Owner</label>
-                <input
-                  type="text"
-                  className="w-full border p-2 mb-4"
-                  placeholder="Sub-goal owner"
-                  value={subGoalOwner}
-                  onChange={(e) => setSubGoalOwner(e.target.value)}
-                />
-                <div className="flex justify-end">
-                  <button
-                    className="bg-gray-300 px-4 py-2 rounded-lg mr-2"
-                    onClick={() => setIsModalOpen(false)} // Close the modal
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="bg-blue-500 text-white px-4 py-2 rounded-lg"
-                    type="submit"
-                  >
-                    Save Sub-Goal
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      
+              </div>
   
 
 
@@ -454,6 +415,83 @@ useEffect(() => {
           
         </div>
       </div>
+
+      <div className="">
+  {isModalOpen && (
+    <div className="fixed inset-0 flex items-center justify-center py-10 bg-gray-900 bg-opacity-50">
+      <div className="bg-white p-6 rounded-lg shadow-md w-full flex pt-10 max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-center">
+          <img src={teamgoal} alt="Goal" className="w-full h-auto" />
+        </div>
+        <div className="pl-4 pr-4">
+          <h2 className="text-xl font-bold mb-4">{`Add Sub-Goal`}</h2>
+          <form onSubmit={handleSubmit}>
+            <label className="block mb-2">Goal Title</label>
+            <input
+              type="text"
+              className="w-full border p-2 mb-4"
+              placeholder="Enter sub-goal title"
+              value={subGoalTitle}
+              onChange={(e) => setSubGoalTitle(e.target.value)}
+            />
+            <label className="block mb-2">Goal Owner</label>
+            <input
+              type="text"
+              className="w-full border p-2 mb-4"
+              placeholder="Sub-goal owner"
+              value={subGoalOwner}
+              onChange={(e) => setSubGoalOwner(e.target.value)}
+            />
+            <label className="block mb-2">Members</label>
+            <input
+              type="text"
+              className="w-full border p-2 mb-4"
+              placeholder="Sub-goal members"
+              value={submembers}
+              onChange={(e) => setsubmembers(e.target.value)}
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block mb-2">Time period</label>
+                <input
+                  type="text"
+                  className="w-full border p-2 mb-4"
+                  placeholder="Enter time period"
+                  value={timeperiod}
+                  onChange={(e) => settimeperiod(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block mb-2">Privacy</label>
+                <select className="w-full border p-2 mb-4">
+                  <option>Public</option>
+                  <option>Private</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                className="bg-gray-300 px-4 py-2 rounded-lg mr-2"
+                onClick={() => setIsModalOpen(false)}
+                type="button"
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+                type="submit"
+              >
+                Save Sub-Goal
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  )}
+</div>
+
     </div>
   );
 }

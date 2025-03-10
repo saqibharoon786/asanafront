@@ -16,6 +16,10 @@ const Projectgoal = () => {
   const [goalOwner, setGoalOwner] = useState('');
   const [timePeriod, setTimePeriod] = useState('');
   const [privacy, setPrivacy] = useState('private');
+  const [upDateMethod, setupDateMethod] = useState('Automatic');
+  const [progressform, setprogressform] = useState('projects');
+  const [measurement, setmeasurement] = useState('percent');
+
   const [members, setMembers] = useState('');
   const [jwtLogintoken, setJwtLoginToken] = useState("");
   const [goals, setGoals] = useState([]); 
@@ -86,6 +90,9 @@ const Projectgoal = () => {
         timePeriod,
         privacy,
         members,
+        upDateMethod,
+        progressform,
+        measurement,
     };
 
     console.log("Goal Data before sending:", goalData); // Debugging
@@ -180,49 +187,62 @@ const Projectgoal = () => {
       )}
   
   {isTeamGoalsVisible && (
-    <div className="flex flex-wrap justify-center">
-      {/* Goal Item */}
-      {goals.map((goal, index) => (
-        <div key={index} className="max-w-xs p-6 mt-4 mx-2 rounded-lg shadow-md bg-white">
-          {/* Goal Title and Progress */}
-          <div className="flex justify-between mb-4">
-            <h3 className="text-xl font-bold">{goal.goalTitle}</h3>
-            <span className="text-sm text-gray-500">{goal.timePeriod}</span>
-          </div>
+    <div className=" w-full  justify-center flex">
+      <div className='justify-center w-10/12 flex   flex-col'>
+        {/* Goal Item */}
+        {goals.map((goal, index) => (
+          <div key={index} className=" p-6 mt-4 mx-2  justify-center rounded-lg shadow-md bg-white">
+            {/* Goal Title and Progress */}
+            <div className="flex justify-between mb-4  ">
+              <h3 className="text-xl font-bold ">{goal.goalTitle}</h3>
+              <div className=''>
+                <p className='text-sm text-gray-600'><strong>Status:</strong>{goal.status ? (
+                  <span className='ml-2'>{goal.status}</span>
+                ):(<span className='ml-2'>No Status</span>)} </p>
+              </div>
+            </div>
 
-          {/* Progress Bar */}
-          <div className="mt-2">
-            <div className="w-full h-2 bg-gray-300 rounded-full">
+            {/* Progress Bar */}
+            <div className="mt-2">
+              <div className="w-full h-2 bg-gray-300 rounded-full">
+                <div
+                  className="h-2 bg-green-500 rounded-full"
+                  style={{ width: `${goal.progress}%` }}
+                ></div>
+              </div>
+            </div>
+
+            {/* Goal Status */}
+            {/* <div className="mt-2 outline">
               <div
-                className="h-2 bg-green-500 rounded-full"
-                style={{ width: `${goal.progress}%` }}
-              ></div>
+                className={`px-4 py-1 inline-block text-white  ${
+                  goal.status === "Completed"
+                    ? "bg-green-500"
+                    : goal.status === "In Progress"
+                    ? "bg-yellow-500"
+                    : "bg-gray-500"
+                }`}
+              >
+                {goal.status} 
+              </div>
+            </div> */}
+
+            {/* Additional Goal Information */}
+            <div className="mt-4 text-sm text-gray-600  justify-end flex space-x-3 ">
+              <div>
+                <p><strong>Owner:</strong> {goal.goalOwner}</p>
+                {goal.timePeriod && (
+                  <p><strong>Time Period:</strong> {goal.timePeriod}</p>
+
+                )}
+
+              </div>
+              
             </div>
           </div>
+        ))}
 
-          {/* Goal Status */}
-          <div className="mt-2">
-            <div
-              className={`px-4 py-1 inline-block text-white rounded-full ${
-                goal.status === "Completed"
-                  ? "bg-green-500"
-                  : goal.status === "In Progress"
-                  ? "bg-yellow-500"
-                  : "bg-gray-500"
-              }`}
-            >
-              {goal.status} {/* Display goal status */}
-            </div>
-          </div>
-
-          {/* Additional Goal Information */}
-          <div className="mt-4 text-sm text-gray-600">
-            <p><strong>Owner:</strong> {goal.goalOwner}</p>
-            <p><strong>Time Period:</strong> {goal.timePeriod}</p>
-            <p><strong>Status:</strong> {goal.status}</p>
-          </div>
-        </div>
-      ))}
+      </div>
     </div>
   )}
 
@@ -233,12 +253,12 @@ const Projectgoal = () => {
 
       
       {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-md w-[600px] flex">
-            <div className="w-1/3 flex items-center justify-center">
-              <img src={teamgoal} alt="Goal" className="w-full h-auto" />
+        <div className="fixed inset-0 flex items-center justify-center py-10 bg-gray-900 bg-opacity-50 mt-5">
+        <div className="bg-white p-6 rounded-lg shadow-md w-full flex pt-10 max-w-[800px] max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-center min-h-lvh">
+              <img src={teamgoal} alt="Goal" className="" />
             </div>
-            <div className="w-2/3 pl-6">
+            <div className="pl-6 h-full  w-11/12">
               <h2 className="text-xl font-bold mb-4">{`Add ${goalType}`}</h2>
               <form onSubmit={handleSubmit}>
                 <label className="block mb-2">Goal Title</label>
@@ -285,8 +305,103 @@ const Projectgoal = () => {
                   value={members}
                   onChange={(e) => setMembers(e.target.value)}
                 />
+                <div className='mb-10'>
+                  <p className='font-semibold '>How will you measure progress toward success?</p>
+                </div>
+                <div className='grid grid-cols-3 space-x-2'>
+                  <div>
+                    <label className="block mb-2">Update method*</label>
+                    <select
+                      className="w-full border p-2 mb-4"
+                      value={upDateMethod}
+                      onChange={(e) => setupDateMethod(e.target.value)}
+                    >
+                      <option value={"Automatic"}>Automatic</option>
+                      <option value={"Menual"}>Menual</option>
+                    </select>
+
+                  </div>
+                  {/* if automatic is true */}
+                  {upDateMethod === 'Automatic' && (
+                    <div>
+                      <div>
+                        <label className="block mb-2">Progress <source />*</label>
+                        <select
+                          className="w-full border p-2 mb-4"
+                          value={progressform}
+                          onChange={(e) => setprogressform(e.target.value)}
+                        >
+                          <option>Projects</option>
+                          <option>Sub Goal</option>
+                        </select>
+
+                      </div>
+                      
+                    </div>
+                  )
+                  }
+                  {upDateMethod === 'Automatic' && (
+                    <div>
+                      <div>
+                        <label className="block mb-2">Measurement*</label>
+                        <select
+                          className="w-full border p-2 mb-4"
+                          value={measurement}
+                          onChange={(e) => setmeasurement(e.target.value)}
+                        >
+                          <option>Milestone</option>
+                          <option>task complete</option>
+                        </select>
+
+                      </div>
+                      
+                    </div>
+                  )
+                  }
+                  {upDateMethod === 'Menual' && (
+                      <div>
+                        <div>
+                          <label className="block mb-2">Current Value*</label>
+                          <select
+                            className="w-full border p-2 mb-4"
+                            value={measurement}
+                            onChange={(e) => setmeasurement(e.target.value)}
+                          >
+                            <option>% Percent</option>
+                            <option></option>
+                          </select>
+
+                        </div>
+                      </div>
+                    )
+                  }
+                  {upDateMethod === 'Menual' && (
+                      <div>
+                       <div>
+                          <label className="block mb-2">Target Value*</label>
+                          <select
+                            className="w-full border p-2 mb-4"
+                            value={measurement}
+                            onChange={(e) => setmeasurement(e.target.value)}
+                          >
+                            <option>% Percent</option>
+                          </select>
+
+                        </div>
+                      </div>
+                    )
+                  }
+
+                  {/* if menual is true */}
+
+                </div>
+
+
+
+
+
                 <div className="flex justify-end">
-                  <button className="bg-gray-300 px-4 py-2 rounded-lg mr-2" onClick={closeModal}>Cancel</button>
+                  <button className="bg-gray-300 px-4 py-2 rounded-lg mr-2 " onClick={closeModal}>Cancel</button>
                   <button className="bg-blue-500 text-white px-4 py-2 rounded-lg" type="submit">Save Goal</button>
                 </div>
               </form>

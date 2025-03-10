@@ -9,6 +9,9 @@ const SalesProtectedRoute = ({ children }) => {
   if (!user || user.access!=="Sales") {
     return <Navigate to="/" />;
   }
+  if (!user || user.access!=="Seo") {
+    return <Navigate to="/" />;
+  }
 
   // Render children if user.admin is false
   return children;
